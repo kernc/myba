@@ -1,0 +1,530 @@
+#!/bin/sh
+# sdebbsg - Secure, distributed, encrypted backups based on `sh` shell and `git` (and `openssl enc` or `gpg`)
+# FIXME review
+#
+# Basically your beloved git, but with underlying two repos:
+#   - bare, local-only _plain repo_ to track changes upon local, plaintext (and binary) files, set e.g. to your $HOME,
+#   - _encrypted repo_ that holds the encrypted blobs.
+# Only the encrypted repo is ever synced with configured remotes.
+# Every commit into the plain repo creates a commit in the encrypted repo.
+# Commits in the encrypted repo carry base64-encoded encrypted commit metadata of the plain repo.
+# In the encrypted repo, there is a dir "manifest" with filename "{plain_repo_commit_hash}" and
+# line format: `<enc_path>\t<plain_path>`.
+# Encrypted paths are like "abc/def//rest-of-hash" and are _deterministic_,
+# dependent upon the plain pathname and chosen password! The multi-level fs hierarchy is for near maximum efficiency of `git sparse-checkout`.
+# Encrypted blobs are also encrypted deterministically, based on hash of the plain content and chosen password.
+#
+# This is an expected shell workflow:
+#
+#     $ export WORK_TREE=  # Defaults to $HOME
+#     $ sdebbsg init
+#     $ sdebbsg add .config/git/config .vimrc .ssh/config
+#     $ PASSWORD=secret sdebbsg commit -m 'my config files'  # Reads pw from stdin if unset
+#     $ sdebbsg rm .vimrc
+#     $ sdebbsg commit -m 'no longer use vim'
+#     $ sdebbsg remote add origin "$GITHUB_REPO"
+#     $ sdebbsg push origin
+#
+# Somewhere, sometime later, we may only have access to encrypted repo:
+#
+#     $ WORK_TREE="$HOME" sdebbsg clone "$GITHUB_REPO"
+#     $ sdebbsg log   # See plain commit info
+#     $ sdebbsg diff  # See changes of tracked $WORK_TREE files
+#     $ sdebbsg checkout $COMMIT  # Hash from plain or encrypted repo
+#     $ sdebbsg checkout .config .ssh  # Checkout dirs and everything under
+#     $ [ -f ~/.config/git/config ] && [ -d ~/.ssh ]   # Files are restored
+#
+# The last command Uses sparse-checkout to fetch and unencrypt the right blobs.
+# The checkout command asks before overwriting existing files in $WORK_TREE!
+#
+# See usage for details.
+#
+
+# shellcheck disable=SC1003,SC2064,SC2086,SC2162,SC3045
+
+set -eu
+
+# Configuration via env vars
+WORK_TREE="${WORK_TREE:-${HOME:-~}}"
+PLAIN_REPO="$WORK_TREE/.myba"
+ENC_REPO="$PLAIN_REPO/_encrypted"
+#PASSWORD=  # Replace with your encryption password or if null, read stdin
+
+usage () {
+    echo "Usage: $0 <subcommand> [options]"
+    echo "Subcommands:"
+    echo "  init                  Initialize repos in \$WORK_TREE (default: \$HOME)"
+    echo "  add [OPTS] PATH...    Stage files for backup/version tracking"
+    echo "  rm PATH...            Stage-remove files from future backups/version control"
+    echo "  commit [OPTS]         Commit staged changes of tracked files as a snapshot"
+    echo "  push [REMOTE]         Encrypt and push files to remote repo(s) (default: all)"
+    echo "  pull [REMOTE]         Pull encrypted commits from a promisor remote"
+    echo "  clone REPO_URL        Clone an encrypted repo and init from it"
+    echo "  remote CMD [OPTS]     Manage remotes of the encrypted repo"
+    echo "  restore [--squash]    Reconstruct plain repo commits from encrypted commits"
+    echo "  diff [OPTS]           Compare changes between plain repo revisions"
+    echo "  log [OPTS]            Show commit log of the plain repo"
+    echo "  checkout PATH...      Sparse-checkout and decrypt files into \$WORK_TREE"
+    echo "  checkout COMMIT       Switch files to a commit of plain or encrypted repo"
+    echo "  gc                    Garbage collect, remove synced encrypted packs"
+    echo "  git CMD [OPTS]        Inspect/execute raw git commands inside plain repo"
+    echo "  git_enc CMD [OPTS]    Inspect/execute raw git commands inside encrypted repo"
+    echo
+    echo 'Env vars: WORK_TREE, PLAIN_REPO, PASSWORD USE_GPG, VERBOSE, YES_OVERWRITE'
+    echo 'For a full list and info, see: https://github.com/kernc/myba/'
+    exit 1
+}
+
+_tab="$(printf '\t')"
+
+git_plain () { git --work-tree="$WORK_TREE" --git-dir="$PLAIN_REPO" "$@"; }
+git_enc () { git -C "$ENC_REPO" "$@"; }
+
+_is_binary_stream () { head -c 8192 | awk '{ if (index($0, "\0")) exit 0 } END { exit 1 }'; }
+_mktemp () { mktemp -t "$(basename "$0" .sh)-XXXXXXX" "$@"; }
+
+_ask_pw () {
+    if [ -z "${PASSWORD+1}" ]; then
+        stty -echo
+        IFS= read -p "Enter encryption password: " -r PASSWORD
+        echo
+        stty echo
+    fi
+
+    # Set up encryption via OpenSSL
+    _encrypt_func=_enc_openssl
+    _decrypt_func=_dec_openssl
+    _armor_flags='-base64 -A'
+    _kdf_iters="${KDF_ITERS:-321731}"
+    # Set up encryption via GPG
+    if [ "${USE_GPG+1}" ]; then
+        _encrypt_func=_enc_gpg
+        _decrypt_func=_dec_gpg
+        _armor_flags='--armor'
+        _kdf_iters="${KDF_ITERS:-159011733}"  # OpenSSL and GPG use different KDF algos
+    fi
+}
+_encrypted_path () {
+    _hash="$(echo "$1$PASSWORD" | sha512sum | cut -c-128)"
+    _path="$(echo "$_hash" | cut -c1-3)"
+    _path="$_path/$(echo "$_hash" | cut -c4-6)"
+    _path="$_path/$(echo "$_hash" | cut -c7-9)"
+    _path="$_path/$(echo "$_hash" | cut -c10-)"
+    echo "$_path"
+}
+_enc_openssl () {
+    openssl enc -aes-256-ctr -pbkdf2 -md sha512 -iter "$_kdf_iters" -salt -pass fd:3 "$@"
+}
+_dec_openssl () { _enc_openssl -d "$@"; }
+_gpg_common () {
+    gpg --compress-level 0 \
+        --passphrase-fd 3 --pinentry-mode loopback --batch \
+        --cipher-algo AES256 --digest-algo SHA512 \
+        --s2k-cipher-algo AES256 --s2k-digest-algo SHA512 --s2k-mode 3 --s2k-count "$_kdf_iters" \
+        "$@"
+}
+_enc_gpg () { _gpg_common --symmetric "$@"; }
+_dec_gpg () { _gpg_common --decrypt "$@"; }
+_encrypt () { _pepper="$1"; shift; _with_pw_on_fd3 "$_pepper" $_encrypt_func "$@"; }
+_decrypt () { _pepper="$1"; shift; _with_pw_on_fd3 "$_pepper" $_decrypt_func "$@"; }
+_encrypt_file () {
+    _plain_path="$1"
+    _enc_path="$2"
+    mkdir -p "$ENC_REPO/$(dirname "$_enc_path")"
+    is_binary () { git_plain show "HEAD:$_plain_path" | _is_binary_stream; }
+    compress_if_text () { if is_binary; then cat; else gzip -cv2; fi; }
+    git_plain show "HEAD:$_plain_path" |
+        compress_if_text |
+        _encrypt "$_plain_path" > "$ENC_REPO/$_enc_path"
+}
+_decrypt_file () {
+    _enc_path="$1"
+    _plain_path="$2"
+    # Check if the plain file already exists
+    if [ -f "$WORK_TREE/$_plain_path" ] && [ -z "${YES_OVERWRITE:-}" ]; then
+        echo "WARNING: File '$WORK_TREE/$_plain_path' exists. Overwrite? [y/N]"
+        read _choice
+        case "$_choice" in [Yy]*) ;; *) echo "Skipping '$WORK_TREE/$_plain_path'"; return ;; esac
+    fi
+    decrypted_tmpfile="$(_mktemp)"
+    _decrypt "$_plain_path" < "$ENC_REPO/$_enc_path" > "$decrypted_tmpfile"
+    mkdir -p "$(dirname "$WORK_TREE/$_plain_path")"
+    if gzip -t "$decrypted_tmpfile" >/dev/null 2>&1; then
+        gzip -dcv < "$decrypted_tmpfile"
+    else
+        cat "$decrypted_tmpfile"
+    fi > "$WORK_TREE/$_plain_path"
+    rm "$decrypted_tmpfile"
+}
+_decrypt_manifests () {
+    status=0
+    for file in "$ENC_REPO"/manifest/*; do
+        fname="$(basename "$file")"
+        _decrypt "" < "$file" | gzip -dc > "$PLAIN_REPO/manifest/$fname"
+        if _is_binary_stream < "$PLAIN_REPO/manifest/$fname"; then
+            echo "WARNING: Likely invalid decryption password for commit '$fname', or your manifest file contains binary paths."
+            status=1
+        fi
+    done
+    return $status
+}
+_with_pw_on_fd3 () {
+    # Pass "$password$1" securely via an open file
+    _pepper="$1"
+    exec 3<<EOF
+$PASSWORD$_pepper
+EOF
+    shift
+    "$@"
+    exec 3<&-
+}
+
+
+cmd_init () {
+    # Init both dirs repos
+    mkdir -p "$PLAIN_REPO" "$ENC_REPO"
+    git -C "$PLAIN_REPO" init -b master --bare
+    git -C "$ENC_REPO"   init -b master
+    mkdir -p "$PLAIN_REPO/manifest" \
+            "$ENC_REPO/manifest"
+    # Don't pollute du
+    rm "$PLAIN_REPO"/hooks/*.sample \
+        "$ENC_REPO"/.git/hooks/*.sample
+
+    # Configure
+    email="$USER@$(hostname 2>/dev/null || cat /etc/hostname)"
+    git_plain config user.name "$USER"
+    git_plain config user.email "$email"
+    git_plain config status.showUntrackedFiles no # We don't care to see largely untracked $HOME  # XXX: remove this!
+    git_enc config user.name "$USER"
+    git_enc config user.email "$email"
+    # All our files are strictly binary (encrypted)
+    git_enc config core.bigFileThreshold 100
+    git_enc config push.autoSetupRemote true
+    git_enc config push.default upstream
+    git_enc config fetch.parallel 4
+    # Set up default gitignore
+    case $- in *x*) xtrace_was_on=true; set +x ;; esac
+    echo "$default_gitignore" > "$PLAIN_REPO/info/exclude"
+    if [ "${xtrace_was_on:-}" ]; then set -x; fi
+
+    echo '* -text -diff' >"$ENC_REPO/.git/info/attributes"
+    # Encrypted repo is a sparse-checkout
+    git_enc sparse-checkout set "manifest"
+    git_enc sparse-checkout reapply
+}
+
+
+cmd_clone () {
+    mkdir -p "$ENC_REPO"
+    git clone --filter=blob:none --sparse -v "$1" "$ENC_REPO"
+    cmd_init
+    _ask_pw
+    _decrypt_manifests
+}
+
+
+cmd_restore () {
+    # Convert the encrypted commit messages back to plain repo commits
+    if [ "$(git_plain ls-files)" ] && [ -z "${YES_OVERWRITE:-}" ]; then
+        echo "WARNING: Plain repo in '$PLAIN_REPO' already restored. To overwrite, set \$YES_OVERWRITE=1."
+        exit 1
+    fi
+    temp_dir="$(_mktemp -d)"
+    trap "rm -rf '$temp_dir'" INT HUP EXIT
+
+    _ask_pw
+    if [ $# -gt 0 ] && [ "$1" = "--squash" ]; then
+        git_enc sparse-checkout disable
+        git_enc ls-files "manifest/" |
+            grep -RFhf- "$PLAIN_REPO/manifest" | sort -u |
+            while IFS="$_tab" read -r _enc_path _plain_path; do
+                WORK_TREE="$temp_dir" _decrypt_file "$_enc_path" "$_plain_path"
+                WORK_TREE="$temp_dir" git_plain add "$_plain_path"
+            done
+        if ! WORK_TREE="$temp_dir" git_plain diff --staged --quiet; then
+            WORK_TREE="$temp_dir" git_plain commit -m "Restore '$1' at $(date '+%Y-%m-%d %H:%M:%S%z')"
+        fi
+    else
+        git_enc log --reverse --pretty=format:'%H' |
+            sed -e '$a\' |  # Ensure trailing LF
+            while IFS= read -r _enc_commit; do
+                git_enc show --name-only --pretty=format: "$_enc_commit" |
+                    git_enc sparse-checkout set --stdin
+                git_enc sparse-checkout reapply
+
+                # Decrypt and stage files from this commit into temp_dir
+                plain_commit="$(git_enc show --name-only --pretty=format: "$_enc_commit" -- "manifest/" | cut -d/ -f2)"
+                while IFS="$_tab" read -r _enc_path _plain_path; do
+                    WORK_TREE="$temp_dir" _decrypt_file "$_enc_path" "$_plain_path"
+                    WORK_TREE="$temp_dir" git_plain add "$_plain_path"
+                done < "$PLAIN_REPO/manifest/$plain_commit"
+
+                # Commit the changes to the plain repo
+                _msg="$(git_enc show -s --format='%B' "$_enc_commit" | _decrypt "" $_armor_flags | gzip -dc)"
+                _date="$(git_enc show -s --format='%ai' "$_enc_commit")"
+                _author="$(git_enc show -s --format='%an <%ae>' "$_enc_commit")"
+                if ! WORK_TREE="$temp_dir" git_plain diff --staged --quiet; then
+                    WORK_TREE="$temp_dir" git_plain commit --no-gpg-sign -m "$_msg" --date "$_date" --author "$_author"
+                fi
+            done
+    fi
+
+    cmd_gc
+}
+
+
+cmd_commit () {
+    # Commit to plain repo
+    git_plain commit --message "myba backup $(date '+%Y-%m-%d %H:%M:%S')" --verbose "$@"
+
+    # Encrypt and stage encrypted files
+    _ask_pw
+    manifest_path="manifest/$(git_plain rev-parse HEAD)"
+    git_plain show --name-status --pretty=format: HEAD |
+        while IFS="$_tab" read -r _status _path; do
+            _enc_path="$(_encrypted_path "$_path")"
+            _encrypt_file "$_path" "$_enc_path"
+            # If file larger than 40 MB, configure Git LFS
+            if [ "$(stat -c%s "$ENC_REPO/$_enc_path")" -gt $((40 * 1024 * 1024)) ]; then
+                git_enc lfs track --filename "$_enc_path"
+            fi
+
+            if [ "$_status" = "D" ]; then
+                git_enc lfs untrack "$_enc_path" || true  # Ok if Git LFS is not used
+                git_enc rm -f --sparse "$_enc_path"
+            else
+                git_enc add -v --sparse "$_enc_path"
+                echo "$_enc_path$_tab$_path" >> "$PLAIN_REPO/$manifest_path"
+            fi
+        done
+
+    # If first commit, add self
+    # FIXME: fixme??
+    if ! git_enc rev-parse HEAD 2>/dev/null; then
+        _self="$(command -v "$0" 2>/dev/null || echo "$0")"
+        cp "$_self" "$ENC_REPO/$(basename "$_self")"
+        git_enc add --sparse "$(basename "$_self")"
+    fi
+
+    # Stage new manifest
+    gzip -c2 "$PLAIN_REPO/$manifest_path" | _encrypt "" > "$ENC_REPO/$manifest_path"
+    git_enc add --sparse "$manifest_path"
+
+    # Commit to encrypted repo
+    git_enc status --short
+    git_enc commit -m "$(git_plain show --format='%B' --name-status | gzip -c9 | _encrypt "" $_armor_flags)"
+}
+
+
+cmd_checkout() {
+    [ $# -eq 0 ] && { echo 'Nothing to checkout'; exit 1; }
+    # If a commit hash is provided, checkout that commit in either repo
+    if git_plain rev-parse --verify "$1^{commit}" >/dev/null 2>&1; then
+        git_plain checkout "$1"
+    elif git_enc rev-parse --verify "$1^{commit}" >/dev/null 2>&1; then
+        git_enc sparse-checkout set "manifest"
+        git_enc sparse-checkout reapply
+        git_enc checkout "$1"
+        _ask_pw
+        _decrypt_manifests
+    else
+        # Otherwise, assume the arguments are paths to files/directories
+        working_manifest="$PLAIN_REPO/working_manifest"
+        for pattern in "$@"; do
+            grep -REIh "$_tab$pattern"'($|/)' "$PLAIN_REPO/manifest"
+        done | sort -u > "$working_manifest"
+
+        cut -f1 "$working_manifest" |
+            git_enc sparse-checkout set --stdin
+        git_enc sparse-checkout add "manifest"
+        git_enc sparse-checkout reapply
+
+        _ask_pw
+        cat "$working_manifest"
+        while IFS="$_tab" read -r _enc_path _plain_path; do
+            if [ ! -f "$ENC_REPO/$_enc_path" ]; then
+                echo "Note, file '$_plain_path' has been since removed."
+                continue
+            fi
+            _decrypt_file "$_enc_path" "$_plain_path"
+        done < "$working_manifest"
+        rm "$working_manifest"
+    fi
+}
+
+
+cmd_rm() {
+    _ask_pw
+    _is_error=
+    for _path in "$@"; do
+        if ! git_plain ls-files --error-unmatch "$_path" >/dev/null 2>&1; then
+            echo "$0: Error: '$_path' is not being tracked."
+            _is_error=1
+            continue
+        fi
+        git_plain rm --cached "$_path"  # Leave worktree copy alone
+
+        # NOTE: The rest (encrypted repo) is handled in cmd_commit
+    done
+    return $_is_error
+}
+
+
+cmd_remote () {
+    git_enc remote "$@";
+    if [ "$1" = 'add' ]; then
+        # Ideally, this would reside in cmd_init, but then
+        # `git remote add` complains 'error: remote origin already exists'
+        git_enc config "remote.$2.promisor" true
+        git_enc config "remote.$2.partialclonefilter" "blob:none"
+    fi
+}
+
+
+cmd_push () {
+    if [ $# -eq 0 ]; then
+        # With no args, push to all remotes
+        git_enc remote show -n |
+            while read _origin; do
+                git_enc push --verbose --all "$_origin"
+            done
+    else
+        git_enc push --verbose --all "$@"
+    fi
+    git_enc fetch --refetch --all --verbose --no-write-fetch-head
+
+    # Remove redundant files including just-pushed packs
+    sleep .2  # Fix "fatal: gc is already running on machine"
+    cmd_gc
+}
+
+cmd_gc () {
+    # Reduce disk usage by removing encrypted repo's blobs
+    git_enc sparse-checkout set "manifest"
+    git_enc sparse-checkout reapply
+    git_enc gc --prune=now --aggressive
+
+    # Outright rm packs for which promisor nodes exist
+    for file in "$ENC_REPO/.git/objects/pack"/pack-*.pack; do
+        rm -f "${file%.pack}.pack" \
+            "${file%.pack}.idx"
+    done
+}
+
+
+# Simple passthrough commands
+cmd_add () { git_plain add "$@"; }
+cmd_diff () { git_plain diff "$@"; }
+cmd_pull () { git_enc pull "$@"; _decrypt_manifests; }
+cmd_log () {
+    git_plain log \
+        --pretty=format:"%C(yellow)%h%C(red) %cd%C(cyan) %s%C(reset)" \
+        --date=short --name-status "$@"
+}
+
+verbose () {
+    echo "$0: $*"
+    case "${VERBOSE:-}" in
+    '') "$@"; ;;
+    *) set -x; "$@"; set +x; ;;
+    esac
+    echo "$0: $1 done ok"
+}
+
+
+default_gitignore='
+# Compiled source
+build/
+_build/
+*.py[cod]
+*.[oa]
+*.la
+*.obj
+*.[kms]o
+*.so.*
+*.dylib
+*.elf
+*.lib
+*.dll
+*.class
+*.out
+
+# Other VCS
+.git/
+
+# Ignore Python
+.venv/
+venv/
+python*/site-packages/
+*.py[cod]
+__pycache__/
+.eggs/
+*.egg/
+*.egg-info
+dist/*.tar.gz
+dist/*.zip
+dist/*.whl
+
+# Ignore JS
+node_modules/
+jspm_packages/
+.npm/
+.eslintcache
+.yarn/
+.grunt/
+
+# Docs
+htmlcov/
+.tox/
+.coverage/
+.coverage.*/
+coverage.xml
+.hypothesis/
+.mypy_cache/
+
+# IDEs and editors
+.idea/*
+.vscode/*
+
+# Temporary & logs
+*.cache
+*.tmp
+tmp/
+*.bak
+*.old
+*.pid
+*.lock
+*~
+logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+'
+
+
+# Main:
+
+cmd="$1"
+shift
+
+case "$cmd" in
+    init) verbose cmd_init ;;
+    add) verbose cmd_add "$@" ;;
+    rm) verbose cmd_rm "$@" ;;
+    commit) verbose cmd_commit "$@" ;;
+    remote) verbose cmd_remote "$@" ;;
+    push) verbose cmd_push "$@" ;;
+    pull) verbose cmd_pull "$@" ;;
+    clone) verbose cmd_clone "$@" ;;
+    restore) verbose cmd_restore "$@" ;;
+    diff) verbose cmd_diff "$@" ;;
+    log) verbose cmd_log "$@" ;;
+    checkout) verbose cmd_checkout "$@" ;;
+    gc) verbose cmd_gc "$@" ;;
+    git) verbose git_plain "$@" ;;
+    git_enc) verbose git_enc "$@" ;;
+    *) usage ;;
+esac

@@ -1,0 +1,28 @@
+name: CI
+on:
+  push:
+    branches: [master]
+    tags: ['v*']
+  pull_request: { branches: [master] }
+  schedule: [ cron: '4 11 28 * *' ]
+
+jobs:
+  test:
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: shellcheck *.sh
+      - run: sudo apt-get install --no-install-recommends gzip git git-lfs openssl gpg
+      - run: sudo apt-get install --no-install-recommends bash zsh ksh93u+m tcsh
+      - run: ./smoke-test.sh
+      - run: USE_GPG=1 ./smoke-test.sh
+      - run: for sh in bash zsh ksh93 tcsh; do $sh smoke-test.sh; done;
+
+  test-macos:
+    timeout-minutes: 5
+    needs: test
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./smoke-test.sh

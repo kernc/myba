@@ -1,0 +1,32 @@
+name: Deploy to gh-pages
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: <README.full.md aspell -l en list | grep -q . || exit 1
+      - run: pip install markdown
+      - run: .github/scripts/build-website.sh
+      - if: ${{ github.event_name == 'push' }}
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+      - if: ${{ github.event_name == 'push' }}
+        run: |
+          git config --global user.name "$GITHUB_ACTOR"
+          git config --global user.email "github-actions@github.com"
+          rm -rf gh-pages/*
+          cp -R output/* gh-pages
+          cd gh-pages
+          git add *
+          if git diff --staged --quiet; then echo "$0: No changes to commit."; exit 0; fi
+          git commit -a -m "CI: Update $GITHUB_SHA"
+          git push
