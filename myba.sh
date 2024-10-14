@@ -80,8 +80,9 @@ _tab="$(printf '\t')"
 git_plain () { git --work-tree="$WORK_TREE" --git-dir="$PLAIN_REPO" "$@"; }
 git_enc () { git -C "$ENC_REPO" "$@"; }
 
-_is_binary_stream () { head -c 8192 | awk '{ if (index($0, "\0")) exit 0 } END { exit 1 }'; }
+_is_binary_stream () { dd bs=8192 count=1 status=none | LC_ALL=C tr -dc '\000' | LC_ALL=C grep -qa .; }
 _mktemp () { mktemp -t "$(basename "$0" .sh)-XXXXXXX" "$@"; }
+_file_size () { if stat -f%z / >/dev/null 2>&1; then stat -f%z "$@"; else stat -c%s "$@"; fi; }
 
 _ask_pw () {
     if [ -z "${PASSWORD+1}" ]; then
@@ -105,7 +106,7 @@ _ask_pw () {
     fi
 }
 _encrypted_path () {
-    _hash="$(echo "$1$PASSWORD" | sha512sum | cut -c-128)"
+    _hash="$(echo "$1$PASSWORD" | shasum -a512 | cut -c-128)"
     _path="$(echo "$_hash" | cut -c1-3)"
     _path="$_path/$(echo "$_hash" | cut -c4-6)"
     _path="$_path/$(echo "$_hash" | cut -c7-9)"
@@ -226,15 +227,21 @@ cmd_clone () {
 
 cmd_restore () {
     # Convert the encrypted commit messages back to plain repo commits
-    if [ "$(git_plain ls-files)" ] && [ -z "${YES_OVERWRITE:-}" ]; then
-        echo "WARNING: Plain repo in '$PLAIN_REPO' already restored. To overwrite, set \$YES_OVERWRITE=1."
-        exit 1
+    if [ "$(git_plain ls-files)" ]; then
+        if [ ! "${YES_OVERWRITE:-}" ]; then
+            echo "WARNING: Plain repo in '$PLAIN_REPO' already restored (and possibly commited to). To overwrite, set \$YES_OVERWRITE=1."
+            exit 1
+        fi
+        # Remove existing plain repo
+        git_plain update-ref -d HEAD
+        git_plain reflog expire --all --expire-unreachable=now
+        git_plain gc --prune=now --aggressive
     fi
     temp_dir="$(_mktemp -d)"
     trap "rm -rf '$temp_dir'" INT HUP EXIT
 
     _ask_pw
-    if [ $# -gt 0 ] && [ "$1" = "--squash" ]; then
+    if [ "${1:-}" = "--squash" ]; then
         git_enc sparse-checkout disable
         git_enc ls-files "manifest/" |
             grep -RFhf- "$PLAIN_REPO/manifest" | sort -u |
@@ -246,8 +253,7 @@ cmd_restore () {
             WORK_TREE="$temp_dir" git_plain commit -m "Restore '$1' at $(date '+%Y-%m-%d %H:%M:%S%z')"
         fi
     else
-        git_enc log --reverse --pretty=format:'%H' |
-            sed -e '$a\' |  # Ensure trailing LF
+        git_enc log --reverse --pretty='%H' |
             while IFS= read -r _enc_commit; do
                 git_enc show --name-only --pretty=format: "$_enc_commit" |
                     git_enc sparse-checkout set --stdin
@@ -286,7 +292,7 @@ cmd_commit () {
             _enc_path="$(_encrypted_path "$_path")"
             _encrypt_file "$_path" "$_enc_path"
             # If file larger than 40 MB, configure Git LFS
-            if [ "$(stat -c%s "$ENC_REPO/$_enc_path")" -gt $((40 * 1024 * 1024)) ]; then
+            if [ "$(_file_size "$ENC_REPO/$_enc_path")" -gt $((40 * 1024 * 1024)) ]; then
                 git_enc lfs track --filename "$_enc_path"
             fi
 
@@ -403,10 +409,10 @@ cmd_gc () {
     # Reduce disk usage by removing encrypted repo's blobs
     git_enc sparse-checkout set "manifest"
     git_enc sparse-checkout reapply
-    git_enc gc --prune=now --aggressive
 
     # Outright rm packs for which promisor nodes exist
     for file in "$ENC_REPO/.git/objects/pack"/pack-*.pack; do
+        touch "${file%.pack}.promisor"
         rm -f "${file%.pack}.pack" \
             "${file%.pack}.idx"
     done
@@ -419,7 +425,7 @@ cmd_diff () { git_plain diff "$@"; }
 cmd_pull () { git_enc pull "$@"; _decrypt_manifests; }
 cmd_log () {
     git_plain log \
-        --pretty=format:"%C(yellow)%h%C(red) %cd%C(cyan) %s%C(reset)" \
+        --pretty="%C(yellow)%h%C(red) %cd%C(cyan) %s%C(reset)" \
         --date=short --name-status "$@"
 }
 
