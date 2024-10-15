@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang=en itemscope itemtype="https://schema.org/SoftwareApplication">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Myba - git-based file backup with encryption</title>
+<link rel="logo icon" href="icon.svg">
+<meta name="theme-color" content="#333">
+<meta itemprop="applicationCategory" content="BusinessApplication"><meta itemprop="applicationCategory" content="DeveloperApplication"><meta itemprop="applicationCategory" content="SecurityApplication"><meta itemprop="applicationCategory" content="UtilitiesApplication">
+<meta itemprop="operatingSystem" content="Linux"><meta itemprop="operatingSystem" content="macOS"><meta itemprop="operatingSystem" content="Windows">
+<meta itemprop="isAccessibleForFree" content="true">
+<meta itemprop="license" content="https://www.gnu.org/licenses/agpl-3.0.txt">
+<meta itemprop="sameAs" content="https://github.com/kernc/myba/">
+<meta itemprop="url" content="/">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JT9W3RXCJD"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-JT9W3RXCJD");</script>
+<style>
+html{background:DarkOliveGreen; line-height: 1.4em}
+article {background:rgba(255, 255, 255, .7); padding:2em; margin:auto; width:60%; min-width:700px;}
+pre {background:rgba(255, 255, 255, .6); padding: 1em;}
+h1,h2,h3,h4 {margin-top: 2em}
+code:not(pre code) {font-weight: bold}
+</style>
+</head>
+<body><main><article>
+
+<h1 id="myba-git-based-backup-utility-with-encryption"><img src="icon.svg" width="64"/>  Myba — git-based backup utility with encryption</h1>
+<div class="toc">
+<ul>
+<li><a href="#myba-git-based-backup-utility-with-encryption">Myba — git-based backup utility with encryption</a><ul>
+<li><a href="#features">Features</a></li>
+<li><a href="#how-it-works">How it works</a><ul>
+<li><a href="#use-cases">Use-cases</a></li>
+</ul>
+</li>
+<li><a href="#installation">Installation</a></li>
+<li><a href="#usage">Usage</a><ul>
+<li><a href="#environment-variables">Environment variables</a></li>
+<li><a href="#example-use">Example use</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<p><a href="https://github.com/kernc/myba/actions"><img alt="Build Status" src="https://img.shields.io/github/actions/workflow/status/kernc/myba/ci.yml?branch=master&amp;style=for-the-badge" /></a>
+<a href="#"><img alt="Issues" src="https://img.shields.io/github/issues/kernc/myba?style=for-the-badge" /></a>
+<a href="https://github.com/sponsors/kernc"><img alt="GitHub Sponsors" src="https://img.shields.io/github/sponsors/kernc?color=pink&amp;style=for-the-badge" /></a></p>
+<p><strong>Myba</strong> (pronounced: mỹba) <strong>is an
+open-source, secure, distributed, version-controlled, encrypted
+file backup software based on <code>git</code></strong>,
+for <strong>Linux, MacOS</strong>, and possibly even <strong>Windows/WSL</strong>.
+In a world of vice, instability, evergreen browsers, fast-moving markets and near constant <em>supply chain attacks</em>,
+it's the best kind of backup utility—<strong>a simple shell script</strong> that relies on few, well-tested and <em>stable</em> technologies.
+Its only <strong>dependencies are</strong>:</p>
+<ul>
+<li>a running <strong>shell</strong> / standard <strong>POSIX environment</strong> (sh, bash, zsh, dash, ... WSL?),</li>
+<li><strong>gzip</strong></li>
+<li><strong>git</strong> (and Git LFS for files sized &gt;40 MB),</li>
+<li>either <strong>OpenSSL</strong> or <strong>GPG</strong> (~4x slower) for encryption,</li>
+</ul>
+<p>all of which everyone should discover most popularly available.</p>
+<p><strong>Git does a great job of securely storing and tracking changes and backing up important documents,</strong>
+it is popular and widely-deployed,
+<a href="https://git-man-page-generator.lokaltog.net/">feature-rich</a>,
+but it doesn't on its own support encryption, which might be important if the backed-up data 
+is going to be shared with untrusted (and untrustworthy) third parties
+and various intermediary data "processors".
+One <em>could</em> most simply set up an encryption-decryption process
+consisting of <a href="https://git-scm.com/book/ms/v2/Customizing-Git-Git-Attributes#filters_a"><strong><code>clean</code> and <code>smudge</code> git filters</strong> issued pre commits and post checkouts</a>,
+respectively, but the <strong>filters can't encrypt the tracked file paths / filenames</strong>,
+whereas one might have a want for that, otherwise almost what's the point? 😶</p>
+<h2 id="features">Features</h2>
+<ul>
+<li>Version-controlled (git-based) backup of plaintext documents as well as large binary files.</li>
+<li>Automatic <strong>text compression</strong> for reduced space use.</li>
+<li>Currently using <strong><em>strong</em> AES256 encryption</strong> of files and paths, so far quantum-safe.</li>
+<li>Git-based workflow: add, stage, commit, push, clone, pull, checkout.</li>
+<li><strong>Selective checkout</strong> of backup files, efficient size-on-disk overhead.</li>
+<li><strong>Sync to multiple clouds</strong> for nearly free by (ab)using popular git hosts.</li>
+<li><strong>Or sync anywhere simply</strong> by cloning or checking-out a directory ...</li>
+</ul>
+<h2 id="how-it-works">How it works</h2>
+<p>Myba relies on a two-repo solution. On any <em>client</em>, <strong>two repositories</strong> are created.
+<strong>One plaintext</strong> <a href="https://git-scm.com/book/en/v2/Git-on-the-Server-Getting-Git-on-a-Server"><code>--bare</code></a> repo,
+such as in <a href="https://www.atlassian.com/git/tutorials/dotfiles">this guide</a>,
+with worktree set to the root of your volume of interest, such as <code>/</code> or <code>$HOME</code>.
+And <strong>one encrypted</strong> repo that holds encrypted file counterparts.</p>
+<p>When you <code>myba commit</code> some files into the plain repo,
+a commit to the encrypted repo is made in the background.</p>
+<p>When you <code>myba checkout</code>, a file is checked out from the
+encrypted repo and restored back onto your volume.</p>
+<p>When you <code>myba push</code> your commit history successfully (exit code 0)
+to all configured remotes
+(any <code>git remote</code>, such as a special folder or a cloud host),
+the <strong>local encrypted blobs are deleted to save disk space</strong>,
+relying on recently-stabilized
+<a href="https://git-scm.com/docs/git-sparse-checkout"><code>git sparse-checkout</code></a> and 
+<a href="https://git-scm.com/docs/partial-clone">partial <code>git clone --filter=blob:none</code></a> features,
+all in all at a minimized and efficient space cost best-suited to backing up
+text and configuration files, source code files, documents and pictures,
+including all kinds or large binary files
+(as much as you can afford to sync to your cloud storage),
+<strong>all under the assumptions that text files compress well</strong> and
+that <strong>large binaries don't change too often</strong>.</p>
+<p><strong>Myba</strong> is <strong>Git + Shell</strong>, preconfigured and wrapped as thinly as needed to provide
+fully <strong>encrypted backups</strong> that are really <strong>easily replicated and synced to the cloud</strong>.</p>
+<script src="https://ssl.gstatic.com/trends_nrtr/3826_RC01/embed_loader.js"></script>
+<script>window.trends.embed.renderExploreWidget("TIMESERIES", {"comparisonItem":[{"keyword":"/m/02mhh1","geo":"","time":"2004-01-01 2024-10-13"},{"keyword":"/m/05vqwg","geo":"","time":"2004-01-01 2024-10-13"},{"keyword":"/m/0ryppmg","geo":"","time":"2004-01-01 2024-10-13"}],"category":0,"property":""}, {"exploreQuery":"q=%2Fm%2F02mhh1,%2Fm%2F05vqwg,%2Fm%2F0ryppmg&date=all#TIMESERIES","guestPath":"https://trends.google.com:443/trends/embed/"})</script>
+
+<h3 id="use-cases">Use-cases</h3>
+<ul>
+<li><strong>Zero-knowledge cloud sync and storage</strong></li>
+<li>Replace or supplement existing <strong>poor complex and proprietary solutions</strong> (like Veeam, Time Machine, Google Photos &amp; Drive, iCloud)
+  or software programs with <strong>complex and unfamiliar CLI APIs or wide attack surfaces</strong> (Bacula, Borg Backup, restic) ...</li>
+<li>Cloud-based serverless virii</li>
+<li><strong>Protocol- and PaaS-agnostic</strong> design (AWS to Backblaze B2, GitLab to Gitea). Simply sync (even rsync) a git folder.</li>
+</ul>
+<h2 id="installation">Installation</h2>
+<p>To install everything on a Debian/Ubuntu-based system, run:</p>
+<pre><code class="language-sh"># Install dependencies
+sudo apt install  gzip git git-lfs openssl gpg
+
+# Make available somewhere in path
+curl -L https://bit.ly/myba-backup &gt; ~/.local/bin/myba
+export PATH=&quot;$HOME/.local/bin:$PATH&quot;
+
+myba help
+</code></pre>
+<p>Note, only one of <code>openssl</code> <em>or</em> <code>gpg</code> is needed, not both!</p>
+<p>It should be similar, if not nearly equivalent, to install on other platforms.
+Hopefully you will find most dependencies already satisfied.</p>
+<p>Please report back if you find / manage to get this working under anything but the above configuration and especially Windows/WSL!</p>
+<h2 id="usage">Usage</h2>
+<p>You run the script with arguments according to the usage printout below.
+Myba heavily relies on <code>git</code> and thus <strong>its command-line usage largely follows that of git convention</strong>.
+Most subcommands pass obtained arguments and options (<code>"@"</code>) straight to matching <code>git</code> subcommands! </p>
+<pre><code class="language-text">Usage: myba &lt;subcommand&gt; [options]
+Subcommands:
+  init                  Initialize repos in $WORK_TREE (default: $HOME)
+  add [OPTS] PATH...    Stage files for backup/version tracking
+  rm PATH...            Stage-remove files from future backups/version control
+  commit [OPTS]         Commit staged changes of tracked files as a snapshot
+  push [REMOTE]         Encrypt and push files to remote repo(s) (default: all)
+  pull [REMOTE]         Pull encrypted commits from a promisor remote
+  clone REPO_URL        Clone an encrypted repo and init from it
+  remote CMD [OPTS]     Manage remotes of the encrypted repo
+  restore [--squash]    Reconstruct plain repo commits from encrypted commits
+  diff [OPTS]           Compare changes between plain repo revisions
+  log [OPTS]            Show commit log of the plain repo
+  checkout PATH...      Sparse-checkout and decrypt files into $WORK_TREE
+  checkout COMMIT       Switch files to a commit of plain or encrypted repo
+  gc                    Garbage collect, remove synced encrypted packs
+  git CMD [OPTS]        Inspect/execute raw git commands inside plain repo
+  git_enc CMD [OPTS]    Inspect/execute raw git commands inside encrypted repo
+
+Env vars: WORK_TREE, PLAIN_REPO, PASSWORD USE_GPG, VERBOSE, YES_OVERWRITE, ...
+</code></pre>
+<p>The script also acknowledges a few <strong>environment variables</strong> which you can <em>set</em> to
+steer the program behavior:</p>
+<h3 id="environment-variables">Environment variables</h3>
+<ul>
+<li><code>WORK_TREE=</code> The root of the volume that contains important documents to back up (such as dotfiles).
+  If unspecified, <code>$HOME</code>.</li>
+<li><code>PLAIN_REPO=</code> The <em>internal</em> directory where myba actually stores both its repositories.
+  Defaults to <code>$WORK_TREE/.myba</code> but can be overriden to somewhere out-of-tree ...</li>
+<li><code>PASSWORD=</code> The password to use for encryption instead of asking / reading from stdin.</li>
+<li><code>USE_GPG=</code> Myba uses <code>openssl enc</code> by default, but if you prefer to use GPG for symmetric encryption, set <code>USE_GPG=1</code>.</li>
+<li><code>KDF_ITERS=</code> A sufficient number of iterations is used for the encryption key derivation function.
+  To specify your own value and avoid rainbow table attacks on myba itself, you can customize this value.
+  If you don't know, just leave it.</li>
+<li><code>YES_OVERWRITE=</code> If set, overwrite existing when restoring/checking out files that already exist in $WORK_TREE. 
+  The default is to ask instead.</li>
+<li><code>VERBOSE=</code> More verbose output about what the program is doing.</li>
+</ul>
+<h3 id="example-use">Example use</h3>
+<pre><code class="language-shell"># Set volume root to the user's $HOME and export for everyone
+export WORK_TREE=&quot;$HOME&quot;
+myba init
+myba add Documents Photos Etc .dotfile
+PASSWORD=secret  myba commit -m &quot;my precious&quot;
+myba remote add origin &quot;/media/usb/backup&quot;
+myba remote add github &quot;git@github.com:user/my-backup.git&quot;
+myba push  # Push to all configured remotes &amp; free disk space
+
+# Somewhere else, much, much later, avoiding catastrophe ...
+
+export WORK_TREE=&quot;$HOME&quot;
+PASSWORD=secret  myba clone &quot;...&quot;  # Clone one of the known remotes
+myba checkout &quot;.dotfile&quot; # Restore backed up files in a space-efficient manner
+</code></pre>
+<p>See <a href="https://github.com/kernc/myba/blob/master/smoke-test.sh"><em>smoke-test.sh</em></a> file for a more full example &amp; test case!</p></article></main></body></html>
