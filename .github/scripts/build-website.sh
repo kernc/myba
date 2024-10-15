@@ -20,12 +20,18 @@ preamble='<!doctype html>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-JT9W3RXCJD"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-JT9W3RXCJD");</script>
 <style>
-html{background:DarkOliveGreen; line-height: 1.4em}
-article {background:rgba(255, 255, 255, .7); padding:2em; margin:auto; width:60%; min-width:700px;}
-pre {background:rgba(255, 255, 255, .6); padding: 1em;}
+html{background:DarkOliveGreen; line-height: 1.4em; font-family:}
+article {background:#fffb; padding:2em; margin:auto; max-width: 900px;}
+pre {background:#fff8; padding: 1em;}
+code:not(pre code) {background:#fff8; padding: .2em .5em; white-space: nowrap;}
+ul li code:not(pre code):first-child {font-weight: bold;}
 h1,h2,h3,h4 {margin-top: 2em}
-code:not(pre code) {font-weight: bold}
+a {color:navy}
 </style>
+<meta property="og:title" content="Myba - git-based file backup with encryption">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://kernc.github.io/myba/">
+<meta property="og:image" content="https://kernc.github.io/myba/icon.svg">
 </head>
 <body><main><article>
 '

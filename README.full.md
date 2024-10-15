@@ -1,4 +1,4 @@
-<img src="icon.svg" width="64"/>  Myba — git-based backup utility with encryption
+<img src="icon.svg" width="64" alt/>  Myba — git-based backup utility with encryption
 =====
 
 [TOC]
@@ -12,7 +12,7 @@ open-source, secure, distributed, version-controlled, encrypted
 file backup software based on `git`**,
 for **Linux, MacOS**, and possibly even **Windows/WSL**.
 In a world of vice, instability, evergreen browsers, fast-moving markets and near constant _supply chain attacks_,
-it's the best kind of backup utility—**a simple shell script** that relies on few, well-tested and _stable_ technologies.
+it's the best kind of backup utility—**a timeless shell script** that relies on few, well-tested and _stable_ technologies.
 Its only **dependencies are**:
 
 * a running **shell** / standard **POSIX environment** (sh, bash, zsh, dash, ... WSL?),
@@ -35,10 +35,10 @@ whereas one might have a want for that, otherwise almost what's the point? 😶
 
 Features
 --------
-* Version-controlled (git-based) backup of plaintext documents as well as large binary files.
+* **Version-controlled (git-based) backup** of plaintext documents as well as large binary files.
 * Automatic **text compression** for reduced space use.
 * Currently using **_strong_ AES256 encryption** of files and paths, so far quantum-safe.
-* Git-based workflow: add, stage, commit, push, clone, pull, checkout.
+* Familiar git workflow: add, stage, commit, push, clone, pull, checkout.
 * **Selective checkout** of backup files, efficient size-on-disk overhead.
 * **Sync to multiple clouds** for nearly free by (ab)using popular git hosts.
 * **Or sync anywhere simply** by cloning or checking-out a directory ...
@@ -95,7 +95,7 @@ To install everything on a Debian/Ubuntu-based system, run:
 # Install dependencies
 sudo apt install  gzip git git-lfs openssl gpg
 
-# Make available somewhere in path
+# Download and make available somewhere in path
 curl -L https://bit.ly/myba-backup > ~/.local/bin/myba
 export PATH="$HOME/.local/bin:$PATH"
 

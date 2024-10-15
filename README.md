@@ -1,4 +1,4 @@
-<img src="icon.svg" width="64"/> Myba — git-based backup utility w/ encryption
+<img src="icon.svg" width="64" alt/> Myba — git-based backup utility w/ encryption
 =====
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/kernc/myba/ci.yml?branch=master&style=for-the-badge)](https://github.com/kernc/myba/actions)
@@ -10,7 +10,7 @@ open-source, secure, distributed, version-controlled, encrypted
 file backup software based on `git`**,
 for **Linux, MacOS**, and possibly even **Windows/WSL**.
 In a world of vice, instability, evergreen browsers, fast-moving markets and near constant _supply chain attacks_,
-it's the best kind of backup utility—**a simple shell script** that relies on few, well-tested and _stable_ technologies.
+it's the best kind of backup utility—**a timeless shell script** that relies on few, well-tested and _stable_ technologies.
 Its only **dependencies are**:
 
 * a running **shell** / standard **POSIX environment** (sh, bash, zsh, dash, ... WSL?),
