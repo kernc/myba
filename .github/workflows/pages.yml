@@ -8,6 +8,7 @@ on:
 
 permissions:
   pages: write
+  contents: write
 
 jobs:
   deploy:
@@ -18,19 +19,7 @@ jobs:
       - run: comm <(<README.full.md aspell list | sort -u) <(cat .github/aspell-ignorewords.txt) -23 | grep -q . || exit 1
       - run: pip install --user --break-system-packages markdown
       - run: .github/scripts/build-website.sh
-      - if: ${{ github.event_name == 'push' }}
-        uses: actions/checkout@v4
+      - uses: peaceiris/actions-gh-pages@v4
         with:
-          ref: gh-pages
-          path: gh-pages
-      - if: ${{ github.event_name == 'push' }}
-        run: |
-          git config --global user.name "$GITHUB_ACTOR"
-          git config --global user.email "github-actions@github.com"
-          rm -rf gh-pages/*
-          cp -R output/* gh-pages
-          cd gh-pages
-          git add *
-          if git diff --staged --quiet; then echo "$0: No changes to commit."; exit 0; fi
-          git commit -a -m "CI: Update $GITHUB_SHA"
-          git push
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./output
