@@ -1,5 +1,5 @@
 #!/bin/sh
-# sdebbsg - Secure, distributed, encrypted backups based on `sh` shell and `git` (and `openssl enc` or `gpg`)
+# myba - Secure, distributed, encrypted backups based on `sh` shell and `git` (and `openssl enc` or `gpg`)
 # FIXME review
 #
 # Basically your beloved git, but with underlying two repos:
@@ -17,27 +17,27 @@
 # This is an expected shell workflow:
 #
 #     $ export WORK_TREE=  # Defaults to $HOME
-#     $ sdebbsg init
-#     $ sdebbsg add .config/git/config .vimrc .ssh/config
-#     $ PASSWORD=secret sdebbsg commit -m 'my config files'  # Reads pw from stdin if unset
-#     $ sdebbsg rm .vimrc
-#     $ sdebbsg commit -m 'no longer use vim'
-#     $ sdebbsg remote add origin "$GITHUB_REPO"
-#     $ sdebbsg push origin
+#     $ myba init
+#     $ myba add .config/git/config .vimrc .ssh/config
+#     $ PASSWORD=secret myba commit -m 'my config files'  # Reads pw from stdin if unset
+#     $ myba rm .vimrc
+#     $ myba commit -m 'no longer use vim'
+#     $ myba remote add origin "$GITHUB_REPO"
+#     $ myba push origin
 #
 # Somewhere, sometime later, we may only have access to encrypted repo:
 #
-#     $ WORK_TREE="$HOME" sdebbsg clone "$GITHUB_REPO"
-#     $ sdebbsg log   # See plain commit info
-#     $ sdebbsg diff  # See changes of tracked $WORK_TREE files
-#     $ sdebbsg checkout $COMMIT  # Hash from plain or encrypted repo
-#     $ sdebbsg checkout .config .ssh  # Checkout dirs and everything under
+#     $ WORK_TREE="$HOME" myba clone "$GITHUB_REPO"
+#     $ myba log   # See plain commit info
+#     $ myba diff  # See changes of tracked $WORK_TREE files
+#     $ myba checkout $COMMIT  # Hash from plain or encrypted repo
+#     $ myba checkout .config .ssh  # Checkout dirs and everything under
 #     $ [ -f ~/.config/git/config ] && [ -d ~/.ssh ]   # Files are restored
 #
 # The last command Uses sparse-checkout to fetch and unencrypt the right blobs.
 # The checkout command asks before overwriting existing files in $WORK_TREE!
 #
-# See usage for details.
+# See usage AND CODE for details.
 #
 
 # shellcheck disable=SC1003,SC2064,SC2086,SC2162,SC3045

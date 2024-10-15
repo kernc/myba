@@ -19,7 +19,13 @@ preamble='<!doctype html>
 <meta itemprop="url" content="/">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-JT9W3RXCJD"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-JT9W3RXCJD");</script>
-<style>html{background:DarkOliveGreen} article {background:rgba(255, 255, 255, .6); padding:2em; margin:auto; width:60%; min-width:700px;}</style>
+<style>
+html{background:DarkOliveGreen; line-height: 1.4em}
+article {background:rgba(255, 255, 255, .7); padding:2em; margin:auto; width:60%; min-width:700px;}
+pre {background:rgba(255, 255, 255, .6); padding: 1em;}
+h1,h2,h3,h4 {margin-top: 2em}
+code:not(pre code) {font-weight: bold}
+</style>
 </head>
 <body><main><article>
 '

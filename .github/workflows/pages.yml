@@ -6,13 +6,17 @@ on:
     branches: [master]
   workflow_dispatch:
 
+permissions:
+  pages: write
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: <README.full.md aspell -l en list | grep -q . || exit 1
-      - run: pip install markdown
+      - run: sudo apt-get install aspell
+      - run: comm <(<README.full.md aspell list | sort -u) <(cat .github/aspell-ignorewords.txt) -23 | grep -q . || exit 1
+      - run: pip install --user --break-system-packages markdown
       - run: .github/scripts/build-website.sh
       - if: ${{ github.event_name == 'push' }}
         uses: actions/checkout@v4

@@ -92,10 +92,13 @@ Installation
 ------------
 To install everything on a Debian/Ubuntu-based system, run:
 ```sh
+# Install dependencies
 sudo apt install  gzip git git-lfs openssl gpg
 
+# Make available somewhere in path
 curl -L https://bit.ly/myba-backup > ~/.local/bin/myba
 export PATH="$HOME/.local/bin:$PATH"
+
 myba help
 ```
 Note, only one of `openssl` _or_ `gpg` is needed, not both!
