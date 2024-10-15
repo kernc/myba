@@ -3,6 +3,10 @@
 
 [TOC]
 
+[![Build Status](https://img.shields.io/github/actions/workflow/status/kernc/myba/ci.yml?branch=master&style=for-the-badge)](https://github.com/kernc/myba/actions)
+[![Issues](https://img.shields.io/github/issues/kernc/myba?style=for-the-badge)](#)
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/kernc?color=pink&style=for-the-badge)](https://github.com/sponsors/kernc)
+
 **Myba** (pronounced: mỹba) **is an
 open-source, secure, distributed, version-controlled, encrypted
 file backup software based on `git`**,
