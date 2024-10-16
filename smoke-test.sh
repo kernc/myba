@@ -59,6 +59,8 @@ export WORK_TREE
 myba clone "file://$(readlink -f "$remote_git")"  # Clone by uri as non-local
 myba checkout HEAD
 myba checkout "foo/.dotfile"
+# Restore script, if needed, is present in the encrypted repo
+stat "$WORK_TREE/.myba/_encrypted/myba.sh"
 # No overwrite existing file unless forced
 if myba checkout "foo/.dotfile"; then exit 2; fi
 YES_OVERWRITE=1 myba checkout "foo/.dotfile"

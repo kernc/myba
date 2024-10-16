@@ -474,7 +474,6 @@ dist/*.whl
 
 # Ignore JS
 node_modules/
-jspm_packages/
 .npm/
 .eslintcache
 .yarn/
