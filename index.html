@@ -12,28 +12,36 @@
 <meta itemprop="license" content="https://www.gnu.org/licenses/agpl-3.0.txt">
 <meta itemprop="sameAs" content="https://github.com/kernc/myba/">
 <meta itemprop="url" content="/">
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-JT9W3RXCJD"></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JT9W3RXCJD"></script><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2900001379782823" crossorigin></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-JT9W3RXCJD");</script>
 <style>
 html{background:DarkOliveGreen; line-height: 1.4em; font-family:}
 article {background:#fffb; padding:2em; margin:auto; max-width: 900px;}
-pre {background:#fff8; padding: 1em;}
+pre {background:#fff8;}
 code:not(pre code) {background:#fff8; padding: .2em .5em; white-space: nowrap;}
 ul li code:not(pre code):first-child {font-weight: bold;}
 h1,h2,h3,h4 {margin-top: 2em}
-a {color:navy}
+a:link {color:navy}
+a:hover {color:blue !important}
+a:visited {color:darkmagenta}
+summary {width:fit-content; border:2px solid silver; cursor:pointer; padding:.2em .6em; margin:.3em 0; font-weight:bold}
+details[open] summary {border:2px solid black;}
 </style>
 <meta property="og:title" content="Myba - git-based file backup with encryption">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://kernc.github.io/myba/">
 <meta property="og:image" content="https://kernc.github.io/myba/icon.svg">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/highlight.min.js" integrity="sha512-6yoqbrcLAHDWAdQmiRlHG4+m0g/CT/V9AGyxabG8j7Jk8j3r3K6due7oqpiRMZqcYe9WM2gPcaNNxnl2ux+3tA==" crossorigin></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/github-dark.min.css" integrity="sha512-rO+olRTkcf304DQBxSWxln8JXCzTHlKnIdnMUwYvQa9/Jd4cQaNkItIUj6Z4nvW1dqK0SKXLbn9h4KwZTNtAyw==" crossorigin>
 </head>
 <body><main><article>
 
 <h1 id="myba-git-based-backup-utility-with-encryption"><img src="icon.svg" width="64" alt/>  Myba — git-based backup utility with encryption</h1>
+<p><a href="https://github.com/kernc/myba/actions"><img alt="Build Status" src="https://img.shields.io/github/actions/workflow/status/kernc/myba/ci.yml?branch=master&amp;style=for-the-badge"></a>
+<a href="#"><img alt="Issues" src="https://img.shields.io/github/issues/kernc/myba?style=for-the-badge"></a>
+<a href="https://github.com/sponsors/kernc"><img alt="GitHub Sponsors" src="https://img.shields.io/github/sponsors/kernc?color=pink&amp;style=for-the-badge"></a></p>
 <div class="toc">
 <ul>
-<li><a href="#myba-git-based-backup-utility-with-encryption">Myba — git-based backup utility with encryption</a><ul>
 <li><a href="#features">Features</a></li>
 <li><a href="#how-it-works">How it works</a><ul>
 <li><a href="#use-cases">Use-cases</a></li>
@@ -45,17 +53,14 @@ a {color:navy}
 <li><a href="#example-use">Example use</a></li>
 </ul>
 </li>
-</ul>
-</li>
+<li><a href="#contributing">Contributing</a></li>
+<li><a href="#faq">FAQ</a></li>
 </ul>
 </div>
-<p><a href="https://github.com/kernc/myba/actions"><img alt="Build Status" src="https://img.shields.io/github/actions/workflow/status/kernc/myba/ci.yml?branch=master&amp;style=for-the-badge" /></a>
-<a href="#"><img alt="Issues" src="https://img.shields.io/github/issues/kernc/myba?style=for-the-badge" /></a>
-<a href="https://github.com/sponsors/kernc"><img alt="GitHub Sponsors" src="https://img.shields.io/github/sponsors/kernc?color=pink&amp;style=for-the-badge" /></a></p>
 <p><strong>Myba</strong> (pronounced: mỹba) <strong>is an
 open-source, secure, distributed, version-controlled, encrypted
 file backup software based on <code>git</code></strong>,
-for <strong>Linux, MacOS</strong>, and possibly even <strong>Windows/WSL</strong>.
+for <strong>Linux, MacOS, BSDs</strong>, and possibly even <strong>Windows/WSL</strong>.
 In a world of vice, instability, evergreen browsers, fast-moving markets and near constant <em>supply chain attacks</em>,
 it's the best kind of backup utility—<strong>a timeless shell script</strong> that relies on few, well-tested and <em>stable</em> technologies.
 Its only <strong>dependencies are</strong>:</p>
@@ -74,7 +79,7 @@ is going to be shared with untrusted (and untrustworthy) third parties
 and various intermediary data "processors".
 One <em>could</em> most simply set up an encryption-decryption process
 consisting of <a href="https://git-scm.com/book/ms/v2/Customizing-Git-Git-Attributes#filters_a"><strong><code>clean</code> and <code>smudge</code> git filters</strong> issued pre commits and post checkouts</a>,
-respectively, but the <strong>filters can't encrypt the tracked file paths / filenames</strong>,
+respectively, but <strong>git filters can't encrypt the tracked file paths / filenames</strong>,
 whereas one might have a want for that, otherwise almost what's the point? 😶</p>
 <h2 id="features">Features</h2>
 <ul>
@@ -82,7 +87,7 @@ whereas one might have a want for that, otherwise almost what's the point? 😶<
 <li>Automatic <strong>text compression</strong> for reduced space use.</li>
 <li>Currently using <strong><em>strong</em> AES256 encryption</strong> of files and paths, so far quantum-safe.</li>
 <li>Familiar git workflow: add, stage, commit, push, clone, pull, checkout.</li>
-<li><strong>Selective checkout</strong> of backup files, efficient size-on-disk overhead.</li>
+<li><strong>Selective (sparse) checkout</strong> of backup files, efficient size-on-disk overhead.</li>
 <li><strong>Sync to multiple clouds</strong> for nearly free by (ab)using popular git hosts.</li>
 <li><strong>Or sync anywhere simply</strong> by cloning or checking-out a directory ...</li>
 </ul>
@@ -160,11 +165,11 @@ Subcommands:
   git CMD [OPTS]        Inspect/execute raw git commands inside plain repo
   git_enc CMD [OPTS]    Inspect/execute raw git commands inside encrypted repo
 
-Env vars: WORK_TREE, PLAIN_REPO, PASSWORD USE_GPG, VERBOSE, YES_OVERWRITE, ...
+Env vars: WORK_TREE, PLAIN_REPO, PASSWORD, USE_GPG, VERBOSE, YES_OVERWRITE, ...
 </code></pre>
-<p>The script also acknowledges a few <strong>environment variables</strong> which you can <em>set</em> to
-steer the program behavior:</p>
 <h3 id="environment-variables">Environment variables</h3>
+<p>The script also acknowledges a few <strong>environment variables</strong> which you can <em>set</em>
+(or export) to steer program behavior:</p>
 <ul>
 <li><code>WORK_TREE=</code> The root of the volume that contains important documents to back up (such as dotfiles).
   If unspecified, <code>$HOME</code>.</li>
@@ -180,8 +185,9 @@ steer the program behavior:</p>
 <li><code>VERBOSE=</code> More verbose output about what the program is doing.</li>
 </ul>
 <h3 id="example-use">Example use</h3>
-<pre><code class="language-shell"># Set volume root to the user's $HOME and export for everyone
+<pre><code class="language-sh"># Set volume root to user's $HOME and export for all further commands
 export WORK_TREE=&quot;$HOME&quot;
+
 myba init
 myba add Documents Photos Etc .dotfile
 PASSWORD=secret  myba commit -m &quot;my precious&quot;
@@ -195,4 +201,58 @@ export WORK_TREE=&quot;$HOME&quot;
 PASSWORD=secret  myba clone &quot;...&quot;  # Clone one of the known remotes
 myba checkout &quot;.dotfile&quot; # Restore backed up files in a space-efficient manner
 </code></pre>
-<p>See <a href="https://github.com/kernc/myba/blob/master/smoke-test.sh"><em>smoke-test.sh</em></a> file for a more full example &amp; test case!</p></article></main></body></html>
+<p>See <a href="https://github.com/kernc/myba/blob/master/smoke-test.sh"><em>smoke-test.sh</em></a> file for a more full example &amp; test case!</p>
+<h2 id="contributing">Contributing</h2>
+<p>The project is <a href="https://github.com/kernc/myba/">hosted on github</a>.</p>
+<p>The script is considered <em>mostly</em> feature-complete, but there remain bugs and design flaws to be discovered and ironed out,
+as well as any TODOs and FIXMEs marked in the source.
+<strong>All source code lines are open to discussion.</strong>
+Especially appreciated are clear pointers to targets for simplification.</p>
+<h2 id="faq">FAQ</h2>
+<details>
+<summary>Is git a good tool for backups?</summary>
+<p>Git/myba's inherently core features allow you to:</p>
+<ul>
+<li>track a list of important files,</li>
+<li>track all changes made, with authorship info and datums, to any of the tracked files,</li>
+<li>securely store copies of files at each commited snapshot,</li>
+<li>efficiently compress non-binary files,</li>
+<li><a href="https://git-scm.com/book/ms/v2/Customizing-Git-Git-Attributes">apply custom script filters</a> to files
+  based on file extension / glob string match,</li>
+<li>execute <a href="https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks">custom script hooks</a>
+  at various stages of program lifecycle.</li>
+</ul>
+<p><a href="https://en.wikipedia.org/wiki/Git">Git</a> is a stable and reliable tool used by millions
+of people and organizations worldwide,
+with long and rigorous release / support cycles.</p>
+</details>
+<details>
+<summary>Git doesn't track file owner and access control / permissions ...</summary>
+<p>True. Files commited by any user are restorable by any user with the right password.
+In order to restore files with specific file permission bits set, <strong>defer to
+<a href="https://pubs.opengroup.org/onlinepubs/9799919799/utilities/umask.html">umask</a></strong>,
+e.g.:</p>
+<pre><code class="language-sh">umask 0077  # Restore files with `u=rwx,g=,o=`
+WORK_TREE=~ myba checkout .ssh
+</code></pre>
+<p>If you need to restore file owners, file access times and similar metadata,
+simply <strong>write a small shell wrapper</strong> that takes care of it.
+<strong>Welcome to contrib</strong> anything short to the respect
+you find widely-applicable and useful.</p>
+</details>
+<details>
+<summary>Git isn't optimized for continuously-changing databases and binary files ...</summary>
+<p>That is correct. Git saves whole file snapshots and doesn't do any in-file or within-file deduplication,
+so it's not well suited to automatic continuous backing up of databases that change often.</p>
+<p>However, while git repositories bloat when commiting large binary and media files,
+<strong><em>myba</em> only ever uses sparse-checkout</strong>, keeping overhead disk space use to a minimum.</p>
+</details>
+<details>
+<summary>How to influence what files / filetypes to ignore from backup?</summary>
+<p>You can edit <code>$PLAIN_REPO/info/exclude</code>, which is prepopulated with default common ignore patterns.
+You can tweak various other git settings (like config, filters, hooks)
+by modifying files in <code>$PLAIN_REPO</code> and <code>$PLAIN_REPO/_encrypted/.git</code>.</p>
+</details></article></main>
+<script>hljs.highlightAll();</script>
+<script>[...document.links].forEach(a => { if (a.hostname !== location.hostname) a.target = "_blank"; })</script>
+</body></html>
