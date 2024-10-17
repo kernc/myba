@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get install aspell
-      - run: comm <(<README.full.md aspell list | sort -u) <(cat .github/aspell-ignorewords.txt) -23 | grep -q . || exit 1
+      - run: .github/scripts/spellcheck.sh
       - run: pip install --user markdown
       - run: .github/scripts/build-website.sh
       - uses: peaceiris/actions-gh-pages@v4
