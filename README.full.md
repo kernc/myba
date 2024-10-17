@@ -1,16 +1,16 @@
 <img src="icon.svg" width="64" alt/>  Myba — git-based backup utility with encryption
 =====
 
-[TOC]
-
 [![Build Status](https://img.shields.io/github/actions/workflow/status/kernc/myba/ci.yml?branch=master&style=for-the-badge)](https://github.com/kernc/myba/actions)
 [![Issues](https://img.shields.io/github/issues/kernc/myba?style=for-the-badge)](#)
 [![GitHub Sponsors](https://img.shields.io/github/sponsors/kernc?color=pink&style=for-the-badge)](https://github.com/sponsors/kernc)
 
+[TOC]
+
 **Myba** (pronounced: mỹba) **is an
 open-source, secure, distributed, version-controlled, encrypted
 file backup software based on `git`**,
-for **Linux, MacOS**, and possibly even **Windows/WSL**.
+for **Linux, MacOS, BSDs**, and possibly even **Windows/WSL**.
 In a world of vice, instability, evergreen browsers, fast-moving markets and near constant _supply chain attacks_,
 it's the best kind of backup utility—**a timeless shell script** that relies on few, well-tested and _stable_ technologies.
 Its only **dependencies are**:
@@ -30,7 +30,7 @@ is going to be shared with untrusted (and untrustworthy) third parties
 and various intermediary data "processors".
 One _could_ most simply set up an encryption-decryption process
 consisting of [**`clean` and `smudge` git filters** issued pre commits and post checkouts](https://git-scm.com/book/ms/v2/Customizing-Git-Git-Attributes#filters_a),
-respectively, but the **filters can't encrypt the tracked file paths / filenames**,
+respectively, but **git filters can't encrypt the tracked file paths / filenames**,
 whereas one might have a want for that, otherwise almost what's the point? 😶
 
 Features
@@ -39,7 +39,7 @@ Features
 * Automatic **text compression** for reduced space use.
 * Currently using **_strong_ AES256 encryption** of files and paths, so far quantum-safe.
 * Familiar git workflow: add, stage, commit, push, clone, pull, checkout.
-* **Selective checkout** of backup files, efficient size-on-disk overhead.
+* **Selective (sparse) checkout** of backup files, efficient size-on-disk overhead.
 * **Sync to multiple clouds** for nearly free by (ab)using popular git hosts.
 * **Or sync anywhere simply** by cloning or checking-out a directory ...
 
@@ -134,13 +134,14 @@ Subcommands:
   git CMD [OPTS]        Inspect/execute raw git commands inside plain repo
   git_enc CMD [OPTS]    Inspect/execute raw git commands inside encrypted repo
 
-Env vars: WORK_TREE, PLAIN_REPO, PASSWORD USE_GPG, VERBOSE, YES_OVERWRITE, ...
+Env vars: WORK_TREE, PLAIN_REPO, PASSWORD, USE_GPG, VERBOSE, YES_OVERWRITE, ...
 ```
-The script also acknowledges a few **environment variables** which you can _set_ to
-steer the program behavior:
 
 
 ### Environment variables
+
+The script also acknowledges a few **environment variables** which you can _set_
+(or export) to steer program behavior:
 
 * `WORK_TREE=` The root of the volume that contains important documents to back up (such as dotfiles).
   If unspecified, `$HOME`.
@@ -158,9 +159,10 @@ steer the program behavior:
 
 ### Example use
 
-```shell
-# Set volume root to the user's $HOME and export for everyone
+```sh
+# Set volume root to user's $HOME and export for all further commands
 export WORK_TREE="$HOME"
+
 myba init
 myba add Documents Photos Etc .dotfile
 PASSWORD=secret  myba commit -m "my precious"
@@ -175,3 +177,74 @@ PASSWORD=secret  myba clone "..."  # Clone one of the known remotes
 myba checkout ".dotfile" # Restore backed up files in a space-efficient manner
 ```
 See [_smoke-test.sh_](https://github.com/kernc/myba/blob/master/smoke-test.sh) file for a more full example & test case!
+
+
+Contributing
+------------
+The project is [hosted on github](https://github.com/kernc/myba/).
+
+The script is considered _mostly_ feature-complete, but there remain bugs and design flaws to be discovered and ironed out,
+as well as any TODOs and FIXMEs marked in the source.
+**All source code lines are open to discussion.**
+Especially appreciated are clear pointers to targets for simplification.
+
+
+FAQ
+---
+
+<details markdown="1">
+<summary>Is git a good tool for backups?</summary>
+
+Git/myba's inherently core features allow you to:
+
+* track a list of important files,
+* track all changes made, with authorship info and datums, to any of the tracked files,
+* securely store copies of files at each commited snapshot,
+* efficiently compress non-binary files,
+* [apply custom script filters](https://git-scm.com/book/ms/v2/Customizing-Git-Git-Attributes) to files
+  based on file extension / glob string match,
+* execute [custom script hooks](https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks)
+  at various stages of program lifecycle.
+
+[Git](https://en.wikipedia.org/wiki/Git) is a stable and reliable tool used by millions
+of people and organizations worldwide,
+with long and rigorous release / support cycles.
+
+</details>
+<details markdown="1">
+<summary>Git doesn't track file owner and access control / permissions ...</summary>
+
+True. Files commited by any user are restorable by any user with the right password.
+In order to restore files with specific file permission bits set, **defer to
+[umask](https://pubs.opengroup.org/onlinepubs/9799919799/utilities/umask.html)**,
+e.g.:
+
+```sh
+umask 0077  # Restore files with `u=rwx,g=,o=`
+WORK_TREE=~ myba checkout .ssh
+```
+
+If you need to restore file owners, file access times and similar metadata,
+simply **write a small shell wrapper** that takes care of it.
+**Welcome to contrib** anything short to the respect
+you find widely-applicable and useful.
+
+</details>
+<details markdown="1">
+<summary>Git isn't optimized for continuously-changing databases and binary files ...</summary>
+
+That is correct. Git saves whole file snapshots and doesn't do any in-file or within-file deduplication,
+so it's not well suited to automatic continuous backing up of databases that change often.
+
+However, while git repositories bloat when commiting large binary and media files,
+**_myba_ only ever uses sparse-checkout**, keeping overhead disk space use to a minimum.
+
+</details>
+<details markdown="1">
+<summary>How to influence what files / filetypes to ignore from backup?</summary>
+
+You can edit `$PLAIN_REPO/info/exclude`, which is prepopulated with default common ignore patterns.
+You can tweak various other git settings (like config, filters, hooks)
+by modifying files in `$PLAIN_REPO` and `$PLAIN_REPO/_encrypted/.git`.
+
+</details>

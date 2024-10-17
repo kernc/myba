@@ -8,7 +8,7 @@
 **Myba** (pronounced: mỹba) **is an
 open-source, secure, distributed, version-controlled, encrypted
 file backup software based on `git`**,
-for **Linux, MacOS**, and possibly even **Windows/WSL**.
+for **Linux, MacOS, BSDs**, and possibly even **Windows/WSL**.
 In a world of vice, instability, evergreen browsers, fast-moving markets and near constant _supply chain attacks_,
 it's the best kind of backup utility—**a timeless shell script** that relies on few, well-tested and _stable_ technologies.
 Its only **dependencies are**:
@@ -23,3 +23,11 @@ all of which everyone should discover most popularly available.
 ### **Learn more** about the project on [**`myba` backup project website**](https://kernc.github.io/myba/).
 
 See [_smoke-test.sh_](https://github.com/kernc/myba/blob/master/smoke-test.sh) for a covering example / test case!
+
+
+Contributing
+------------
+The script is considered _mostly_ feature-complete, but there remain bugs and design flaws to be discovered and ironed out,
+as well as any TODOs and FIXMEs marked in the source.
+**All source code lines are open to discussion.**
+Especially appreciated are clear pointers to targets for simplification.
