@@ -2,6 +2,8 @@
 =====
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/kernc/myba/ci.yml?branch=master&style=for-the-badge)](https://github.com/kernc/myba/actions)
+[![Source lines of code](https://img.shields.io/endpoint?url=https://ghloc.vercel.app/api/kernc/myba/badge?filter=myba.sh$&style=for-the-badge&logo=github&color=skyblue&label=SLOC)](https://github.com/kernc/myba)
+[![Script size](https://img.shields.io/github/size/kernc/myba/myba.sh?style=for-the-badge&logo=github&color=skyblue)](https://github.com/kernc/myba)
 [![Issues](https://img.shields.io/github/issues/kernc/myba?style=for-the-badge)](#)
 [![GitHub Sponsors](https://img.shields.io/github/sponsors/kernc?color=pink&style=for-the-badge)](https://github.com/sponsors/kernc)
 
