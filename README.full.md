@@ -76,7 +76,7 @@ that **large binaries don't change too often**.
 fully **encrypted backups** that are really **easily replicated and synced to the cloud**.
 
 <script src="https://ssl.gstatic.com/trends_nrtr/3826_RC01/embed_loader.js"></script>
-<script>window.trends.embed.renderExploreWidget("TIMESERIES", {"comparisonItem":[{"keyword":"/m/02mhh1","geo":"","time":"2004-01-01 2024-10-13"},{"keyword":"/m/05vqwg","geo":"","time":"2004-01-01 2024-10-13"},{"keyword":"/m/0ryppmg","geo":"","time":"2004-01-01 2024-10-13"}],"category":0,"property":""}, {"exploreQuery":"q=%2Fm%2F02mhh1,%2Fm%2F05vqwg,%2Fm%2F0ryppmg&date=all#TIMESERIES","guestPath":"https://trends.google.com:443/trends/embed/"})</script>
+<script>var now=(new Date()).toISOString().split('T')[0]; window.trends.embed.renderExploreWidget("TIMESERIES", {"comparisonItem":[{"keyword":"/m/02mhh1","geo":"","time":"2004-01-01 "+now},{"keyword":"/m/05vqwg","geo":"","time":"2004-01-01 "+now},{"keyword":"/m/0ryppmg","geo":"","time":"2004-01-01 "+now}],"category":0,"property":""}, {"exploreQuery":"q=%2Fm%2F02mhh1,%2Fm%2F05vqwg,%2Fm%2F0ryppmg&date=all#TIMESERIES","guestPath":"https://trends.google.com:443/trends/embed/"})</script>
 
 
 ### Use-cases
