@@ -10,6 +10,8 @@ jobs:
   test:
     timeout-minutes: 5
     runs-on: ubuntu-latest
+    env:
+      VERBOSE: 1
     steps:
       - uses: actions/checkout@v4
       - run: shellcheck *.sh
