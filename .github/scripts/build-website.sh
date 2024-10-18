@@ -17,15 +17,17 @@ preamble='<!doctype html>
 <meta itemprop="license" content="https://www.gnu.org/licenses/agpl-3.0.txt">
 <meta itemprop="sameAs" content="https://github.com/kernc/myba/">
 <meta itemprop="url" content="/">
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-JT9W3RXCJD"></script><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2900001379782823" crossorigin></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JT9W3RXCJD"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-JT9W3RXCJD");</script>
 <style>
-html{background:DarkOliveGreen; line-height: 1.4em; font-family:}
+html{background:DarkOliveGreen; line-height: 1.4em; font-family:sans-serif;}
 article {background:#fffb; padding:2em; margin:auto; max-width: 900px;}
 pre {background:#fff8;}
 code:not(pre code) {background:#fff8; padding: .2em .5em; white-space: nowrap;}
 ul li code:not(pre code):first-child {font-weight: bold;}
 h1,h2,h3,h4 {margin-top: 2em}
+h1 img {vertical-align: middle; margin: 0 1em 1em 0;}
+h1 {line-height: 1.3em;}
 a:link {color:navy}
 a:hover {color:blue !important}
 a:visited {color:darkmagenta}
