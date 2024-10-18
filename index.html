@@ -139,7 +139,7 @@ fully <strong>encrypted backups</strong> that are really <strong>easily replicat
 sudo apt install  gzip git git-lfs openssl gpg
 
 # Download and make available somewhere in path
-curl -L https://bit.ly/myba-backup &gt; ~/.local/bin/myba
+curl -vL 'https://bit.ly/myba-backup' &gt; ~/.local/bin/myba
 export PATH=&quot;$HOME/.local/bin:$PATH&quot;
 
 myba help
@@ -182,12 +182,13 @@ Env vars: WORK_TREE, PLAIN_REPO, PASSWORD, USE_GPG, VERBOSE, YES_OVERWRITE, ...
 <li><code>PLAIN_REPO=</code> The <em>internal</em> directory where myba actually stores both its repositories.
   Defaults to <code>$WORK_TREE/.myba</code> but can be overriden to somewhere out-of-tree ...</li>
 <li><code>PASSWORD=</code> The password to use for encryption instead of asking / reading from stdin.</li>
-<li><code>USE_GPG=</code> Myba uses <code>openssl enc</code> by default, but if you prefer to use GPG for symmetric encryption, set <code>USE_GPG=1</code>.</li>
-<li><code>KDF_ITERS=</code> A sufficient number of iterations is used for the encryption key derivation function.
-  To specify your own value and avoid rainbow table attacks on myba itself, you can customize this value.
-  If you don't know, just leave it.</li>
-<li><code>YES_OVERWRITE=</code> If set, overwrite existing when restoring/checking out files that already exist in $WORK_TREE. 
-  The default is to ask instead.</li>
+<li><code>USE_GPG=</code> Myba uses <code>openssl enc</code> by default, but if you prefer to use GPG even for
+  symmetric encryption, set <code>USE_GPG=1</code>.</li>
+<li><code>KDF_ITERS=</code> A sufficient number of iterations is used for the encryption key derivation
+  function. To specify your own value and avoid rainbow table attacks on myba itself,
+  you can customize this value. If you don't know, just leave it.</li>
+<li><code>YES_OVERWRITE=</code> If set, overwrite existing when restoring/checking out files that already
+  exist in $WORK_TREE. The default is to ask instead.</li>
 <li><code>VERBOSE=</code> More verbose output about what the program is doing.</li>
 </ul>
 <h3 id="example-use">Example use</h3>
@@ -196,7 +197,7 @@ export WORK_TREE=&quot;$HOME&quot;
 
 myba init
 myba add Documents Photos Etc .dotfile
-PASSWORD=secret  myba commit -m &quot;my precious&quot;
+PASSWORD='secret'  myba commit -m &quot;my precious&quot;
 myba remote add origin &quot;/media/usb/backup&quot;
 myba remote add github &quot;git@github.com:user/my-backup.git&quot;
 myba push  # Push to all configured remotes &amp; free disk space
@@ -204,13 +205,14 @@ myba push  # Push to all configured remotes &amp; free disk space
 # Somewhere else, much, much later, avoiding catastrophe ...
 
 export WORK_TREE=&quot;$HOME&quot;
-PASSWORD=secret  myba clone &quot;...&quot;  # Clone one of the known remotes
+PASSWORD='secret'  myba clone &quot;...&quot;  # Clone one of the known remotes
 myba checkout &quot;.dotfile&quot; # Restore backed up files in a space-efficient manner
 </code></pre>
 <p>See <a href="https://github.com/kernc/myba/blob/master/smoke-test.sh"><em>smoke-test.sh</em></a> file for a more full example &amp; test case!</p>
 <h2 id="contributing">Contributing</h2>
 <p>The project is <a href="https://github.com/kernc/myba/">hosted on github</a>.</p>
-<p>The script is considered <em>mostly</em> feature-complete, but there remain bugs and design flaws to be discovered and ironed out,
+<p>The script is considered <em>mostly</em> feature-complete, but there remain
+bugs and design flaws to be discovered and ironed out,
 as well as any TODOs and FIXMEs marked in the source.
 <strong>All source code lines are open to discussion.</strong>
 Especially appreciated are clear pointers to targets for simplification.</p>
@@ -248,8 +250,9 @@ you find widely-applicable and useful.</p>
 </details>
 <details>
 <summary>Git isn't optimized for continuously-changing databases and binary files ...</summary>
-<p>That is correct. Git saves whole file snapshots and doesn't do any in-file or within-file deduplication,
-so it's not well suited to automatic continuous backing up of databases that change often.</p>
+<p>That is correct. Git saves whole file snapshots and doesn't do any in-file or within-file
+or across-file deduplication, so it's not well suited to automatic continuous backing up
+of databases that change often.</p>
 <p>However, while git repositories bloat when commiting large binary and media files,
 <strong><em>myba</em> only ever uses sparse-checkout</strong>, keeping overhead disk space use to a minimum.</p>
 </details>
