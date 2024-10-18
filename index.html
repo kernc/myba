@@ -15,12 +15,14 @@
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-JT9W3RXCJD"></script><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2900001379782823" crossorigin></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-JT9W3RXCJD");</script>
 <style>
-html{background:DarkOliveGreen; line-height: 1.4em; font-family:}
+html{background:DarkOliveGreen; line-height: 1.4em; font-family:sans-serif;}
 article {background:#fffb; padding:2em; margin:auto; max-width: 900px;}
 pre {background:#fff8;}
 code:not(pre code) {background:#fff8; padding: .2em .5em; white-space: nowrap;}
 ul li code:not(pre code):first-child {font-weight: bold;}
 h1,h2,h3,h4 {margin-top: 2em}
+h1 img {vertical-align: middle; margin: 0 1em 1em 0;}
+h1 {line-height: 1.3em;}
 a:link {color:navy}
 a:hover {color:blue !important}
 a:visited {color:darkmagenta}
@@ -38,9 +40,9 @@ details[open] summary {border:2px solid black;}
 
 <h1 id="myba-git-based-backup-utility-with-encryption"><img src="icon.svg" width="64" alt/>  Myba — git-based backup utility with encryption</h1>
 <p><a href="https://github.com/kernc/myba/actions"><img alt="Build Status" src="https://img.shields.io/github/actions/workflow/status/kernc/myba/ci.yml?branch=master&amp;style=for-the-badge"></a>
+<a href="https://github.com/kernc/myba"><img alt="Script size" src="https://img.shields.io/github/size/kernc/myba/myba.sh?style=for-the-badge&amp;logo=github&amp;color=skyblue"></a>
 <a href="#"><img alt="Issues" src="https://img.shields.io/github/issues/kernc/myba?style=for-the-badge"></a>
-<a href="https://github.com/sponsors/kernc"><img alt="GitHub Sponsors" src="https://img.shields.io/github/sponsors/kernc?color=pink&amp;style=for-the-badge"></a>
-<a href="https://github.com/kernc/myba"><img alt="Script size" src="https://img.shields.io/github/size/kernc/myba/myba.sh?style=for-the-badge&amp;logo=github&amp;color=skyblue"></a></p>
+<a href="https://github.com/sponsors/kernc"><img alt="GitHub Sponsors" src="https://img.shields.io/github/sponsors/kernc?color=pink&amp;style=for-the-badge"></a></p>
 <div class="toc">
 <ul>
 <li><a href="#features">Features</a></li>
@@ -123,8 +125,10 @@ fully <strong>encrypted backups</strong> that are really <strong>easily replicat
 <h3 id="use-cases">Use-cases</h3>
 <ul>
 <li><strong>Zero-knowledge cloud sync and storage</strong></li>
-<li>Replace or supplement existing <strong>poor complex and proprietary solutions</strong> (like Veeam, Time Machine, Google Photos &amp; Drive, iCloud)
-  or software programs with <strong>complex and unfamiliar CLI APIs or wide attack surfaces</strong> (Bacula, Borg Backup, restic) ...</li>
+<li>Replace or supplement existing <strong>poor complex and proprietary solutions</strong>
+  (like Veeam, Time Machine, Google Photos &amp; Drive, iCloud)
+  or software programs with <strong>complex and unfamiliar CLI APIs or wide attack surfaces</strong>
+  (Bacula, Borg Backup, restic, git-crypt) ...</li>
 <li>Cloud-based serverless virii</li>
 <li><strong>Protocol- and PaaS-agnostic</strong> design (AWS to Backblaze B2, GitLab to Gitea). Simply sync (even rsync) a git folder.</li>
 </ul>
