@@ -1,18 +1,21 @@
 #!/bin/sh
 # myba - Secure, distributed, encrypted backups based on `sh` shell and `git` (and `openssl enc` or `gpg`)
-# FIXME review
 #
 # Basically your beloved git, but with underlying two repos:
-#   - bare, local-only _plain repo_ to track changes upon local, plaintext (and binary) files, set e.g. to your $HOME,
-#   - _encrypted repo_ that holds the encrypted blobs.
+#   * bare, local-only _plain repo_ to track changes upon local,
+#     plaintext (and binary) files, set e.g. to your $HOME,
+#   * _encrypted repo_ that holds the encrypted blobs.
 # Only the encrypted repo is ever synced with configured remotes.
 # Every commit into the plain repo creates a commit in the encrypted repo.
-# Commits in the encrypted repo carry base64-encoded encrypted commit metadata of the plain repo.
-# In the encrypted repo, there is a dir "manifest" with filename "{plain_repo_commit_hash}" and
-# line format: `<enc_path>\t<plain_path>`.
-# Encrypted paths are like "abc/def//rest-of-hash" and are _deterministic_,
-# dependent upon the plain pathname and chosen password! The multi-level fs hierarchy is for near maximum efficiency of `git sparse-checkout`.
-# Encrypted blobs are also encrypted deterministically, based on hash of the plain content and chosen password.
+# Commits in the encrypted repo carry base64-encoded encrypted commit metadata
+# of the plain repo.
+# Additional files `$ENC_REPO/manifest/<plain_repo_commit_hash>` with
+# with line format: `<enc_path>\t<plain_path>`.
+# Encrypted paths are like "$ENC_REPO/abc/def/rest-of-hash" and are _deterministic_,
+# dependent upon the plain pathname and chosen password! The multi-level fs hierarchy
+# is for near maximum efficiency of `git sparse-checkout`.
+# Encrypted blobs are also encrypted deterministically, based on hash of the plain
+# content and chosen password.
 #
 # This is an expected shell workflow:
 #
@@ -196,7 +199,7 @@ cmd_init () {
     email="$USER@$(hostname 2>/dev/null || cat /etc/hostname)"
     git_plain config user.name "$USER"
     git_plain config user.email "$email"
-    git_plain config status.showUntrackedFiles no # We don't care to see largely untracked $HOME  # XXX: remove this!
+    git_plain config status.showUntrackedFiles no  # We don't care to see largely untracked $HOME  # XXX: remove this?
     git_enc config user.name "$USER"
     git_enc config user.email "$email"
     # All our files are strictly binary (encrypted)
@@ -260,14 +263,17 @@ cmd_restore () {
                 git_enc sparse-checkout reapply
 
                 # Decrypt and stage files from this commit into temp_dir
-                plain_commit="$(git_enc show --name-only --pretty=format: "$_enc_commit" -- "manifest/" | cut -d/ -f2)"
+                plain_commit="$(git_enc show --name-only --pretty=format: "$_enc_commit" -- "manifest/" |
+                                cut -d/ -f2)"
                 while IFS="$_tab" read -r _enc_path _plain_path; do
                     WORK_TREE="$temp_dir" _decrypt_file "$_enc_path" "$_plain_path"
                     WORK_TREE="$temp_dir" git_plain add "$_plain_path"
                 done < "$PLAIN_REPO/manifest/$plain_commit"
 
                 # Commit the changes to the plain repo
-                _msg="$(git_enc show -s --format='%B' "$_enc_commit" | _decrypt "" $_armor_flags | gzip -dc)"
+                _msg="$(git_enc show -s --format='%B' "$_enc_commit" |
+                        _decrypt "" $_armor_flags |
+                        gzip -dc)"
                 _date="$(git_enc show -s --format='%ai' "$_enc_commit")"
                 _author="$(git_enc show -s --format='%an <%ae>' "$_enc_commit")"
                 if ! WORK_TREE="$temp_dir" git_plain diff --staged --quiet; then
@@ -306,7 +312,6 @@ cmd_commit () {
         done
 
     # If first commit, add self
-    # FIXME: fixme??
     if ! git_enc rev-parse HEAD 2>/dev/null; then
         _self="$(command -v "$0" 2>/dev/null || echo "$0")"
         cp "$_self" "$ENC_REPO/$(basename "$_self")"
@@ -314,12 +319,16 @@ cmd_commit () {
     fi
 
     # Stage new manifest
-    gzip -c2 "$PLAIN_REPO/$manifest_path" | _encrypt "" > "$ENC_REPO/$manifest_path"
+    gzip -c2 "$PLAIN_REPO/$manifest_path" |
+        _encrypt "" > "$ENC_REPO/$manifest_path"
     git_enc add --sparse "$manifest_path"
 
     # Commit to encrypted repo
     git_enc status --short
-    git_enc commit -m "$(git_plain show --format='%B' --name-status | gzip -c9 | _encrypt "" $_armor_flags)"
+    git_enc commit -m "$(
+        git_plain show --format='%B' --name-status |
+            gzip -c9 |
+            _encrypt "" $_armor_flags)"
 }
 
 

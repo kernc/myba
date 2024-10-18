@@ -40,7 +40,7 @@ Features
 * **Version-controlled (git-based) backup** of plaintext documents as well as large binary files.
 * Automatic **text compression** for reduced space use.
 * Currently using **_strong_ AES256 encryption** of files and paths, so far quantum-safe.
-* Familiar git workflow: add, stage, commit, push, clone, pull, checkout.
+* **Familiar git workflow**: add (stage), commit, push, clone, pull, checkout.
 * **Selective (sparse) checkout** of backup files, efficient size-on-disk overhead.
 * **Sync to multiple clouds** for nearly free by (ab)using popular git hosts.
 * **Or sync anywhere simply** by cloning or checking-out a directory ...
@@ -84,8 +84,10 @@ fully **encrypted backups** that are really **easily replicated and synced to th
 ### Use-cases
 
 * **Zero-knowledge cloud sync and storage**
-* Replace or supplement existing **poor complex and proprietary solutions** (like Veeam, Time Machine, Google Photos & Drive, iCloud)
-  or software programs with **complex and unfamiliar CLI APIs or wide attack surfaces** (Bacula, Borg Backup, restic) ...
+* Replace or supplement existing **poor complex and proprietary solutions**
+  (like Veeam, Time Machine, Google Photos & Drive, iCloud)
+  or software programs with **complex and unfamiliar CLI APIs or wide attack surfaces**
+  (Bacula, Borg Backup, restic, git-crypt) ...
 * Cloud-based serverless virii
 * **Protocol- and PaaS-agnostic** design (AWS to Backblaze B2, GitLab to Gitea). Simply sync (even rsync) a git folder.
 
@@ -98,7 +100,7 @@ To install everything on a Debian/Ubuntu-based system, run:
 sudo apt install  gzip git git-lfs openssl gpg
 
 # Download and make available somewhere in path
-curl -L https://bit.ly/myba-backup > ~/.local/bin/myba
+curl -vL 'https://bit.ly/myba-backup' > ~/.local/bin/myba
 export PATH="$HOME/.local/bin:$PATH"
 
 myba help
@@ -150,12 +152,13 @@ The script also acknowledges a few **environment variables** which you can _set_
 * `PLAIN_REPO=` The _internal_ directory where myba actually stores both its repositories.
   Defaults to `$WORK_TREE/.myba` but can be overriden to somewhere out-of-tree ...
 * `PASSWORD=` The password to use for encryption instead of asking / reading from stdin.
-* `USE_GPG=` Myba uses `openssl enc` by default, but if you prefer to use GPG for symmetric encryption, set `USE_GPG=1`.
-* `KDF_ITERS=` A sufficient number of iterations is used for the encryption key derivation function.
-  To specify your own value and avoid rainbow table attacks on myba itself, you can customize this value.
-  If you don't know, just leave it.
-* `YES_OVERWRITE=` If set, overwrite existing when restoring/checking out files that already exist in $WORK_TREE. 
-  The default is to ask instead.
+* `USE_GPG=` Myba uses `openssl enc` by default, but if you prefer to use GPG even for
+  symmetric encryption, set `USE_GPG=1`.
+* `KDF_ITERS=` A sufficient number of iterations is used for the encryption key derivation
+  function. To specify your own value and avoid rainbow table attacks on myba itself,
+  you can customize this value. If you don't know, just leave it.
+* `YES_OVERWRITE=` If set, overwrite existing when restoring/checking out files that already
+  exist in $WORK_TREE. The default is to ask instead.
 * `VERBOSE=` More verbose output about what the program is doing.
 
 
@@ -167,7 +170,7 @@ export WORK_TREE="$HOME"
 
 myba init
 myba add Documents Photos Etc .dotfile
-PASSWORD=secret  myba commit -m "my precious"
+PASSWORD='secret'  myba commit -m "my precious"
 myba remote add origin "/media/usb/backup"
 myba remote add github "git@github.com:user/my-backup.git"
 myba push  # Push to all configured remotes & free disk space
@@ -175,7 +178,7 @@ myba push  # Push to all configured remotes & free disk space
 # Somewhere else, much, much later, avoiding catastrophe ...
 
 export WORK_TREE="$HOME"
-PASSWORD=secret  myba clone "..."  # Clone one of the known remotes
+PASSWORD='secret'  myba clone "..."  # Clone one of the known remotes
 myba checkout ".dotfile" # Restore backed up files in a space-efficient manner
 ```
 See [_smoke-test.sh_](https://github.com/kernc/myba/blob/master/smoke-test.sh) file for a more full example & test case!
@@ -185,8 +188,10 @@ Contributing
 ------------
 The project is [hosted on github](https://github.com/kernc/myba/).
 
-The script is considered _mostly_ feature-complete, but there remain bugs and design flaws to be discovered and ironed out,
-as well as any TODOs and FIXMEs marked in the source.
+The script is considered _mostly_ feature-complete, but there remain
+bugs and design flaws to be discovered and ironed out, as well as any
+[TODOs and FIXMEs](https://github.com/search?q=repo%3Akernc%2Fmyba+%28todo+OR+fixme+OR+xxx%29&type=code)
+marked in the source.
 **All source code lines are open to discussion.**
 Especially appreciated are clear pointers to targets for simplification.
 
@@ -235,8 +240,9 @@ you find widely-applicable and useful.
 <details markdown="1">
 <summary>Git isn't optimized for continuously-changing databases and binary files ...</summary>
 
-That is correct. Git saves whole file snapshots and doesn't do any in-file or within-file deduplication,
-so it's not well suited to automatic continuous backing up of databases that change often.
+That is correct. Git saves whole file snapshots and doesn't do any in-file or within-file
+or across-file deduplication, so it's not well suited to automatic continuous backing up
+of databases that change often.
 
 However, while git repositories bloat when commiting large binary and media files,
 **_myba_ only ever uses sparse-checkout**, keeping overhead disk space use to a minimum.
