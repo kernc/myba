@@ -1,17 +1,18 @@
 <!doctype html>
-<html lang=en itemscope itemtype="https://schema.org/SoftwareApplication">
+<html lang=en vocab="https://schema.org/" typeof="SoftwareApplication">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Myba - git-based file backup with encryption</title>
 <link rel="logo icon" href="icon.svg">
 <meta name="theme-color" content="#333">
-<meta itemprop="applicationCategory" content="BusinessApplication"><meta itemprop="applicationCategory" content="DeveloperApplication"><meta itemprop="applicationCategory" content="SecurityApplication"><meta itemprop="applicationCategory" content="UtilitiesApplication">
-<meta itemprop="operatingSystem" content="Linux"><meta itemprop="operatingSystem" content="macOS"><meta itemprop="operatingSystem" content="Windows">
-<meta itemprop="isAccessibleForFree" content="true">
-<meta itemprop="license" content="https://www.gnu.org/licenses/agpl-3.0.txt">
-<meta itemprop="sameAs" content="https://github.com/kernc/myba/">
-<meta itemprop="url" content="/">
+<meta property="name" content="myba">
+<meta property="applicationCategory" content="BusinessApplication"><meta property="applicationCategory" content="DeveloperApplication"><meta property="applicationCategory" content="SecurityApplication"><meta property="applicationCategory" content="UtilitiesApplication">
+<meta property="operatingSystem" content="Linux"><meta property="operatingSystem" content="macOS"><meta property="operatingSystem" content="Windows">
+<meta property="isAccessibleForFree" content="true">
+<link property="license" href="https://www.gnu.org/licenses/agpl-3.0.txt">
+<link property="sameAs" href="https://github.com/kernc/myba/">
+<meta property="url" content="./">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-JT9W3RXCJD"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-JT9W3RXCJD");</script>
 <style>
@@ -25,7 +26,7 @@ h1 img {vertical-align: middle; margin: 0 1em 1em 0;}
 h1 {line-height: 1.3em;}
 a:link {color:navy}
 a:hover {color:blue !important}
-a:visited {color:darkmagenta}
+a:visited {color:#230}
 summary {width:fit-content; border:2px solid silver; cursor:pointer; padding:.2em .6em; margin:.3em 0; font-weight:bold}
 details[open] summary {border:2px solid black;}
 </style>
@@ -39,11 +40,12 @@ details[open] summary {border:2px solid black;}
 <body><main><article>
 
 <h1 id="myba-git-based-backup-utility-with-encryption"><img src="icon.svg" width="64" alt/>  Myba — git-based backup utility with encryption</h1>
-<p><a href="https://github.com/kernc/myba/actions"><img alt="Build Status" src="https://img.shields.io/github/actions/workflow/status/kernc/myba/ci.yml?branch=master&amp;style=for-the-badge"></a>
-<a href="https://github.com/kernc/myba"><img alt="Source lines of code" src="https://img.shields.io/endpoint?url=https://ghloc.vercel.app/api/kernc/myba/badge?filter=myba.sh$&amp;style=for-the-badge&amp;logo=github&amp;color=skyblue&amp;label=SLOC"></a>
-<a href="https://github.com/kernc/myba"><img alt="Script size" src="https://img.shields.io/github/size/kernc/myba/myba.sh?style=for-the-badge&amp;logo=github&amp;color=skyblue"></a>
+<p><a href="https://github.com/kernc/myba/actions"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/kernc/myba/ci.yml?branch=master&amp;style=for-the-badge"></a>
+<a href="https://github.com/kernc/myba"><img alt="Language: shell / Bash" src="https://img.shields.io/badge/lang-Shell-skyblue?style=for-the-badge"></a>
+<a href="https://github.com/kernc/myba"><img alt="Source lines of code" src="https://img.shields.io/endpoint?url=https://ghloc.vercel.app/api/kernc/myba/badge?filter=myba.sh$&amp;style=for-the-badge&amp;color=skyblue&amp;label=SLOC"></a>
+<a href="https://github.com/kernc/myba"><img alt="Script size" src="https://img.shields.io/github/size/kernc/myba/myba.sh?style=for-the-badge&amp;color=skyblue"></a>
 <a href="#"><img alt="Issues" src="https://img.shields.io/github/issues/kernc/myba?style=for-the-badge"></a>
-<a href="https://github.com/sponsors/kernc"><img alt="GitHub Sponsors" src="https://img.shields.io/github/sponsors/kernc?color=pink&amp;style=for-the-badge"></a></p>
+<a href="https://github.com/sponsors/kernc"><img alt="Sponsors" src="https://img.shields.io/github/sponsors/kernc?color=pink&amp;style=for-the-badge"></a></p>
 <div class="toc">
 <ul>
 <li><a href="#features">Features</a></li>
@@ -61,7 +63,7 @@ details[open] summary {border:2px solid black;}
 <li><a href="#faq">FAQ</a></li>
 </ul>
 </div>
-<p><strong>Myba</strong> (pronounced: mỹba) <strong>is an
+<p><strong><em>Myba</em></strong> (pronounced: <a href="https://www.google.com/search?q=myba"><em>mỹba</em></a> <strong>is an
 open-source, secure, distributed, version-controlled, encrypted
 file backup software based on <code>git</code></strong>,
 for <strong>Linux, MacOS, BSDs</strong>, and possibly even <strong>Windows/WSL</strong>.
@@ -121,7 +123,7 @@ that <strong>large binaries don't change too often</strong>.</p>
 <p><strong>Myba</strong> is <strong>Git + Shell</strong>, preconfigured and wrapped as thinly as needed to provide
 fully <strong>encrypted backups</strong> that are really <strong>easily replicated and synced to the cloud</strong>.</p>
 <script src="https://ssl.gstatic.com/trends_nrtr/3826_RC01/embed_loader.js"></script>
-<script>var now=(new Date()).toISOString().split('T')[0]; window.trends.embed.renderExploreWidget("TIMESERIES", {"comparisonItem":[{"keyword":"/m/02mhh1","geo":"","time":"2004-01-01 "+now},{"keyword":"/m/05vqwg","geo":"","time":"2004-01-01 "+now},{"keyword":"/m/0ryppmg","geo":"","time":"2004-01-01 "+now}],"category":0,"property":""}, {"exploreQuery":"q=%2Fm%2F02mhh1,%2Fm%2F05vqwg,%2Fm%2F0ryppmg&date=all#TIMESERIES","guestPath":"https://trends.google.com:443/trends/embed/"})</script>
+<script>var now=(new Date()).toISOString().split('T')[0];window.trends.embed.renderExploreWidget("TIMESERIES", {"comparisonItem":[{"keyword":"/m/02mhh1","geo":"","time":"all"},{"keyword":"/m/05vqwg","geo":"","time":"all"},{"keyword":"/m/0ryppmg","geo":"","time":"all"},{"keyword":"myba","geo":"","time":"all"}],"category":0,"property":""}, {"exploreQuery":"date=all&q=%2Fm%2F02mhh1,%2Fm%2F05vqwg,%2Fm%2F0ryppmg,myba#TIMESERIES","guestPath":"https://trends.google.com:443/trends/embed/"});</script>
 
 <h3 id="use-cases">Use-cases</h3>
 <ul>
@@ -138,7 +140,7 @@ fully <strong>encrypted backups</strong> that are really <strong>easily replicat
 <pre><code class="language-sh"># Install dependencies
 sudo apt install  gzip git git-lfs openssl gpg
 
-# Download and make available somewhere in path
+# Download and put somewhere on PATH
 curl -vL 'https://bit.ly/myba-backup' &gt; ~/.local/bin/myba
 export PATH=&quot;$HOME/.local/bin:$PATH&quot;
 
@@ -147,11 +149,11 @@ myba help
 <p>Note, only one of <code>openssl</code> <em>or</em> <code>gpg</code> is needed, not both!</p>
 <p>It should be similar, if not nearly equivalent, to install on other platforms.
 Hopefully you will find most dependencies already satisfied.</p>
-<p>Please report back if you find / manage to get this working under anything but the above configuration and especially Windows/WSL!</p>
+<p>Please report back if you find / manage to get this working under everything but the above configuration and especially Windows/WSL!</p>
 <h2 id="usage">Usage</h2>
 <p>You run the script with arguments according to the usage printout below.
 Myba heavily relies on <code>git</code> and thus <strong>its command-line usage largely follows that of git convention</strong>.
-Most subcommands pass obtained arguments and options (<code>"@"</code>) straight to matching <code>git</code> subcommands! </p>
+Most subcommands pass obtained arguments and options (<code>"$@"</code>) straight to matching <code>git</code> subcommands!</p>
 <pre><code class="language-text">Usage: myba &lt;subcommand&gt; [options]
 Subcommands:
   init                  Initialize repos in $WORK_TREE (default: $HOME)
@@ -200,7 +202,7 @@ myba add Documents Photos Etc .dotfile
 PASSWORD='secret'  myba commit -m &quot;my precious&quot;
 myba remote add origin &quot;/media/usb/backup&quot;
 myba remote add github &quot;git@github.com:user/my-backup.git&quot;
-myba push  # Push to all configured remotes &amp; free disk space
+VERBOSE=1 myba push  # Push to all configured remotes &amp; free up disk space
 
 # Somewhere else, much, much later, avoiding catastrophe ...
 
@@ -210,59 +212,82 @@ myba checkout &quot;.dotfile&quot; # Restore backed up files in a space-efficien
 </code></pre>
 <p>See <a href="https://github.com/kernc/myba/blob/master/smoke-test.sh"><em>smoke-test.sh</em></a> file for a more full example &amp; test case!</p>
 <h2 id="contributing">Contributing</h2>
-<p>The project is <a href="https://github.com/kernc/myba/">hosted on github</a>.</p>
+<p>The project is <a href="https://github.com/kernc/myba/">hosted on GitHub</a>.</p>
 <p>The script is considered <em>mostly</em> feature-complete, but there remain
 bugs and design flaws to be discovered and ironed out, as well as any
 <a href="https://github.com/search?q=repo%3Akernc%2Fmyba+%28todo+OR+fixme+OR+xxx%29&amp;type=code">TODOs and FIXMEs</a>
 marked in the source.
 <strong>All source code lines are open to discussion.</strong>
-Especially appreciated are clear pointers to targets for simplification.</p>
+Especially appreciated are targets for simplification.</p>
 <h2 id="faq">FAQ</h2>
-<details>
-<summary>Is git a good tool for backups?</summary>
-<p>Git/myba's inherently core features allow you to:</p>
-<ul>
-<li>track a list of important files,</li>
-<li>track all changes made, with authorship info and datums, to any of the tracked files,</li>
-<li>securely store copies of files at each commited snapshot,</li>
-<li>efficiently compress non-binary files,</li>
-<li><a href="https://git-scm.com/book/ms/v2/Customizing-Git-Git-Attributes">apply custom script filters</a> to files
-  based on file extension / glob string match,</li>
-<li>execute <a href="https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks">custom script hooks</a>
-  at various stages of program lifecycle.</li>
-</ul>
-<p><a href="https://en.wikipedia.org/wiki/Git">Git</a> is a stable and reliable tool used by millions
+<div property="about" typeof="FAQPage">
+
+<details markdown="1" property="mainEntity" typeof="Question">
+<summary property="name">Is git a good tool for backups?</summary>
+<div property="acceptedAnswer" typeof="Answer"><div property="text">
+
+Git/myba's inherently core features allow you to:
+
+* track a list of important files,
+* track all changes made, with authorship info and datums, to any of the tracked files,
+* securely store copies of files at each commited snapshot,
+* efficiently compress non-binary files,
+* [apply custom script filters](https://git-scm.com/book/ms/v2/Customizing-Git-Git-Attributes) to files
+  based on file extension / glob string match,
+* execute [custom script hooks](https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks)
+  at various stages of program lifecycle.
+
+[Git](https://en.wikipedia.org/wiki/Git) is a stable and reliable tool used by millions
 of people and organizations worldwide,
-with long and rigorous release / support cycles.</p>
-</details>
-<details>
-<summary>Git doesn't track file owner and access control / permissions ...</summary>
-<p>True. Files commited by any user are restorable by any user with the right password.
-In order to restore files with specific file permission bits set, <strong>defer to
-<a href="https://pubs.opengroup.org/onlinepubs/9799919799/utilities/umask.html">umask</a></strong>,
-e.g.:</p>
+with long and rigorous release / support cycles.
+
+</div></div></details>
+<details markdown="1" property="mainEntity" typeof="Question">
+<summary property="name">Git doesn't track file owner and access control / permissions ...?</summary>
+<div property="acceptedAnswer" typeof="Answer"><div property="text">
+
+Correct. Files commited by any user are restorable by any user with the right password.
+In order to restore files with specific file permission bits set, **defer to
+[umask](https://pubs.opengroup.org/onlinepubs/9799919799/utilities/umask.html)**,
+e.g.:
+
+
 <pre><code class="language-sh">umask 0077  # Restore files with `u=rwx,g=,o=`
 WORK_TREE=~ myba checkout .ssh
 </code></pre>
-<p>If you need to restore file owners, file access times and similar metadata,
-simply <strong>write a small shell wrapper</strong> that takes care of it.
-<strong>Welcome to contrib</strong> anything short to the respect
-you find widely-applicable and useful.</p>
-</details>
-<details>
-<summary>Git isn't optimized for continuously-changing databases and binary files ...</summary>
-<p>That is correct. Git saves whole file snapshots and doesn't do any in-file or within-file
+
+
+If you need to restore file owners, file access times and similar metadata,
+simply **write a small shell wrapper** that takes care of it.
+**Welcome to contrib** anything short to the respect
+you find widely-applicable and useful.
+
+</div></div></details>
+<details markdown="1" property="mainEntity" typeof="Question">
+<summary property="name">Is git optimized for continuously-changing databases and binary files?</summary>
+<div property="acceptedAnswer" typeof="Answer"><div property="text">
+
+It's not. Git saves whole file snapshots and doesn't do any in-file or within-file
 or across-file deduplication, so it's not well suited to automatic continuous backing up
-of databases that change often.</p>
-<p>However, while git repositories bloat when commiting large binary and media files,
-<strong><em>myba</em> only ever uses sparse-checkout</strong>, keeping overhead disk space use to a minimum.</p>
-</details>
-<details>
-<summary>How to influence what files / filetypes to ignore from backup?</summary>
-<p>You can edit <code>$PLAIN_REPO/info/exclude</code>, which is prepopulated with default common ignore patterns.
+of databases that change often.
+
+However, while git repositories bloat when commiting large binary and media files,
+**_myba_ only ever uses sparse-checkout**, keeping overhead disk space use to a minimum.
+
+</div></div></details>
+<details markdown="1" property="mainEntity" typeof="Question">
+<summary property="name">How to configure what files / filetypes to ignore from backup?</summary>
+<div property="acceptedAnswer" typeof="Answer"><div property="text">
+
+You can edit `$PLAIN_REPO/info/exclude`, which is prepopulated with
+[default common ignore patterns](https://github.com/search?q=repo%3Akernc%2Fmyba+%22default_gitignore%3D%22&type=code).
 You can tweak various other git settings (like config, filters, hooks)
-by modifying files in <code>$PLAIN_REPO</code> and <code>$PLAIN_REPO/_encrypted/.git</code>.</p>
-</details></article></main>
+by modifying respective files in `$PLAIN_REPO` and (encrypted repo) `$PLAIN_REPO/_encrypted/.git`.
+
+</div></div></details>
+</div></article></main>
+<div property="aggregateRating" typeof="AggregateRating"><meta property="reviewCount" content="1"><meta property="ratingValue" content="5"></div>
+<div property="offers" typeof="Offer"><meta property="price" content="0"><meta property="priceCurrency" content="BTC"></div>
 <script>hljs.highlightAll();</script>
 <script>[...document.links].forEach(a => { if (a.hostname !== location.hostname) a.target = "_blank"; })</script>
 </body></html>
