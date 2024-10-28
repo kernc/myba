@@ -80,3 +80,10 @@ vqwg
 worktree
 zsh
 vL
+FAQPage
+acceptedAnswer
+addEventListener
+async
+mainEntity
+rclone
+typeof

@@ -1,15 +1,16 @@
 <img src="icon.svg" width="64" alt/>  Myba — git-based backup utility with encryption
 =====
 
-[![Build Status](https://img.shields.io/github/actions/workflow/status/kernc/myba/ci.yml?branch=master&style=for-the-badge)](https://github.com/kernc/myba/actions)
-[![Source lines of code](https://img.shields.io/endpoint?url=https://ghloc.vercel.app/api/kernc/myba/badge?filter=myba.sh$&style=for-the-badge&logo=github&color=skyblue&label=SLOC)](https://github.com/kernc/myba)
-[![Script size](https://img.shields.io/github/size/kernc/myba/myba.sh?style=for-the-badge&logo=github&color=skyblue)](https://github.com/kernc/myba)
-[![Issues](https://img.shields.io/github/issues/kernc/myba?style=for-the-badge)](#)
-[![GitHub Sponsors](https://img.shields.io/github/sponsors/kernc?color=pink&style=for-the-badge)](https://github.com/sponsors/kernc)
+[![Build status](https://img.shields.io/github/actions/workflow/status/kernc/myba/ci.yml?branch=master&style=for-the-badge)](https://github.com/kernc/myba/actions)
+[![Language: shell / Bash](https://img.shields.io/badge/lang-Shell-skyblue?style=for-the-badge)](https://github.com/kernc/myba)
+[![Source lines of code](https://img.shields.io/endpoint?url=https://ghloc.vercel.app/api/kernc/myba/badge?filter=myba.sh$&style=for-the-badge&color=skyblue&label=SLOC)](https://github.com/kernc/myba)
+[![Script size](https://img.shields.io/github/size/kernc/myba/myba.sh?style=for-the-badge&color=skyblue)](https://github.com/kernc/myba)
+[![Issues](https://img.shields.io/github/issues/kernc/myba?style=for-the-badge)](https://github.com/kernc/myba/issues)
+[![Sponsors](https://img.shields.io/github/sponsors/kernc?color=pink&style=for-the-badge)](https://github.com/sponsors/kernc)
 
 [TOC]
 
-**Myba** (pronounced: mỹba) **is an
+**_Myba_** (pronounced: [_mỹba_](https://www.google.com/search?q=myba)) **is an
 open-source, secure, distributed, version-controlled, encrypted
 file backup software based on `git`**,
 for **Linux, MacOS, BSDs**, and possibly even **Windows/WSL**.
@@ -77,19 +78,21 @@ that **large binaries don't change too often**.
 **Myba** is **Git + Shell**, preconfigured and wrapped as thinly as needed to provide
 fully **encrypted backups** that are really **easily replicated and synced to the cloud**.
 
-<script src="https://ssl.gstatic.com/trends_nrtr/3826_RC01/embed_loader.js"></script>
-<script>var now=(new Date()).toISOString().split('T')[0]; window.trends.embed.renderExploreWidget("TIMESERIES", {"comparisonItem":[{"keyword":"/m/02mhh1","geo":"","time":"2004-01-01 "+now},{"keyword":"/m/05vqwg","geo":"","time":"2004-01-01 "+now},{"keyword":"/m/0ryppmg","geo":"","time":"2004-01-01 "+now}],"category":0,"property":""}, {"exploreQuery":"q=%2Fm%2F02mhh1,%2Fm%2F05vqwg,%2Fm%2F0ryppmg&date=all#TIMESERIES","guestPath":"https://trends.google.com:443/trends/embed/"})</script>
+<script async src="https://ssl.gstatic.com/trends_nrtr/3826_RC01/embed_loader.js"></script>
+<div id="trends"></div>
+<script>addEventListener("load", () => window.trends.embed.renderExploreWidgetTo(document.getElementById("trends"), "TIMESERIES", {"comparisonItem":[{"keyword":"/m/02mhh1","geo":"","time":"all"},{"keyword":"/m/05vqwg","geo":"","time":"all"},{"keyword":"/m/0ryppmg","geo":"","time":"all"},{"keyword":"myba","geo":"","time":"all"}],"category":0,"property":""}, {"exploreQuery":"date=all&q=%2Fm%2F02mhh1,%2Fm%2F05vqwg,%2Fm%2F0ryppmg,myba#TIMESERIES","guestPath":"https://trends.google.com:443/trends/embed/"}));</script>
 
 
 ### Use-cases
 
 * **Zero-knowledge cloud sync and storage**
-* Replace or supplement existing **poor complex and proprietary solutions**
-  (like Veeam, Time Machine, Google Photos & Drive, iCloud)
-  or software programs with **complex and unfamiliar CLI APIs or wide attack surfaces**
+* Replace or supplement existing **poor, complex, expensive, proprietary solutions**
+  (like Veeam, Time Machine, Google One Photos & Drive, iCloud)
+  or software programs with **complex, unfamiliar CLI APIs or wide attack surfaces**
   (Bacula, Borg Backup, restic, git-crypt) ...
 * Cloud-based serverless virii
-* **Protocol- and PaaS-agnostic** design (AWS to Backblaze B2, GitLab to Gitea). Simply sync (even rsync) a git folder.
+* **Protocol- and PaaS-agnostic** design (AWS to Backblaze B2, GitLab to Gitea).
+  Simply add remote origins or sync (e.g. rsync, rclone) a git folder.
 
 
 Installation
@@ -99,7 +102,7 @@ To install everything on a Debian/Ubuntu-based system, run:
 # Install dependencies
 sudo apt install  gzip git git-lfs openssl gpg
 
-# Download and make available somewhere in path
+# Download and put somewhere on PATH
 curl -vL 'https://bit.ly/myba-backup' > ~/.local/bin/myba
 export PATH="$HOME/.local/bin:$PATH"
 
@@ -110,14 +113,14 @@ Note, only one of `openssl` _or_ `gpg` is needed, not both!
 It should be similar, if not nearly equivalent, to install on other platforms.
 Hopefully you will find most dependencies already satisfied.
 
-Please report back if you find / manage to get this working under anything but the above configuration and especially Windows/WSL!
+Please report back if you find / manage to get this working under everything but the above configuration and especially Windows/WSL!
 
 
 Usage
 -----
 You run the script with arguments according to the usage printout below.
 Myba heavily relies on `git` and thus **its command-line usage largely follows that of git convention**.
-Most subcommands pass obtained arguments and options (`"@"`) straight to matching `git` subcommands! 
+Most subcommands pass obtained arguments and options (`"$@"`) straight to matching `git` subcommands!
 ```text
 Usage: myba <subcommand> [options]
 Subcommands:
@@ -173,7 +176,7 @@ myba add Documents Photos Etc .dotfile
 PASSWORD='secret'  myba commit -m "my precious"
 myba remote add origin "/media/usb/backup"
 myba remote add github "git@github.com:user/my-backup.git"
-myba push  # Push to all configured remotes & free disk space
+VERBOSE=1 myba push  # Push to all configured remotes & free up disk space
 
 # Somewhere else, much, much later, avoiding catastrophe ...
 
@@ -186,23 +189,26 @@ See [_smoke-test.sh_](https://github.com/kernc/myba/blob/master/smoke-test.sh) f
 
 Contributing
 ------------
-The project is [hosted on github](https://github.com/kernc/myba/).
+The project is written for a POSIX shell and is [hosted on GitHub](https://github.com/kernc/myba/).
 
 The script is considered _mostly_ feature-complete, but there remain
 bugs and design flaws to be discovered and ironed out, as well as any
 [TODOs and FIXMEs](https://github.com/search?q=repo%3Akernc%2Fmyba+%28todo+OR+fixme+OR+xxx%29&type=code)
 marked in the source.
 **All source code lines are open to discussion.**
-Especially appreciated are clear pointers to targets for simplification.
+Especially appreciated are targets for simplification
+and value-added testing.
 
 
 FAQ
 ---
+<div markdown="1" property="about" typeof="FAQPage">
 
-<details markdown="1">
-<summary>Is git a good tool for backups?</summary>
+<details markdown="1" property="mainEntity" typeof="Question">
+<summary property="name">Is git a good tool for backups?</summary>
+<div markdown="1" property="acceptedAnswer" typeof="Answer"><div markdown="1" property="text">
 
-Git/myba's inherently core features allow you to:
+The inherently core features of git/myba allow you to:
 
 * track a list of important files,
 * track all changes made, with authorship info and datums, to any of the tracked files,
@@ -217,11 +223,13 @@ Git/myba's inherently core features allow you to:
 of people and organizations worldwide,
 with long and rigorous release / support cycles.
 
-</details>
-<details markdown="1">
-<summary>Git doesn't track file owner and access control / permissions ...</summary>
+</div></div></details>
+<details markdown="1" property="mainEntity" typeof="Question">
+<summary property="name">Can git track file owner and permissions etc.?</summary>
+<div markdown="1" property="acceptedAnswer" typeof="Answer"><div markdown="1" property="text">
 
-True. Files commited by any user are restorable by any user with the right password.
+Git doesn't on its own track file owner and permission changes (other than the executable bit).
+Files commited by any user are **restorable by any user with the right password**.
 In order to restore files with specific file permission bits set, **defer to
 [umask](https://pubs.opengroup.org/onlinepubs/9799919799/utilities/umask.html)**,
 e.g.:
@@ -236,23 +244,27 @@ simply **write a small shell wrapper** that takes care of it.
 **Welcome to contrib** anything short to the respect
 you find widely-applicable and useful.
 
-</details>
-<details markdown="1">
-<summary>Git isn't optimized for continuously-changing databases and binary files ...</summary>
+</div></div></details>
+<details markdown="1" property="mainEntity" typeof="Question">
+<summary property="name">Can we use git for continually changed databases and binary files?</summary>
+<div markdown="1" property="acceptedAnswer" typeof="Answer"><div markdown="1" property="text">
 
-That is correct. Git saves whole file snapshots and doesn't do any in-file or within-file
-or across-file deduplication, so it's not well suited to automatic continuous backing up
-of databases that change often.
+Git saves whole file snapshots and doesn't do any in-file or within-file
+or across-file deduplication, so it's not well-suited to automatic continual backing up
+of databases (i.e. large binaries) that change often.
 
-However, while git repositories bloat when commiting large binary and media files,
+However, while git repositories bloat when commiting such **large binary and media files**,
 **_myba_ only ever uses sparse-checkout**, keeping overhead disk space use to a minimum.
 
-</details>
-<details markdown="1">
-<summary>How to influence what files / filetypes to ignore from backup?</summary>
+</div></div></details>
+<details markdown="1" property="mainEntity" typeof="Question">
+<summary property="name">How to configure what files / filetypes to ignore from backup?</summary>
+<div markdown="1" property="acceptedAnswer" typeof="Answer"><div markdown="1" property="text">
 
-You can edit `$PLAIN_REPO/info/exclude`, which is prepopulated with default common ignore patterns.
+You can edit `$PLAIN_REPO/info/exclude`, which is prepopulated with
+[default common ignore patterns](https://github.com/search?q=repo%3Akernc%2Fmyba+%22default_gitignore%3D%22&type=code).
 You can tweak various other git settings (like config, filters, hooks)
-by modifying files in `$PLAIN_REPO` and `$PLAIN_REPO/_encrypted/.git`.
+by modifying respective files in `$PLAIN_REPO` and (encrypted repo) `$PLAIN_REPO/_encrypted/.git`.
 
-</details>
+</div></div></details>
+</div>
