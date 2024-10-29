@@ -234,7 +234,7 @@ and value-added testing.</p>
 <summary property="name">Is git a good tool for backups?</summary>
 <div property="acceptedAnswer" typeof="Answer">
 <div markdown="1" property="text">
-<p>Git/myba's inherently core features allow you to:</p>
+<p>The inherently core features of git/myba allow you to:</p>
 <ul>
 <li>track a list of important files,</li>
 <li>track all changes made, with authorship info and datums, to any of the tracked files,</li>
@@ -253,10 +253,11 @@ with long and rigorous release / support cycles.</p>
 </div>
 </details>
 <details property="mainEntity" typeof="Question">
-<summary property="name">Git doesn't track file owner and access control / permissions ...?</summary>
+<summary property="name">Can git track file owner and permissions etc.?</summary>
 <div property="acceptedAnswer" typeof="Answer">
 <div markdown="1" property="text">
-<p>Correct. Files commited by any user are restorable by any user with the right password.
+<p>Git doesn't on its own track file owner and permission changes (other than the executable bit).
+Files commited by any user are <strong>restorable by any user with the right password</strong>.
 In order to restore files with specific file permission bits set, <strong>defer to
 <a href="https://pubs.opengroup.org/onlinepubs/9799919799/utilities/umask.html">umask</a></strong>,
 e.g.:</p>
@@ -271,13 +272,13 @@ you find widely-applicable and useful.</p>
 </div>
 </details>
 <details property="mainEntity" typeof="Question">
-<summary property="name">Is git optimized for continuously-changing databases and binary files?</summary>
+<summary property="name">Can we use git for continually changed databases and binary files?</summary>
 <div property="acceptedAnswer" typeof="Answer">
 <div markdown="1" property="text">
-<p>It's not. Git saves whole file snapshots and doesn't do any in-file or within-file
-or across-file deduplication, so it's not well suited to automatic continuous backing up
-of databases that change often.</p>
-<p>However, while git repositories bloat when commiting large binary and media files,
+<p>Git saves whole file snapshots and doesn't do any in-file or within-file
+or across-file deduplication, so it's not well-suited to automatic continual backing up
+of databases (i.e. large binaries) that change often.</p>
+<p>However, while git repositories bloat when commiting such <strong>large binary and media files</strong>,
 <strong><em>myba</em> only ever uses sparse-checkout</strong>, keeping overhead disk space use to a minimum.</p>
 </div>
 </div>
