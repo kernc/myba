@@ -37,6 +37,7 @@ create_mock_remote "$remote_git2"
 
 # Here we go, user ...
 
+myba help || true
 VERBOSE=1 myba init
 myba add "$HOME/foo/.dotfile"
 myba add "$HOME/foo/other.file"

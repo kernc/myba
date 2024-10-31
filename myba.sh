@@ -520,9 +520,8 @@ Thumbs.db
 
 
 # Main:
-
-cmd="$1"
-shift
+cmd=
+if [ $# -gt 0 ]; then cmd="$1"; shift; fi
 
 case "$cmd" in
     init) verbose cmd_init ;;
