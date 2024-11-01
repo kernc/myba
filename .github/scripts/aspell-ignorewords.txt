@@ -87,3 +87,5 @@ async
 mainEntity
 rclone
 typeof
+chmod
+gitignore

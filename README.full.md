@@ -40,9 +40,9 @@ Features
 --------
 * **Version-controlled (git-based) backup** of plaintext documents as well as large binary files.
 * Automatic **text compression** for reduced space use.
-* Currently using **_strong_ AES256 encryption** of files and paths, so far quantum-safe.
-* **Familiar git workflow**: add (stage), commit, push, clone, pull, checkout.
-* **Selective (sparse) checkout** of backup files, efficient size-on-disk overhead.
+* Currently using industry-standard quantum-safe **_strong_ AES256 encryption** of files and paths,
+* **Familiar git workflow**: add (stage), commit, push, clone, pull, checkout ...
+* **Selective (sparse) checkout** of backup files for restoration, efficient size-on-disk overhead.
 * **Sync to multiple clouds** for nearly free by (ab)using popular git hosts.
 * **Or sync anywhere simply** by cloning or checking-out a directory ...
 
@@ -52,7 +52,8 @@ How it works
 Myba relies on a two-repo solution. On any _client_, **two repositories** are created.
 **One plaintext** [`--bare`](https://git-scm.com/book/en/v2/Git-on-the-Server-Getting-Git-on-a-Server) repo,
 such as in [this guide](https://www.atlassian.com/git/tutorials/dotfiles),
-with worktree set to the root of your volume of interest, such as `/` or `$HOME`.
+with `$WORK_TREE` set to the root of your volume of interest,
+such as `/` or `$HOME` (default).
 And **one encrypted** repo that holds encrypted file counterparts.
 
 When you `myba commit` some files into the plain repo,
@@ -86,13 +87,24 @@ fully **encrypted backups** that are really **easily replicated and synced to th
 ### Use-cases
 
 * **Zero-knowledge cloud sync and storage**
-* Replace or supplement existing **poor, complex, expensive, proprietary solutions**
-  (like Veeam, Time Machine, Google One Photos & Drive, iCloud)
-  or software programs with **complex, unfamiliar CLI APIs or wide attack surfaces**
-  (Bacula, Borg Backup, restic, git-crypt) ...
+  * Replace or supplement existing **poor, complex, expensive, proprietary solutions**
+    (like [Veeam](https://www.veeam.com/products/free/backup-recovery.html),
+    [Time Machine](https://support.apple.com/en-us/104984),
+    [Google One](https://one.google.com/about/plans) Photos & Drive,
+    [iCloud](https://www.icloud.com))
+    or software programs with **complex, unfamiliar CLI APIs or wide attack surfaces**
+    ([Bacula](https://en.wikipedia.org/wiki/Bacula),
+    [Borg Backup](https://borgbackup.readthedocs.io/en/stable/usage.html),
+    [restic](https://restic.net),
+    [git-crypt](https://www.agwa.name/projects/git-crypt/)) ...
 * Cloud-based serverless virii
-* **Protocol- and PaaS-agnostic** design (AWS to Backblaze B2, GitLab to Gitea).
-  Simply add remote origins or sync (e.g. rsync, rclone) a git folder.
+* **Protocol- and PaaS-agnostic** design
+  ([AWS](https://aws.amazon.com/free/?all-free-tier.sort-by=item.additionalFields.SortRank&all-free-tier.sort-order=asc&awsf.Free%20Tier%20Types=tier%23always-free&awsf.Free%20Tier%20Categories=categories%23storage)
+  to [Backblaze B2](https://www.backblaze.com/cloud-storage/pricing),
+  [GitLab](https://about.gitlab.com/pricing/) ...).
+  Simply add remote origins or sync (e.g.
+  [rsync](https://en.wikipedia.org/wiki/Rsync),
+  [rclone](https://rclone.org)) a git folder.
 
 
 Installation
@@ -104,6 +116,7 @@ sudo apt install  gzip git git-lfs openssl gpg
 
 # Download and put somewhere on PATH
 curl -vL 'https://bit.ly/myba-backup' > ~/.local/bin/myba
+chmod +x ~/.local/bin/myba
 export PATH="$HOME/.local/bin:$PATH"
 
 myba help
@@ -150,8 +163,8 @@ Env vars: WORK_TREE, PLAIN_REPO, PASSWORD, USE_GPG, VERBOSE, YES_OVERWRITE, ...
 The script also acknowledges a few **environment variables** which you can _set_
 (or export) to steer program behavior:
 
-* `WORK_TREE=` The root of the volume that contains important documents to back up (such as dotfiles).
-  If unspecified, `$HOME`.
+* `WORK_TREE=` The root of the volume that contains important documents (such as dotfiles)
+  to back up or restore to. If unspecified, `$HOME`.
 * `PLAIN_REPO=` The _internal_ directory where myba actually stores both its repositories.
   Defaults to `$WORK_TREE/.myba` but can be overriden to somewhere out-of-tree ...
 * `PASSWORD=` The password to use for encryption instead of asking / reading from stdin.
@@ -219,8 +232,9 @@ The inherently core features of git/myba allow you to:
 * execute [custom script hooks](https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks)
   at various stages of program lifecycle.
 
-[Git](https://en.wikipedia.org/wiki/Git) is a stable and reliable tool used by millions
-of people and organizations worldwide,
+**[Git](https://en.wikipedia.org/wiki/Git)
+is a stable and reliable tool used by millions
+of people and organizations worldwide**,
 with long and rigorous release / support cycles.
 
 </div></div></details>
@@ -241,7 +255,7 @@ WORK_TREE=~ myba checkout .ssh
 
 If you need to restore file owners, file access times and similar metadata,
 simply **write a small shell wrapper** that takes care of it.
-**Welcome to contrib** anything short to the respect
+**You're encouraged to contrib** anything short to the respect
 you find widely-applicable and useful.
 
 </div></div></details>
@@ -258,11 +272,15 @@ However, while git repositories bloat when commiting such **large binary and med
 
 </div></div></details>
 <details markdown="1" property="mainEntity" typeof="Question">
-<summary property="name">How to configure what files / filetypes to ignore from backup?</summary>
+<summary property="name">How to influence what files / filetypes to (ignore from) backup?</summary>
 <div markdown="1" property="acceptedAnswer" typeof="Answer"><div markdown="1" property="text">
 
-You can edit `$PLAIN_REPO/info/exclude`, which is prepopulated with
-[default common ignore patterns](https://github.com/search?q=repo%3Akernc%2Fmyba+%22default_gitignore%3D%22&type=code).
+You stage files and directories for backup with version control as normally, with `myba add`.
+You can edit `$PLAIN_REPO/info/exclude`, which is **prepopulated with
+[default common ignore patterns](https://github.com/search?q=repo%3Akernc%2Fmyba+%22default_gitignore%3D%22&type=code)**.
+Additionally by inheritance, **myba
+[honors _.gitignore_ files](https://git-scm.com/docs/gitignore)**
+for any directories that contain them.
 You can tweak various other git settings (like config, filters, hooks)
 by modifying respective files in `$PLAIN_REPO` and (encrypted repo) `$PLAIN_REPO/_encrypted/.git`.
 
