@@ -200,10 +200,16 @@ cmd_init () {
     git_plain config user.name "$USER"
     git_plain config user.email "$email"
     git_plain config status.showUntrackedFiles no  # We don't care to see largely untracked $HOME  # XXX: remove this?
+    git_plain config diff.renames "copies"  # Detect renames AND copies
+    git_plain config diff.renameLimit 100000
+    git_plain config core.excludesfile ""  # Don't look at $XDG_CONFIG_HOME/git/ignore
+    git_plain config advice.addIgnoredFile true  # Warn user to use `add -f` on gitignored file
     git_enc config user.name "$USER"
     git_enc config user.email "$email"
     # All our files are strictly binary (encrypted)
     git_enc config core.bigFileThreshold 100
+    git_enc config diff.renames "copies"
+    git_enc config diff.renameLimit 100000
     git_enc config push.autoSetupRemote true
     git_enc config push.default upstream
     git_enc config fetch.parallel 4
