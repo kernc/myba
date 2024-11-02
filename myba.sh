@@ -410,7 +410,6 @@ _checkout_file () {
 
 
 cmd_rm() {
-    _ask_pw
     _is_error=
     for _path in "$@"; do
         if ! git_plain ls-files --error-unmatch "$_path" >/dev/null 2>&1; then
