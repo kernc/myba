@@ -437,7 +437,7 @@ cmd_gc () {
 # Simple passthrough commands
 cmd_add () { git_plain add "$@"; }
 cmd_diff () { git_plain diff "$@"; }
-cmd_pull () { git_enc pull "$@"; _decrypt_manifests; }
+cmd_pull () { git_enc pull "$@"; _ask_pw; _decrypt_manifests; }
 cmd_log () {
     git_plain log \
         --pretty="%C(yellow)%h%C(red) %cd%C(cyan) %s%C(reset)" \
