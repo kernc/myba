@@ -479,12 +479,12 @@ cmd_log () {
 }
 
 verbose () {
-    echo "$0: $*"
+    echo "$0: $*" >&2
     case "${VERBOSE:-}" in
     '') "$@"; ;;
     *) set -x; "$@"; set +x; ;;
     esac
-    echo "$0: $1 done ok"
+    echo "$0: $1 done ok" >&2
 }
 
 
