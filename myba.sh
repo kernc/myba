@@ -292,6 +292,51 @@ cmd_restore () {
 }
 
 
+_parallelize () {
+    n_threads="${N_JOBS:-$1}"  # Number of threads to keep consuming stdin
+    n_vars="$2"  # Number of TAB-separated values per stdin line
+    shift 2
+    _func="$1"  # Func to pass args and values to
+    terminate=
+    while [ ! "$terminate" ]; do
+        pids=
+        for _i in $(seq "$n_threads"); do
+            # Read n_vars variables, splitting by TAB
+            if ! eval "IFS='$_tab' read -r $(seq -s' ' -f 'var%.0f' "$n_vars")"; then
+                terminate=1
+                break
+            fi
+            # Call function with args and variables in background
+            # shellcheck disable=SC2016,SC2294
+            { eval "$@" $(seq -s' ' -f '"$var%.0f"' "$n_vars"); } &
+            pids="$pids $!"
+        done
+        # Wait on all spawned jobs; transferring their exit status to ours
+        for pid in $pids; do wait "$pid"; done
+    done
+}
+
+
+_commit_one_file () {
+    _status="$1"
+    _path="$2"
+    _enc_path="$(_encrypted_path "$_path")"
+    _encrypt_file "$_path" "$_enc_path"
+    # If file larger than 40 MB, configure Git LFS
+    if [ "$(_file_size "$ENC_REPO/$_enc_path")" -gt $((40 * 1024 * 1024)) ]; then
+        git_enc lfs track --filename "$_enc_path"
+    fi
+
+    if [ "$_status" = "D" ]; then
+        git_enc lfs untrack "$_enc_path" || true  # Ok if Git LFS is not used
+        git_enc rm -f --sparse "$_enc_path"
+    else
+        git_enc add -v --sparse "$_enc_path"
+        echo "$_enc_path$_tab$_path" >> "$PLAIN_REPO/$manifest_path"
+    fi
+}
+
+
 cmd_commit () {
     # Commit to plain repo
     git_plain commit --message "myba backup $(date '+%Y-%m-%d %H:%M:%S')" --verbose "$@"
@@ -300,22 +345,7 @@ cmd_commit () {
     _ask_pw
     manifest_path="manifest/$(git_plain rev-parse HEAD)"
     git_plain show --name-status --pretty=format: HEAD |
-        while IFS="$_tab" read -r _status _path; do
-            _enc_path="$(_encrypted_path "$_path")"
-            _encrypt_file "$_path" "$_enc_path"
-            # If file larger than 40 MB, configure Git LFS
-            if [ "$(_file_size "$ENC_REPO/$_enc_path")" -gt $((40 * 1024 * 1024)) ]; then
-                git_enc lfs track --filename "$_enc_path"
-            fi
-
-            if [ "$_status" = "D" ]; then
-                git_enc lfs untrack "$_enc_path" || true  # Ok if Git LFS is not used
-                git_enc rm -f --sparse "$_enc_path"
-            else
-                git_enc add -v --sparse "$_enc_path"
-                echo "$_enc_path$_tab$_path" >> "$PLAIN_REPO/$manifest_path"
-            fi
-        done
+        _parallelize 8 2 _commit_one_file
 
     # If first commit, add self
     if ! git_enc rev-parse HEAD 2>/dev/null; then
@@ -362,15 +392,19 @@ cmd_checkout() {
         git_enc sparse-checkout reapply
 
         _ask_pw
-        cat "$working_manifest"
-        while IFS="$_tab" read -r _enc_path _plain_path; do
-            if [ ! -f "$ENC_REPO/$_enc_path" ]; then
-                echo "Note, file '$_plain_path' has been since removed."
-                continue
-            fi
-            _decrypt_file "$_enc_path" "$_plain_path"
-        done < "$working_manifest"
+        _parallelize 8 2 _checkout_file < "$working_manifest"
         rm "$working_manifest"
+    fi
+}
+
+
+_checkout_file () {
+    _enc_path="$1"
+    _plain_path="$2"
+    if [ -f "$ENC_REPO/$_enc_path" ]; then
+        _decrypt_file "$_enc_path" "$_plain_path"
+    else
+        echo "INFO: File '$_plain_path' committed but since removed."
     fi
 }
 
