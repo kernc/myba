@@ -16,7 +16,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get install aspell
-      - run: .github/scripts/spellcheck.sh
+      - run: .github/scripts/spellcheck.sh README.md
+      - run: .github/scripts/spellcheck.sh README.full.md
       - run: pip install --user markdown
       - run: .github/scripts/build-website.sh
       - uses: peaceiris/actions-gh-pages@v4

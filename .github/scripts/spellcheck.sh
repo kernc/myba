@@ -1,6 +1,7 @@
 #!/bin/bash
+set -eu
 
-new_words="$(comm <(<README.full.md aspell list | sort -u) <(sort -u "$(dirname "$0")/aspell-ignorewords.txt") -23)"
+new_words="$(comm <(<"$1" aspell list | sort -u) <(sort -u "$(dirname "$0")/aspell-ignorewords.txt") -23)"
 echo "Are these typos?"
 echo
 echo "$new_words"
