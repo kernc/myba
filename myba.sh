@@ -85,7 +85,7 @@ git_enc () { git -C "$ENC_REPO" "$@"; }
 
 _is_binary_stream () { dd bs=8192 count=1 status=none | LC_ALL=C tr -dc '\000' | LC_ALL=C grep -qa .; }
 _mktemp () { mktemp -t "$(basename "$0" .sh)-XXXXXXX" "$@"; }
-_file_size () { if stat -f%z / >/dev/null 2>&1; then stat -f%z "$@"; else stat -c%s "$@"; fi; }
+_file_size () { stat -c%s "$@" 2>/dev/null || stat -f%z "$@"; }
 
 _ask_pw () {
     if [ -z "${PASSWORD+1}" ]; then
