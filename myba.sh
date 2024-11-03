@@ -108,14 +108,13 @@ _ask_pw () {
         _kdf_iters="${KDF_ITERS:-159011733}"  # OpenSSL and GPG use different KDF algos
     fi
 }
-_encrypted_path () {
-    _hash="$(echo "$1$PASSWORD" | shasum -a512 | cut -c-128)"
-    _path="$(echo "$_hash" | cut -c1-3)"
-    _path="$_path/$(echo "$_hash" | cut -c4-6)"
-    _path="$_path/$(echo "$_hash" | cut -c7-9)"
-    _path="$_path/$(echo "$_hash" | cut -c10-)"
-    echo "$_path"
-}
+_encrypted_path () (
+    set +x  # Avoid terminal noise and secret-spilling in this subshell
+    echo "$1$PASSWORD" |
+        shasum -a512 |
+        cut -c-128 |
+        sed -E 's,(...)(...)(...)(.*),\1/\2/\3/\4,'
+)
 _enc_openssl () {
     openssl enc -aes-256-ctr -pbkdf2 -md sha512 -iter "$_kdf_iters" -salt -pass fd:3 "$@"
 }

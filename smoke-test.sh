@@ -4,7 +4,8 @@ set -eux
 
 export LC_ALL=C
 
-myba () { "$(dirname "$0")/myba.sh" "$@"; }
+_libdir="$(dirname "$0")"
+myba () { "$_libdir/myba.sh" "$@"; }
 
 disk_usage () { du -h "$HOME" | sort -h; }
 
