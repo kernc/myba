@@ -317,25 +317,7 @@ _parallelize () {
 }
 
 
-_commit_one_file () {
-    _status="$1"
-    _path="$2"
-    _enc_path="$(_encrypted_path "$_path")"
-    _encrypt_file "$_path" "$_enc_path"
-    # If file larger than 40 MB, configure Git LFS
-    if [ "$(_file_size "$ENC_REPO/$_enc_path")" -gt $((40 * 1024 * 1024)) ]; then
-        git_enc lfs track --filename "$_enc_path"
-    fi
-
-    if [ "$_status" = "D" ]; then
-        git_enc lfs untrack "$_enc_path" || true  # Ok if Git LFS is not used
-        git_enc rm -f --sparse "$_enc_path"
-    else
-        git_enc add -v --sparse "$_enc_path"
-        echo "$_enc_path$_tab$_path" >> "$PLAIN_REPO/$manifest_path"
-    fi
-}
-
+_commit_encrypt_one () { if [ "$1" != 'D' ]; then _encrypt_file "$2" "$(_encrypted_path "$2")"; fi; }
 
 cmd_commit () {
     # Commit to plain repo
@@ -345,7 +327,25 @@ cmd_commit () {
     _ask_pw
     manifest_path="manifest/$(git_plain rev-parse HEAD)"
     git_plain show --name-status --pretty=format: HEAD |
-        _parallelize 8 2 _commit_one_file
+        _parallelize 8 2 _commit_encrypt_one
+    git_plain show --name-status --pretty=format: HEAD |
+        # Do git stuff hereplace single process to avoid errors like
+        #     fatal: Unable to create .../_encrypted/.git/index.lock': File exists
+        while IFS="$_tab" read -r _status _path; do
+            _enc_path="$(_encrypted_path "$_path")"
+
+            if [ "$_status" = "D" ]; then
+                git_enc lfs untrack "$_enc_path" || true  # Ok if Git LFS is not used
+                git_enc rm -f --sparse "$_enc_path"
+            else
+                # If file larger than 40 MB, configure Git LFS
+                if [ "$(_file_size "$ENC_REPO/$_enc_path")" -gt $((40 * 1024 * 1024)) ]; then
+                    git_enc lfs track --filename "$_enc_path"
+                fi
+                git_enc add -v --sparse "$_enc_path"
+                echo "$_enc_path$_tab$_path" >> "$PLAIN_REPO/$manifest_path"
+            fi
+        done
 
     # If first commit, add self
     if ! git_enc rev-parse HEAD 2>/dev/null; then
