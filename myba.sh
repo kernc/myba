@@ -78,6 +78,8 @@ usage () {
     exit 1
 }
 
+warn () { echo "$(basename "$0" .sh): $*" >&2; }
+
 _tab="$(printf '\t')"
 
 git_plain () { git --work-tree="$WORK_TREE" --git-dir="$PLAIN_REPO" "$@"; }
@@ -145,9 +147,9 @@ _decrypt_file () {
     _plain_path="$2"
     # Check if the plain file already exists
     if [ -f "$WORK_TREE/$_plain_path" ] && [ -z "${YES_OVERWRITE:-}" ]; then
-        echo "WARNING: File '$WORK_TREE/$_plain_path' exists. Overwrite? [y/N]"
+        warn "WARNING: File '$WORK_TREE/$_plain_path' exists. Overwrite? [y/N]"
         read _choice
-        case "$_choice" in [Yy]*) ;; *) echo "Skipping '$WORK_TREE/$_plain_path'"; return ;; esac
+        case "$_choice" in [Yy]*) ;; *) warn "Skipping '$WORK_TREE/$_plain_path'"; return 0 ;; esac
     fi
     decrypted_tmpfile="$(_mktemp)"
     _decrypt "$_plain_path" < "$ENC_REPO/$_enc_path" > "$decrypted_tmpfile"
@@ -165,7 +167,7 @@ _decrypt_manifests () {
         fname="$(basename "$file")"
         _decrypt "" < "$file" | gzip -dc > "$PLAIN_REPO/manifest/$fname"
         if _is_binary_stream < "$PLAIN_REPO/manifest/$fname"; then
-            echo "WARNING: Likely invalid decryption password for commit '$fname', or your manifest file contains binary paths."
+            warn "WARNING: Likely invalid decryption password for commit '$fname', or your manifest file contains binary paths."
             status=1
         fi
     done
@@ -237,7 +239,7 @@ cmd_restore () {
     # Convert the encrypted commit messages back to plain repo commits
     if [ "$(git_plain ls-files)" ]; then
         if [ ! "${YES_OVERWRITE:-}" ]; then
-            echo "WARNING: Plain repo in '$PLAIN_REPO' already restored (and possibly commited to). To overwrite, set \$YES_OVERWRITE=1."
+            warn "WARNING: Plain repo in '$PLAIN_REPO' already restored (and possibly commited to). To overwrite, set \$YES_OVERWRITE=1."
             exit 1
         fi
         # Remove existing plain repo
@@ -368,7 +370,7 @@ cmd_commit () {
 
 
 cmd_checkout() {
-    [ $# -eq 0 ] && { echo 'Nothing to checkout'; exit 1; }
+    if [ $# -eq 0 ]; then warn 'Nothing to checkout'; exit 1; fi
     # If a commit hash is provided, checkout that commit in either repo
     if git_plain rev-parse --verify "$1^{commit}" >/dev/null 2>&1; then
         git_plain checkout "$1"
