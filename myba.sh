@@ -318,7 +318,37 @@ _parallelize () {
 }
 
 
-_commit_encrypt_one () { if [ "$1" != 'D' ]; then _encrypt_file "$2" "$(_encrypted_path "$2")"; fi; }
+_commit_encrypt_one () (
+    _status="$(echo "$1" | cut -c1)"  # "R100", "C100", ...
+    # Reference: https://git-scm.com/docs/git-status#_output
+    if [ "$_status" = 'A' ] || [ "$_status" = 'M' ]; then  # newly added / modified
+        _path="$2"
+    elif [ "$_status" = 'R' ] || [ "$_status" = 'C' ]; then  # renamed / copied
+        _path="$(echo "$2" | cut -f2)"
+    elif [ "$_status" = 'T' ]; then  # typechange (regular file, symlink or submodule)
+        # TODO: If readlink -f is in repo, simply commit a link to it?
+        #  Requires the same kind of check on decode side
+        # TODO: Assert not submodule :)
+        # Currently warn on anything but a file
+        if [ ! -f "$2" ]; then
+            warn "WARNING: Only regular files supported. A copy of '$2' will be made."
+        fi
+        _path="$2"
+    else
+        [ "$_status" = 'D' ] || [ "$_status" = 'U' ] || {
+            warn "ERROR: Unknown git status '$1' for '$2' (known types: AMDRC)"
+        }
+        return 0
+    fi
+    _encrypt_file "$_path" "$(_encrypted_path "$_path")"
+)
+
+
+_commit_delete_enc_path () {
+    git_enc lfs untrack "$1" || true  # Ok if Git LFS is not used
+    git_enc rm -f --sparse "$1"
+}
+
 
 cmd_commit () {
     # Commit to plain repo
@@ -329,16 +359,26 @@ cmd_commit () {
     manifest_path="manifest/$(git_plain rev-parse HEAD)"
     git_plain show --name-status --pretty=format: HEAD |
         _parallelize 8 2 _commit_encrypt_one
+    # Do git stuff here and now, single process, avoiding errors like:
+    #     fatal: Unable to create .../_encrypted/.git/index.lock': File exists
     git_plain show --name-status --pretty=format: HEAD |
-        # Do git stuff hereplace single process to avoid errors like
-        #     fatal: Unable to create .../_encrypted/.git/index.lock': File exists
         while IFS="$_tab" read -r _status _path; do
-            _enc_path="$(_encrypted_path "$_path")"
-
-            if [ "$_status" = "D" ]; then
-                git_enc lfs untrack "$_enc_path" || true  # Ok if Git LFS is not used
-                git_enc rm -f --sparse "$_enc_path"
-            else
+            _status="$(echo "$_status" | cut -c1)"
+            # Handle statuses
+            # Reference: https://git-scm.com/docs/git-status#_output
+            if [ "$_status" = 'D' ]; then
+                _commit_delete_enc_path "$(_encrypted_path "$_path")"
+            elif [ "$_status" = 'R' ]; then  # renamed
+                _path_old="$(echo "$_path" | cut -f1)"
+                _commit_delete_enc_path "$(_encrypted_path "$_path_old")"
+                _path="$(echo "$_path" | cut -f2)"
+            elif [ "$_status" = 'C' ]; then  # copied
+                _path="$(echo "$_path" | cut -f2)"
+            fi
+            # Add new encrypted file
+            if [ "$_status" = 'A' ] || [ "$_status" = 'M' ] ||
+                    [ "$_status" = 'R' ] || [ "$_status" = 'C' ]; then
+                _enc_path="$(_encrypted_path "$_path")"
                 # If file larger than 40 MB, configure Git LFS
                 if [ "$(_file_size "$ENC_REPO/$_enc_path")" -gt $((40 * 1024 * 1024)) ]; then
                     git_enc lfs track --filename "$_enc_path"
