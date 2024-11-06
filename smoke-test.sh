@@ -21,6 +21,7 @@ if [ ! "${CI:-}" ]; then case "$HOME" in /tmp*|/var/*) ;; *) exit 9 ;; esac; fi
 mkdir "$HOME/foo"
 echo 'foo' > "$HOME/foo/.dotfile"
 dd if=/dev/random bs=1000000 count=1 of="$HOME/foo/other.file"
+echo 'bar' > "$HOME/renamed.file"
 touch "$HOME/untracked.file"
 touch "$HOME/ignored_by_default.so"
 
@@ -42,6 +43,7 @@ myba help || true
 VERBOSE=1 myba init
 myba add "$HOME/foo/.dotfile"
 myba add "$HOME/foo/other.file"
+myba add "$HOME/renamed.file"
 myba git status
 export PASSWORD=secret
 myba commit -m "message"
@@ -77,6 +79,10 @@ myba log
 touch "$WORK_TREE/bar"
 myba add "$WORK_TREE/bar"
 myba rm foo/other.file
+myba checkout renamed.file
+cp "$WORK_TREE/renamed.file" "$WORK_TREE/renamed.file.2"
+myba add renamed.file.2
+myba git mv renamed.file renamed.file.3
 myba commit -m 'add bar'
 myba push
 
@@ -95,7 +101,9 @@ test "$(ls -a "$WORK_TREE")" = "\
 ..
 .myba
 bar
-foo"
+foo
+renamed.file.2
+renamed.file.3"
 
 #bash  # Inspect/debug test
 set +x
