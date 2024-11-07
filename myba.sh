@@ -309,11 +309,23 @@ _parallelize () {
             fi
             # Call function with args and variables in background
             # shellcheck disable=SC2016,SC2294
-            { eval "$@" $(seq -s' ' -f '"$var%.0f"' "$n_vars"); } &
+            eval "$@" $(seq -s' ' -f '"$var%.0f"' "$n_vars") \
+                1>"$PLAIN_REPO/_fd1" \
+                2>"$PLAIN_REPO/_fd2" &
             pids="$pids $!"
+            while [ ! -f "$PLAIN_REPO/_fd1" ] && [ ! -f "$PLAIN_REPO/_fd2" ]; do sleep .05; done
+            mv "$PLAIN_REPO/_fd1" "$PLAIN_REPO/_fd1_$!"
+            mv "$PLAIN_REPO/_fd2" "$PLAIN_REPO/_fd2_$!"
         done
         # Wait on all spawned jobs; transferring their exit status to ours
-        for pid in $pids; do wait "$pid"; done
+        status=0
+        for pid in $pids; do
+            if ! wait "$pid"; then status=1; fi
+            cat "$PLAIN_REPO/_fd1_$pid"
+            cat "$PLAIN_REPO/_fd2_$pid" >&2
+        done
+        rm "$PLAIN_REPO"/_fd*_*
+        if [ $status -ne 0 ]; then exit 1; fi
     done
 }
 
