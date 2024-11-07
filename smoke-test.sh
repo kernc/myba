@@ -90,7 +90,8 @@ disk_usage
 myba gc
 disk_usage
 # foo + .myba + remote + remote2 + restore + overhead
-test "$(du -sm "$HOME" | cut -f1)" -le 6
+max_value=6300  # Note, this is blocksize/CI-dependent
+test "$(du -sk "$HOME" | cut -f1)" -lt $max_value
 
 myba log
 
