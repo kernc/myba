@@ -170,6 +170,8 @@ The script also acknowledges a few **environment variables** which you can _set_
 * `PASSWORD=` The password to use for encryption instead of asking / reading from stdin.
 * `USE_GPG=` Myba uses `openssl enc` by default, but if you prefer to use GPG even for
   symmetric encryption, set `USE_GPG=1`.
+* `N_JOBS=` The number of parallel encryption/decryption processes at commit/checkout time.
+  By default: 8.
 * `KDF_ITERS=` A sufficient number of iterations is used for the encryption key derivation
   function. To specify your own value and avoid rainbow table attacks on myba itself,
   you can customize this value. If you don't know, just leave it.
