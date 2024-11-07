@@ -43,7 +43,7 @@
 # See usage AND CODE for details.
 #
 
-# shellcheck disable=SC1003,SC2064,SC2086,SC2162,SC3045
+# shellcheck disable=SC2086,SC2162,SC3045
 
 set -eu
 
@@ -248,6 +248,7 @@ cmd_restore () {
         git_plain gc --prune=now --aggressive
     fi
     temp_dir="$(_mktemp -d)"
+    # shellcheck disable=SC2064
     trap "rm -rf '$temp_dir'" INT HUP EXIT
 
     _ask_pw
