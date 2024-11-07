@@ -283,8 +283,27 @@ You can edit `$PLAIN_REPO/info/exclude`, which is **prepopulated with
 Additionally by inheritance, **myba
 [honors _.gitignore_ files](https://git-scm.com/docs/gitignore)**
 for any directories that contain them.
-You can tweak various other git settings (like config, filters, hooks)
+You can tweak various other git settings (like
+[config](https://git-scm.com/docs/git-config),
+[filters](https://git-scm.com/book/ms/v2/Customizing-Git-Git-Attributes#filters_a),
+[hooks](https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks))
 by modifying respective files in `$PLAIN_REPO` and (encrypted repo) `$PLAIN_REPO/_encrypted/.git`.
+
+</div></div></details>
+<details markdown="1" property="mainEntity" typeof="Question">
+<summary property="name">Encryption failed. How do I investigate / recover?</summary>
+<div markdown="1" property="acceptedAnswer" typeof="Answer"><div markdown="1" property="text">
+
+Myba constructs encrypted repo commits _after_ successful plain repo commits.
+
+Use `myba git` and `myba git_enc` subcommands to discover what state you're in (e.g. `myba git status`).
+Then use something like `myba git reset HEAD^ ; myba git_enc reset HEAD` to reach an acceptable state.
+
+**If it looks like a bug, please report it.**
+Otherwise git will let you know what the problem is.
+
+Myba only **deletes redundant encrypted blobs after successfully pushing to _all_ configured remotes**,
+and **never deletes or overwrites existing files in work tree** unless forced!
 
 </div></div></details>
 </div>
