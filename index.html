@@ -97,9 +97,9 @@ whereas one might have a want for that, otherwise almost what's the point? 😶<
 <ul>
 <li><strong>Version-controlled (git-based) backup</strong> of plaintext documents as well as large binary files.</li>
 <li>Automatic <strong>text compression</strong> for reduced space use.</li>
-<li>Currently using <strong><em>strong</em> AES256 encryption</strong> of files and paths, so far quantum-safe.</li>
-<li><strong>Familiar git workflow</strong>: add (stage), commit, push, clone, pull, checkout.</li>
-<li><strong>Selective (sparse) checkout</strong> of backup files, efficient size-on-disk overhead.</li>
+<li>Currently using industry-standard quantum-safe <strong><em>strong</em> AES256 encryption</strong> of files and paths,</li>
+<li><strong>Familiar git workflow</strong>: add (stage), commit, push, clone, pull, checkout ...</li>
+<li><strong>Selective (sparse) checkout</strong> of backup files for restoration, efficient size-on-disk overhead.</li>
 <li><strong>Sync to multiple clouds</strong> for nearly free by (ab)using popular git hosts.</li>
 <li><strong>Or sync anywhere simply</strong> by cloning or checking-out a directory ...</li>
 </ul>
@@ -107,7 +107,8 @@ whereas one might have a want for that, otherwise almost what's the point? 😶<
 <p>Myba relies on a two-repo solution. On any <em>client</em>, <strong>two repositories</strong> are created.
 <strong>One plaintext</strong> <a href="https://git-scm.com/book/en/v2/Git-on-the-Server-Getting-Git-on-a-Server"><code>--bare</code></a> repo,
 such as in <a href="https://www.atlassian.com/git/tutorials/dotfiles">this guide</a>,
-with worktree set to the root of your volume of interest, such as <code>/</code> or <code>$HOME</code>.
+with <code>$WORK_TREE</code> set to the root of your volume of interest,
+such as <code>/</code> or <code>$HOME</code> (default).
 And <strong>one encrypted</strong> repo that holds encrypted file counterparts.</p>
 <p>When you <code>myba commit</code> some files into the plain repo,
 a commit to the encrypted repo is made in the background.</p>
@@ -136,12 +137,23 @@ fully <strong>encrypted backups</strong> that are really <strong>easily replicat
 <ul>
 <li><strong>Zero-knowledge cloud sync and storage</strong></li>
 <li>Replace or supplement existing <strong>poor, complex, expensive, proprietary solutions</strong>
-  (like Veeam, Time Machine, Google One Photos &amp; Drive, iCloud)
-  or software programs with <strong>complex, unfamiliar CLI APIs or wide attack surfaces</strong>
-  (Bacula, Borg Backup, restic, git-crypt) ...</li>
+    (like <a href="https://www.veeam.com/products/free/backup-recovery.html">Veeam</a>,
+    <a href="https://support.apple.com/en-us/104984">Time Machine</a>,
+    <a href="https://one.google.com/about/plans">Google One</a> Photos &amp; Drive,
+    <a href="https://www.icloud.com">iCloud</a>)
+    or software programs with <strong>complex, unfamiliar CLI APIs or wide attack surfaces</strong>
+    (<a href="https://en.wikipedia.org/wiki/Bacula">Bacula</a>,
+    <a href="https://borgbackup.readthedocs.io/en/stable/usage.html">Borg Backup</a>,
+    <a href="https://restic.net">restic</a>,
+    <a href="https://www.agwa.name/projects/git-crypt/">git-crypt</a>) ...</li>
 <li>Cloud-based serverless virii</li>
-<li><strong>Protocol- and PaaS-agnostic</strong> design (AWS to Backblaze B2, GitLab to Gitea).
-  Simply add remote origins or sync (e.g. rsync, rclone) a git folder.</li>
+<li><strong>Protocol- and PaaS-agnostic</strong> design
+  (<a href="https://aws.amazon.com/free/?all-free-tier.sort-by=item.additionalFields.SortRank&amp;all-free-tier.sort-order=asc&amp;awsf.Free%20Tier%20Types=tier%23always-free&amp;awsf.Free%20Tier%20Categories=categories%23storage">AWS</a>
+  to <a href="https://www.backblaze.com/cloud-storage/pricing">Backblaze B2</a>,
+  <a href="https://about.gitlab.com/pricing/">GitLab</a> ...).
+  Simply add remote origins or sync (e.g.
+  <a href="https://en.wikipedia.org/wiki/Rsync">rsync</a>,
+  <a href="https://rclone.org">rclone</a>) a git folder.</li>
 </ul>
 <h2 id="installation">Installation</h2>
 <p>To install everything on a Debian/Ubuntu-based system, run:</p>
@@ -150,6 +162,7 @@ sudo apt install  gzip git git-lfs openssl gpg
 
 # Download and put somewhere on PATH
 curl -vL 'https://bit.ly/myba-backup' &gt; ~/.local/bin/myba
+chmod +x ~/.local/bin/myba
 export PATH=&quot;$HOME/.local/bin:$PATH&quot;
 
 myba help
@@ -187,13 +200,15 @@ Env vars: WORK_TREE, PLAIN_REPO, PASSWORD, USE_GPG, VERBOSE, YES_OVERWRITE, ...
 <p>The script also acknowledges a few <strong>environment variables</strong> which you can <em>set</em>
 (or export) to steer program behavior:</p>
 <ul>
-<li><code>WORK_TREE=</code> The root of the volume that contains important documents to back up (such as dotfiles).
-  If unspecified, <code>$HOME</code>.</li>
+<li><code>WORK_TREE=</code> The root of the volume that contains important documents (such as dotfiles)
+  to back up or restore to. If unspecified, <code>$HOME</code>.</li>
 <li><code>PLAIN_REPO=</code> The <em>internal</em> directory where myba actually stores both its repositories.
   Defaults to <code>$WORK_TREE/.myba</code> but can be overriden to somewhere out-of-tree ...</li>
 <li><code>PASSWORD=</code> The password to use for encryption instead of asking / reading from stdin.</li>
 <li><code>USE_GPG=</code> Myba uses <code>openssl enc</code> by default, but if you prefer to use GPG even for
   symmetric encryption, set <code>USE_GPG=1</code>.</li>
+<li><code>N_JOBS=</code> The number of parallel encryption/decryption processes at commit/checkout time.
+  By default: 8.</li>
 <li><code>KDF_ITERS=</code> A sufficient number of iterations is used for the encryption key derivation
   function. To specify your own value and avoid rainbow table attacks on myba itself,
   you can customize this value. If you don't know, just leave it.</li>
@@ -245,8 +260,9 @@ and value-added testing.</p>
 <li>execute <a href="https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks">custom script hooks</a>
   at various stages of program lifecycle.</li>
 </ul>
-<p><a href="https://en.wikipedia.org/wiki/Git">Git</a> is a stable and reliable tool used by millions
-of people and organizations worldwide,
+<p><strong><a href="https://en.wikipedia.org/wiki/Git">Git</a>
+is a stable and reliable tool used by millions
+of people and organizations worldwide</strong>,
 with long and rigorous release / support cycles.</p>
 </div>
 </details>
@@ -266,7 +282,7 @@ WORK_TREE=~ myba checkout .ssh
 </code></pre>
 <p>If you need to restore file owners, file access times and similar metadata,
 simply <strong>write a small shell wrapper</strong> that takes care of it.
-<strong>Welcome to contrib</strong> anything short to the respect
+<strong>You're encouraged to contrib</strong> anything short to the respect
 you find widely-applicable and useful.</p>
 </div>
 </div>
@@ -284,11 +300,15 @@ of databases (i.e. large binaries) that change often.</p>
 </div>
 </details>
 <details property="mainEntity" typeof="Question">
-<summary property="name">How to configure what files / filetypes to ignore from backup?</summary>
+<summary property="name">How to influence what files / filetypes to (ignore from) backup?</summary>
 <div property="acceptedAnswer" typeof="Answer">
 <div markdown="1" property="text">
-<p>You can edit <code>$PLAIN_REPO/info/exclude</code>, which is prepopulated with
-<a href="https://github.com/search?q=repo%3Akernc%2Fmyba+%22default_gitignore%3D%22&amp;type=code">default common ignore patterns</a>.
+<p>You stage files and directories for backup with version control as normally, with <code>myba add</code>.
+You can edit <code>$PLAIN_REPO/info/exclude</code>, which is <strong>prepopulated with
+<a href="https://github.com/search?q=repo%3Akernc%2Fmyba+%22default_gitignore%3D%22&amp;type=code">default common ignore patterns</a></strong>.
+Additionally by inheritance, <strong>myba
+<a href="https://git-scm.com/docs/gitignore">honors <em>.gitignore</em> files</a></strong>
+for any directories that contain them.
 You can tweak various other git settings (like config, filters, hooks)
 by modifying respective files in <code>$PLAIN_REPO</code> and (encrypted repo) <code>$PLAIN_REPO/_encrypted/.git</code>.</p>
 </div>
