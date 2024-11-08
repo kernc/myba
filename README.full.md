@@ -145,7 +145,7 @@ Subcommands:
   pull [REMOTE]         Pull encrypted commits from a promisor remote
   clone REPO_URL        Clone an encrypted repo and init from it
   remote CMD [OPTS]     Manage remotes of the encrypted repo
-  restore [--squash]    Reconstruct plain repo commits from encrypted commits
+  decrypt [--squash]    Reconstruct plain repo commits from encrypted commits
   diff [OPTS]           Compare changes between plain repo revisions
   log [OPTS]            Show commit log of the plain repo
   checkout PATH...      Sparse-checkout and decrypt files into $WORK_TREE

@@ -64,7 +64,7 @@ usage () {
     echo "  pull [REMOTE]         Pull encrypted commits from a promisor remote"
     echo "  clone REPO_URL        Clone an encrypted repo and init from it"
     echo "  remote CMD [OPTS]     Manage remotes of the encrypted repo"
-    echo "  restore [--squash]    Reconstruct plain repo commits from encrypted commits"
+    echo "  decrypt [--squash]    Reconstruct plain repo commits from encrypted commits"
     echo "  diff [OPTS]           Compare changes between plain repo revisions"
     echo "  log [OPTS]            Show commit log of the plain repo"
     echo "  checkout PATH...      Sparse-checkout and decrypt files into \$WORK_TREE"
@@ -235,7 +235,7 @@ cmd_clone () {
 }
 
 
-cmd_restore () {
+cmd_decrypt () {
     # Convert the encrypted commit messages back to plain repo commits
     if [ "$(git_plain ls-files)" ]; then
         if [ ! "${YES_OVERWRITE:-}" ]; then
@@ -625,7 +625,7 @@ case "$cmd" in
     push) verbose cmd_push "$@" ;;
     pull) verbose cmd_pull "$@" ;;
     clone) verbose cmd_clone "$@" ;;
-    restore) verbose cmd_restore "$@" ;;
+    decrypt) verbose cmd_decrypt "$@" ;;
     diff) verbose cmd_diff "$@" ;;
     log) verbose cmd_log "$@" ;;
     checkout) verbose cmd_checkout "$@" ;;

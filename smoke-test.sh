@@ -70,9 +70,9 @@ if myba checkout "foo/.dotfile"; then exit 2; fi
 YES_OVERWRITE=1 myba checkout "foo/.dotfile"
 unset YES_OVERWRITE  # Fix for buggy macOS shell
 
-myba restore
-if myba restore; then exit 3; fi
-YES_OVERWRITE=1 myba restore --squash
+myba decrypt
+if myba decrypt; then exit 3; fi
+YES_OVERWRITE=1 myba decrypt --squash
 myba log
 
 # Another commit from this side
