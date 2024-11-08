@@ -80,7 +80,7 @@ Its only <strong>dependencies are</strong>:</p>
 <li>a running <strong>shell</strong> / standard <strong>POSIX environment</strong> (sh, bash, zsh, dash, ... WSL?),</li>
 <li><strong>gzip</strong></li>
 <li><strong>git</strong> (and Git LFS for files sized &gt;40 MB),</li>
-<li>either <strong>OpenSSL</strong> or <strong>GPG</strong> (~4x slower) for encryption,</li>
+<li>either <strong>OpenSSL</strong> or <strong>GPG</strong> for encryption,</li>
 </ul>
 <p>all of which everyone should discover most popularly available.</p>
 <p><strong>Git does a great job of securely storing and tracking changes and backing up important documents,</strong>
@@ -185,7 +185,7 @@ Subcommands:
   pull [REMOTE]         Pull encrypted commits from a promisor remote
   clone REPO_URL        Clone an encrypted repo and init from it
   remote CMD [OPTS]     Manage remotes of the encrypted repo
-  restore [--squash]    Reconstruct plain repo commits from encrypted commits
+  decrypt [--squash]    Reconstruct plain repo commits from encrypted commits
   diff [OPTS]           Compare changes between plain repo revisions
   log [OPTS]            Show commit log of the plain repo
   checkout PATH...      Sparse-checkout and decrypt files into $WORK_TREE
