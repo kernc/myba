@@ -107,7 +107,7 @@ _ask_pw () {
         _encrypt_func=_enc_gpg
         _decrypt_func=_dec_gpg
         _armor_flags='--armor'
-        _kdf_iters="${KDF_ITERS:-159011733}"  # OpenSSL and GPG use different KDF algos
+        _kdf_iters="${KDF_ITERS:-32111731}"  # OpenSSL and GPG use different KDF algos
     fi
 }
 _encrypted_path () (
