@@ -583,6 +583,7 @@ _build/
 
 # Other VCS
 .git/
+!.git/config
 
 # Ignore Python
 .venv/
