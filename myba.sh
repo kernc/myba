@@ -53,6 +53,11 @@ PLAIN_REPO="$WORK_TREE/.myba"
 ENC_REPO="$PLAIN_REPO/_encrypted"
 #PASSWORD=  # Replace with your encryption password or if null, read stdin
 
+
+############################################################################################
+
+mybabackup_dir='.mybabackup'
+
 usage () {
     echo "Usage: $0 <subcommand> [options]"
     echo "Subcommands:"
@@ -364,6 +369,13 @@ _commit_delete_enc_path () {
 
 
 cmd_commit () {
+    # Update .mybabackup dirs  # XXX: Do this here?
+    backup_dirs="$(find "$WORK_TREE" -type f -name "$mybabackup_dir" |
+                   sed -E "s,/$mybabackup_dir\$,,")"
+    if [ "$backup_dirs" ]; then
+        git_plain add -v "$backup_dirs"
+    fi
+
     # Commit to plain repo
     git_plain commit --message "myba backup $(date '+%Y-%m-%d %H:%M:%S')" --verbose "$@"
 
@@ -520,9 +532,20 @@ cmd_gc () {
     done
 }
 
+cmd_add () {
+    git_plain add -v "$@"
+
+    # Mark directories as recursively tracked
+    for dir in "$@"; do
+        if [ -d "$dir" ]; then
+            touch "$dir/$mybabackup_dir"
+            git_plain add -v "$dir/$mybabackup_dir"
+        fi
+    done
+}
+
 
 # Simple passthrough commands
-cmd_add () { git_plain add "$@"; }
 cmd_diff () { git_plain diff "$@"; }
 cmd_pull () { git_enc pull "$@"; _ask_pw; _decrypt_manifests; }
 cmd_log () {
