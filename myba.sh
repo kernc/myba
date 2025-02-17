@@ -78,7 +78,7 @@ usage () {
     echo "  git CMD [OPTS]        Inspect/execute raw git commands inside plain repo"
     echo "  git_enc CMD [OPTS]    Inspect/execute raw git commands inside encrypted repo"
     echo
-    echo 'Env vars: WORK_TREE, PLAIN_REPO, PASSWORD USE_GPG, VERBOSE, YES_OVERWRITE'
+    echo 'Env vars: WORK_TREE, PLAIN_REPO, PASSWORD, USE_GPG, VERBOSE, YES_OVERWRITE'
     echo 'For a full list and info, see: https://github.com/kernc/myba/'
     exit 1
 }
