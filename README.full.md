@@ -79,7 +79,7 @@ that **large binaries don't change too often**.
 **Myba** is **Git + Shell**, preconfigured and wrapped as thinly as needed to provide
 fully **encrypted backups** that are really **easily replicated and synced to the cloud**.
 
-<script async src="https://ssl.gstatic.com/trends_nrtr/3826_RC01/embed_loader.js"></script>
+<script async src="https://ssl.gstatic.com/trends_nrtr/4031_RC01/embed_loader.js"></script>
 <div id="trends"></div>
 <script>addEventListener("load", () => window.trends.embed.renderExploreWidgetTo(document.getElementById("trends"), "TIMESERIES", {"comparisonItem":[{"keyword":"/m/02mhh1","geo":"","time":"all"},{"keyword":"/m/05vqwg","geo":"","time":"all"},{"keyword":"/m/0ryppmg","geo":"","time":"all"},{"keyword":"myba","geo":"","time":"all"}],"category":0,"property":""}, {"exploreQuery":"date=all&q=%2Fm%2F02mhh1,%2Fm%2F05vqwg,%2Fm%2F0ryppmg,myba#TIMESERIES","guestPath":"https://trends.google.com:443/trends/embed/"}));</script>
 
