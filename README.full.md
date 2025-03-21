@@ -175,6 +175,7 @@ The script also acknowledges a few **environment variables** which you can _set_
 * `KDF_ITERS=` A sufficient number of iterations is used for the encryption key derivation
   function. To specify your own value and avoid rainbow table attacks on myba itself,
   you can customize this value. If you don't know, just leave it.
+* `GIT_LFS_THRESH=` File size threshold. Store files larger than this many bytes in Git LFS.
 * `YES_OVERWRITE=` If set, overwrite existing when restoring/checking out files that already
   exist in $WORK_TREE. The default is to ask instead.
 * `VERBOSE=` More verbose output about what the program is doing.

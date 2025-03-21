@@ -52,6 +52,7 @@ WORK_TREE="${WORK_TREE:-${HOME:-~}}"
 PLAIN_REPO="$WORK_TREE/.myba"
 ENC_REPO="$PLAIN_REPO/_encrypted"
 #PASSWORD=  # Replace with your encryption password or if null, read stdin
+GIT_LFS_THRESH="${GIT_LFS_THRESH:-$((40 * 1024 * 1024))}"  # 50 MB limit on GitHub/GitLab
 
 
 ############################################################################################
@@ -78,7 +79,8 @@ usage () {
     echo "  git CMD [OPTS]        Inspect/execute raw git commands inside plain repo"
     echo "  git_enc CMD [OPTS]    Inspect/execute raw git commands inside encrypted repo"
     echo
-    echo 'Env vars: WORK_TREE, PLAIN_REPO, PASSWORD, USE_GPG, VERBOSE, YES_OVERWRITE'
+    echo 'Env vars: WORK_TREE, PLAIN_REPO, PASSWORD, USE_GPG, VERBOSE, YES_OVERWRITE,'
+    echo '          GIT_LFS_THRESH'
     echo 'For a full list and info, see: https://github.com/kernc/myba/'
     exit 1
 }
@@ -404,8 +406,8 @@ cmd_commit () {
             if [ "$_status" = 'A' ] || [ "$_status" = 'M' ] ||
                     [ "$_status" = 'R' ] || [ "$_status" = 'C' ]; then
                 _enc_path="$(_encrypted_path "$_path")"
-                # If file larger than 40 MB, configure Git LFS
-                if [ "$(_file_size "$ENC_REPO/$_enc_path")" -gt $((40 * 1024 * 1024)) ]; then
+                # If file larger than threshold, configure Git LFS
+                if [ "$(_file_size "$ENC_REPO/$_enc_path")" -gt $GIT_LFS_THRESH ]; then
                     git_enc lfs track --filename "$_enc_path"
                 fi
                 git_enc add -v --sparse "$_enc_path"
