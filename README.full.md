@@ -40,7 +40,9 @@ Features
 --------
 * **Version-controlled (git-based) backup** of plaintext documents as well as large binary files.
 * Automatic **text compression** for reduced space use.
-* Currently using industry-standard quantum-safe **_strong_ AES256 encryption** of files and paths,
+* Currently using industry-standard
+  [quantum-safe](https://crypto.stackexchange.com/questions/6712/is-aes-256-a-post-quantum-secure-cipher-or-not)
+  **_strong_ AES256 encryption** of files and paths,
 * **Familiar git workflow**: add (stage), commit, push, clone, pull, checkout ...
 * **Selective (sparse) checkout** of backup files for restoration, efficient size-on-disk overhead.
 * **Sync to multiple clouds** for nearly free by (ab)using popular git hosts.
@@ -88,10 +90,10 @@ fully **encrypted backups** that are really **easily replicated and synced to th
 
 * **Zero-knowledge cloud sync and storage**
   * Replace or supplement existing **poor, complex, expensive, proprietary solutions**
-    (like [Veeam](https://www.veeam.com/products/free/backup-recovery.html),
-    [Time Machine](https://support.apple.com/en-us/104984),
-    [Google One](https://one.google.com/about/plans) Photos & Drive,
-    [iCloud](https://www.icloud.com))
+    (like Veeam,
+    Apple Time Machine,
+    Google One, Photos & Drive,
+    Apple iCloud)
     or software programs with **complex, unfamiliar CLI APIs or wide attack surfaces**
     ([Bacula](https://en.wikipedia.org/wiki/Bacula),
     [Borg Backup](https://borgbackup.readthedocs.io/en/stable/usage.html),
@@ -99,9 +101,7 @@ fully **encrypted backups** that are really **easily replicated and synced to th
     [git-crypt](https://www.agwa.name/projects/git-crypt/)) ...
 * Cloud-based serverless virii
 * **Protocol- and PaaS-agnostic** design
-  ([AWS](https://aws.amazon.com/free/?all-free-tier.sort-by=item.additionalFields.SortRank&all-free-tier.sort-order=asc&awsf.Free%20Tier%20Types=tier%23always-free&awsf.Free%20Tier%20Categories=categories%23storage)
-  to [Backblaze B2](https://www.backblaze.com/cloud-storage/pricing),
-  [GitLab](https://about.gitlab.com/pricing/) ...).
+  (save to AWS, Backblaze B2, GitLab ...).
   Simply add remote origins or sync (e.g.
   [rsync](https://en.wikipedia.org/wiki/Rsync),
   [rclone](https://rclone.org)) a git folder.
@@ -304,6 +304,13 @@ Otherwise git will let you know what the problem is.
 
 Myba only **deletes redundant encrypted blobs after successfully pushing to _all_ configured remotes**,
 and **never deletes or overwrites existing files in work tree** unless forced!
+
+</div></div></details>
+<details markdown="1" property="mainEntity" typeof="Question">
+<summary property="name">Can I get a simple backup contents archive?</summary>
+<div markdown="1" property="acceptedAnswer" typeof="Answer"><div markdown="1" property="text">
+
+Easily. You can run e.g.: [`myba git archive --output backup.zip HEAD`](https://git-scm.com/docs/git-archive).
 
 </div></div></details>
 </div>
