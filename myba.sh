@@ -118,13 +118,11 @@ _ask_pw () {
     # Set up encryption via OpenSSL
     _encrypt_func=_enc_openssl
     _decrypt_func=_dec_openssl
-    _armor_flags='-base64 -A'
     _kdf_iters="${KDF_ITERS:-321731}"
     # Set up encryption via GPG
     if [ "${USE_GPG+1}" ]; then
         _encrypt_func=_enc_gpg
         _decrypt_func=_dec_gpg
-        _armor_flags='--armor'
         _kdf_iters="${KDF_ITERS:-32111731}"  # OpenSSL and GPG use different KDF algos
     fi
 }
@@ -135,10 +133,10 @@ _encrypted_path () (
         cut -c-128 |
         sed -E 's,(...)(...)(...)(.*),\1/\2/\3/\4,'
 )
-_enc_openssl () {
-    openssl enc -aes-256-ctr -pbkdf2 -md sha512 -iter "$_kdf_iters" -salt -pass fd:3 "$@"
-}
-_dec_openssl () { _enc_openssl -d "$@"; }
+
+_openssl_common () { openssl enc -aes-256-ctr -pbkdf2 -md sha512 -iter "$_kdf_iters" -salt -pass fd:3 "$@"; }
+_enc_openssl () { _openssl_common | tail -c +9 -f; }  # Remove "Salted__"
+_dec_openssl () { { printf 'Salted__'; cat; } | _openssl_common -d "$@"; }
 _gpg_common () {
     gpg --compress-level 0 \
         --passphrase-fd 3 --pinentry-mode loopback --batch \
@@ -302,8 +300,7 @@ cmd_decrypt () {
 
                 # Commit the changes to the plain repo
                 _msg="$(git_enc show -s --format='%B' "$_enc_commit" |
-                        _decrypt "" $_armor_flags |
-                        gzip -dc)"
+                        base64 -d | _decrypt "" | gzip -dc)"
                 _date="$(git_enc show -s --format='%ai' "$_enc_commit")"
                 _author="$(git_enc show -s --format='%an <%ae>' "$_enc_commit")"
                 if ! have_commitable_changes; then
@@ -505,8 +502,7 @@ _encrypt_commit_plain_head_files () {
     git_enc status --short
     git_enc commit -m "$(
         git_plain show --format='%B' --name-status |
-            gzip -c9 |
-            _encrypt "" $_armor_flags)"
+            gzip -c9 | _encrypt "" | base64 -w 0)"
 }
 
 
