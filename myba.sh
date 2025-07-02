@@ -290,6 +290,7 @@ cmd_decrypt () {
     else
         git_enc log --reverse --pretty='%H' |
             while IFS= _read_vars _enc_commit; do
+                # shellcheck disable=SC2154
                 git_enc show --name-only --pretty=format: "$_enc_commit" |
                     git_enc sparse-checkout set --stdin
                 git_enc sparse-checkout reapply
@@ -320,6 +321,7 @@ cmd_reencrypt() {
 
     # Remove, but not squash, current encrypted files
     git_enc sparse-checkout disable
+    # shellcheck disable=SC2046
     git_enc rm $(git_enc ls-files | grep -v "^${0##*/}$")
     git_enc commit -m 'reencrypt'
     mkdir -p "$ENC_REPO/manifest"
@@ -333,6 +335,7 @@ cmd_reencrypt() {
     # Loop through plain commit hashes, checkout into temp location, and redo a cmd_commit
     git_plain log --reverse --pretty=format:'%H' |
         while _read_vars commit_hash; do
+            # shellcheck disable=SC2154
             git_plain checkout "$commit_hash"
             _encrypt_commit_plain_head_files
 
@@ -395,6 +398,7 @@ _parallelize () {
 }
 
 
+# shellcheck disable=SC2030
 _commit_encrypt_one () (
     _status="$(echo "$1" | cut -c1)"  # "R100", "C100", ...
     # Reference: https://git-scm.com/docs/git-status#_output
@@ -448,6 +452,8 @@ cmd_commit () {
     _encrypt_commit_plain_head_files
 }
 
+
+# shellcheck disable=SC2031
 _encrypt_commit_plain_head_files () {
     # Encrypt and stage encrypted files
     manifest_path="manifest/$(git_plain rev-parse HEAD)"
@@ -577,6 +583,7 @@ cmd_push () {
         # With no args, push to all remotes
         git_enc remote show -n |
             while _read_vars _origin; do
+                # shellcheck disable=SC2154
                 git_enc push --verbose --all "$_origin"
             done
     else

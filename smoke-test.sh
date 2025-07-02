@@ -81,7 +81,7 @@ myba log
 title 'Re-encryption adds an encrypted repo commit'
 PASSWORD=new
 myba reencrypt
-test $(myba git_enc ls-files | wc -l) -eq $((3 + 1 + 1))
+test "$(myba git_enc ls-files | wc -l)" -eq $((3 + 1 + 1))
 PASSWORD=secret  # old
 
 title 'Another commit from this side'
