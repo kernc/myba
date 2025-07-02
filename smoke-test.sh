@@ -106,6 +106,9 @@ foo
 renamed.file.2
 renamed.file.3"
 
+myba ls-files
+myba largest
+
 #bash  # Inspect/debug test
 set +x
 echo "$0: Done ok"

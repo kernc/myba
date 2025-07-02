@@ -66,22 +66,27 @@ usage () {
     echo "  add [OPTS] PATH...    Stage files for backup/version tracking"
     echo "  rm PATH...            Stage-remove files from future backups/version control"
     echo "  commit [OPTS]         Commit staged changes of tracked files as a snapshot"
-    echo "  push [REMOTE]         Encrypt and push files to remote repo(s) (default: all)"
+    echo "  push [REMOTE]         Push encrypted repo to remote repo(s) (default: all)"
     echo "  pull [REMOTE]         Pull encrypted commits from a promisor remote"
     echo "  clone REPO_URL        Clone an encrypted repo and init from it"
     echo "  remote CMD [OPTS]     Manage remotes of the encrypted repo"
     echo "  decrypt [--squash]    Reconstruct plain repo commits from encrypted commits"
     echo "  diff [OPTS]           Compare changes between plain repo revisions"
     echo "  log [OPTS]            Show commit log of the plain repo"
+    echo "  status [OPTS]         Show git status of the plain repo"
+    echo "  ls-files [OPTS]       Show current backup files (OPTS go via git ls-tree)"
+    echo "  largest               List current backup files by file size, descending"
     echo "  checkout PATH...      Sparse-checkout and decrypt files into \$WORK_TREE"
     echo "  checkout COMMIT       Switch files to a commit of plain or encrypted repo"
     echo "  gc                    Garbage collect, remove synced encrypted packs"
     echo "  git CMD [OPTS]        Inspect/execute raw git commands inside plain repo"
     echo "  git_enc CMD [OPTS]    Inspect/execute raw git commands inside encrypted repo"
     echo
+    echo 'PLAIN repo  <--encryption-->  ENCRYPTED repo  <--synced with-->  git REMOTE'
+    echo
     echo 'Env vars: WORK_TREE, PLAIN_REPO, PASSWORD, USE_GPG, VERBOSE, YES_OVERWRITE,'
-    echo '          GIT_LFS_THRESH'
-    echo 'For a full list and info, see: https://github.com/kernc/myba/'
+    echo '          GIT_LFS_THRESH (in bytes)'
+    echo 'For a full list and info, see: https://kernc.github.io/myba/'
     exit 1
 }
 
@@ -90,6 +95,7 @@ warn () { echo "$(basename "$0" .sh): $*" >&2; }
 _tab="$(printf '\t')"
 
 git_plain () { git --work-tree="$WORK_TREE" --git-dir="$PLAIN_REPO" "$@"; }
+_git_plain_nonbare () { git -C "$PLAIN_REPO" "$@"; }
 git_enc () { git -C "$ENC_REPO" "$@"; }
 
 _is_binary_stream () { dd bs=8192 count=1 status=none | LC_ALL=C tr -dc '\000' | LC_ALL=C grep -qa .; }
@@ -547,9 +553,19 @@ cmd_add () {
 }
 
 
+cmd_largest () {
+    git_plain ls-tree --full-tree -r -t --full-name --format='%(objectsize:padded)%x09%(path)' HEAD |
+        sort -r -n "$@" |
+        grep -v '^ *-' |
+        numfmt --to=iec-i --suffix=B
+}
+
+
 # Simple passthrough commands
 cmd_diff () { git_plain diff "$@"; }
 cmd_pull () { git_enc pull "$@"; _ask_pw; _decrypt_manifests; }
+cmd_status () { _update_added_dirs; git_plain status "$@"; }
+cmd_lsfiles () { _git_plain_nonbare ls-files "$@"; }  # https://stackoverflow.com/questions/25906192/git-ls-files-in-bare-repository
 cmd_log () {
     git_plain log \
         --pretty="%C(yellow)%h%C(red) %cd%C(cyan) %s%C(reset)" \
@@ -654,9 +670,21 @@ case "$cmd" in
     decrypt) verbose cmd_decrypt "$@" ;;
     diff) verbose cmd_diff "$@" ;;
     log) verbose cmd_log "$@" ;;
+    status) verbose cmd_status "$@" ;;
+    ls-files) verbose cmd_lsfiles "$@" ;;
+    largest) verbose cmd_largest "$@" ;;
     checkout) verbose cmd_checkout "$@" ;;
     gc) verbose cmd_gc "$@" ;;
-    git) verbose git_plain "$@" ;;
     git_enc) verbose git_enc "$@" ;;
+    git)
+        # Handle buggy ls-files in bare plain repo
+        # https://stackoverflow.com/questions/25906192/git-ls-files-in-bare-repository
+        if [ $# -gt 0 ] && [ "$1" = "ls-files" ]; then
+            shift
+            verbose _git_plain_nonbare ls-files "$@"
+        else
+            verbose git_plain "$@"
+        fi
+        ;;
     *) usage ;;
 esac
