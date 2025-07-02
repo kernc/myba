@@ -379,21 +379,27 @@ _commit_encrypt_one () (
 
 
 _commit_delete_enc_path () {
-    git_enc lfs untrack "$1" || true  # Ok if Git LFS is not used
-    git_enc rm -f --sparse "$1"
+    git_enc lfs untrack "$1" || true  # Passthrough ok if Git LFS is not used
+    git_enc add '.gitattributes' || true
+    git_enc rm -f --ignore-unmatch --sparse "$1"
 }
 
-
-cmd_commit () {
-    # Update .mybabackup dirs  # XXX: Do this here?
-    backup_dirs="$(find "$WORK_TREE" -type f -name "$mybabackup_dir" |
-                   sed -E "s,/$mybabackup_dir\$,,")"
+_update_added_dirs () {
+    # Update .mybabackup dirs
+    backup_dirs="$(_git_plain_nonbare ls-files |
+                  grep "/${mybabackup_dir}[\"']?\$" |
+                  sed -E "s,/$mybabackup_dir([\"']?)\$,\1," |
+                  sort -u)"
     if [ "$backup_dirs" ]; then
         git_plain add -v "$backup_dirs"
     fi
+}
+
+cmd_commit () {
+    _update_added_dirs
 
     # Commit to plain repo
-    git_plain commit --message "myba backup $(date '+%Y-%m-%d %H:%M:%S')" --verbose "$@"
+    git_plain commit --verbose "$@" --message "myba backup $(date '+%Y-%m-%d %H:%M:%S')"
 
     # Encrypt and stage encrypted files
     _ask_pw
@@ -423,6 +429,7 @@ cmd_commit () {
                 # If file larger than threshold, configure Git LFS
                 if [ "$(_file_size "$ENC_REPO/$_enc_path")" -gt $GIT_LFS_THRESH ]; then
                     git_enc lfs track --filename "$_enc_path"
+                    git_enc add '.gitattributes'
                 fi
                 git_enc add -v --sparse "$_enc_path"
                 echo "$_enc_path$_tab$_path" >> "$PLAIN_REPO/$manifest_path"
