@@ -101,6 +101,10 @@ git_enc () { git -C "$ENC_REPO" "$@"; }
 _is_binary_stream () { dd bs=8192 count=1 status=none | LC_ALL=C tr -dc '\000' | LC_ALL=C grep -qa .; }
 _mktemp () { mktemp -t "$(basename "$0" .sh)-XXXXXXX" "$@"; }
 _file_size () { stat -c%s "$@" 2>/dev/null || stat -f%z "$@"; }
+_read_vars () {
+    # https://unix.stackexchange.com/questions/418060/read-a-line-oriented-file-which-may-not-end-with-a-newline/418066#418066
+    read -r "$@" || [ "$(eval echo '$'"$1")" ];
+}
 
 _ask_pw () {
     if [ -z "${PASSWORD+1}" ]; then
@@ -264,21 +268,27 @@ cmd_decrypt () {
     # shellcheck disable=SC2064
     trap "rm -rf '$temp_dir'" INT HUP EXIT
 
+    have_commitable_changes () { WORK_TREE="$temp_dir" git_plain diff --staged --quiet; }
+    read_decrypt_and_git_add_files () {
+        while IFS="$_tab" _read_vars _enc_path _plain_path; do
+            WORK_TREE="$temp_dir" _decrypt_file "$_enc_path" "$_plain_path"
+            WORK_TREE="$temp_dir" git_plain add "$_plain_path"
+        done
+    }
+
     _ask_pw
     if [ "${1:-}" = "--squash" ]; then
         git_enc sparse-checkout disable
         git_enc ls-files "manifest/" |
-            grep -RFhf- "$PLAIN_REPO/manifest" | sort -u |
-            while IFS="$_tab" read -r _enc_path _plain_path; do
-                WORK_TREE="$temp_dir" _decrypt_file "$_enc_path" "$_plain_path"
-                WORK_TREE="$temp_dir" git_plain add "$_plain_path"
-            done
-        if ! WORK_TREE="$temp_dir" git_plain diff --staged --quiet; then
+            grep -RFhf- "$PLAIN_REPO/manifest" |
+            sort -u |
+            read_decrypt_and_git_add_files
+        if ! have_commitable_changes; then
             WORK_TREE="$temp_dir" git_plain commit -m "Restore '$1' at $(date '+%Y-%m-%d %H:%M:%S%z')"
         fi
     else
         git_enc log --reverse --pretty='%H' |
-            while IFS= read -r _enc_commit; do
+            while IFS= _read_vars _enc_commit; do
                 git_enc show --name-only --pretty=format: "$_enc_commit" |
                     git_enc sparse-checkout set --stdin
                 git_enc sparse-checkout reapply
@@ -286,10 +296,7 @@ cmd_decrypt () {
                 # Decrypt and stage files from this commit into temp_dir
                 plain_commit="$(git_enc show --name-only --pretty=format: "$_enc_commit" -- "manifest/" |
                                 cut -d/ -f2)"
-                while IFS="$_tab" read -r _enc_path _plain_path; do
-                    WORK_TREE="$temp_dir" _decrypt_file "$_enc_path" "$_plain_path"
-                    WORK_TREE="$temp_dir" git_plain add "$_plain_path"
-                done < "$PLAIN_REPO/manifest/$plain_commit"
+                read_decrypt_and_git_add_files < "$PLAIN_REPO/manifest/$plain_commit"
 
                 # Commit the changes to the plain repo
                 _msg="$(git_enc show -s --format='%B' "$_enc_commit" |
@@ -297,7 +304,7 @@ cmd_decrypt () {
                         gzip -dc)"
                 _date="$(git_enc show -s --format='%ai' "$_enc_commit")"
                 _author="$(git_enc show -s --format='%an <%ae>' "$_enc_commit")"
-                if ! WORK_TREE="$temp_dir" git_plain diff --staged --quiet; then
+                if ! have_commitable_changes; then
                     WORK_TREE="$temp_dir" git_plain commit --no-gpg-sign -m "$_msg" --date "$_date" --author "$_author"
                 fi
             done
@@ -327,6 +334,7 @@ _parallelize () {
                 1>"$PLAIN_REPO/_fd1" \
                 2>"$PLAIN_REPO/_fd2" &
             pids="$pids $!"
+            # Keep pid-based references to stdout/stderr
             while [ ! -f "$PLAIN_REPO/_fd1" ] && [ ! -f "$PLAIN_REPO/_fd2" ]; do sleep .05; done
             mv "$PLAIN_REPO/_fd1" "$PLAIN_REPO/_fd1_$!"
             mv "$PLAIN_REPO/_fd2" "$PLAIN_REPO/_fd2_$!"
@@ -395,7 +403,7 @@ cmd_commit () {
     # Do git stuff here and now, single process, avoiding errors like:
     #     fatal: Unable to create .../_encrypted/.git/index.lock': File exists
     git_plain show --name-status --pretty=format: HEAD |
-        while IFS="$_tab" read -r _status _path; do
+        while IFS="$_tab" _read_vars _status _path; do
             _status="$(echo "$_status" | cut -c1)"
             # Handle statuses
             # Reference: https://git-scm.com/docs/git-status#_output
@@ -514,7 +522,7 @@ cmd_push () {
     if [ $# -eq 0 ]; then
         # With no args, push to all remotes
         git_enc remote show -n |
-            while read _origin; do
+            while _read_vars _origin; do
                 git_enc push --verbose --all "$_origin"
             done
     else
