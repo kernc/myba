@@ -316,12 +316,6 @@ cmd_decrypt () {
 
 
 cmd_reencrypt() {
-    # TODO: remove stashing since have tempdir
-    _skip_stash_pop=
-    if git_plain stash push --message 'Before `myba reencrypt`' |
-        grep -q '^No local changes'; then
-            _skip_stash_pop=1; fi
-
     _ask_pw
 
     # Remove, but not squash, current encrypted files
@@ -333,8 +327,8 @@ cmd_reencrypt() {
     temp_dir="$(_mktemp -d)"
     # shellcheck disable=SC2064
     trap "rm -rf '$temp_dir'" INT HUP EXIT
-    prev_work_tree="$WORK_TREE"
-    WORK_TREE="$temp_dir"
+
+    WORK_TREE="$temp_dir"  # Don't switcheroo "live" config files!
 
     # Loop through plain commit hashes, checkout into temp location, and redo a cmd_commit
     git_plain log --reverse --pretty=format:'%H' |
@@ -358,12 +352,7 @@ cmd_reencrypt() {
 #                rm "$PLAIN_REPO/$m".tmp
 #            fi
         done
-    WORK_TREE="$prev_work_tree"
 
-    git_plain checkout HEAD
-    if [ ! "$_skip_stash_pop" ]; then
-        git_plain stash pop
-    fi
     echo "Re-encryption complete."
 }
 
