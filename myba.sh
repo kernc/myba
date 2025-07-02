@@ -71,6 +71,7 @@ usage () {
     echo "  clone REPO_URL        Clone an encrypted repo and init from it"
     echo "  remote CMD [OPTS]     Manage remotes of the encrypted repo"
     echo "  decrypt [--squash]    Reconstruct plain repo commits from encrypted commits"
+    echo "  reencrypt             Reencrypt plain repo commits with a new password"
     echo "  diff [OPTS]           Compare changes between plain repo revisions"
     echo "  log [OPTS]            Show commit log of the plain repo"
     echo "  status [OPTS]         Show git status of the plain repo"
@@ -314,6 +315,59 @@ cmd_decrypt () {
 }
 
 
+cmd_reencrypt() {
+    # TODO: remove stashing since have tempdir
+    _skip_stash_pop=
+    if git_plain stash push --message 'Before `myba reencrypt`' |
+        grep -q '^No local changes'; then
+            _skip_stash_pop=1; fi
+
+    _ask_pw
+
+    # Remove, but not squash, current encrypted files
+    git_enc sparse-checkout disable
+    git_enc rm $(git_enc ls-files | grep -v "^${0##*/}$")
+    git_enc commit -m 'reencrypt'
+    mkdir -p "$ENC_REPO/manifest"
+
+    temp_dir="$(_mktemp -d)"
+    # shellcheck disable=SC2064
+    trap "rm -rf '$temp_dir'" INT HUP EXIT
+    prev_work_tree="$WORK_TREE"
+    WORK_TREE="$temp_dir"
+
+    # Loop through plain commit hashes, checkout into temp location, and redo a cmd_commit
+    git_plain log --reverse --pretty=format:'%H' |
+        while _read_vars commit_hash; do
+            git_plain checkout "$commit_hash"
+            _encrypt_commit_plain_head_files
+
+            # ???
+#            manifest_path="manifest/$commit_hash"
+#            # Process only if manifest exists
+#            # Maybe it failed `decrypt` for some commits
+#            if [ -f "$PLAIN_REPO/$manifest_path" ]; then
+#                # Decrypt current manifest with old password
+#                _decrypt "" < "$ENC_REPO/$manifest" | gzip -dc > "$PLAIN_REPO/$manifest_path".tmp
+#                # Temporarily switch to new password and reencrypt
+#                old_pw=$PASSWORD
+#                PASSWORD="$NPW"
+#                gzip -c2 "$PLAIN_REPO/$m".tmp | _encrypt "" > "$ENC_REPO/$m".new
+#                mv "$ENC_REPO/$m".new "$ENC_REPO/$m"
+#                PASSWORD=$old_pw
+#                rm "$PLAIN_REPO/$m".tmp
+#            fi
+        done
+    WORK_TREE="$prev_work_tree"
+
+    git_plain checkout HEAD
+    if [ ! "$_skip_stash_pop" ]; then
+        git_plain stash pop
+    fi
+    echo "Re-encryption complete."
+}
+
+
 _parallelize () {
     n_threads="${N_JOBS:-$1}"  # Number of threads to keep consuming stdin
     n_vars="$2"  # Number of TAB-separated values per stdin line
@@ -401,8 +455,12 @@ cmd_commit () {
     # Commit to plain repo
     git_plain commit --verbose "$@" --message "myba backup $(date '+%Y-%m-%d %H:%M:%S')"
 
-    # Encrypt and stage encrypted files
     _ask_pw
+    _encrypt_commit_plain_head_files
+}
+
+_encrypt_commit_plain_head_files () {
+    # Encrypt and stage encrypted files
     manifest_path="manifest/$(git_plain rev-parse HEAD)"
     git_plain show --name-status --pretty=format: HEAD |
         _parallelize 8 2 _commit_encrypt_one
@@ -542,6 +600,7 @@ cmd_push () {
     cmd_gc
 }
 
+
 cmd_gc () {
     # Reduce disk usage by removing encrypted repo's blobs
     git_enc sparse-checkout set "manifest"
@@ -554,6 +613,7 @@ cmd_gc () {
             "${file%.pack}.idx"
     done
 }
+
 
 cmd_add () {
     git_plain add -v "$@"
@@ -683,6 +743,7 @@ case "$cmd" in
     pull) verbose cmd_pull "$@" ;;
     clone) verbose cmd_clone "$@" ;;
     decrypt) verbose cmd_decrypt "$@" ;;
+    reencrypt) verbose cmd_reencrypt "$@" ;;
     diff) verbose cmd_diff "$@" ;;
     log) verbose cmd_log "$@" ;;
     status) verbose cmd_status "$@" ;;

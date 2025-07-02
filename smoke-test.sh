@@ -37,7 +37,9 @@ remote_git2="$HOME/remote2"
 create_mock_remote "$remote_git"
 create_mock_remote "$remote_git2"
 
-# Here we go, user ...
+title () { echo; echo "$@"; echo; }
+
+title 'Here we go, user does ...'
 
 myba help || true
 VERBOSE=1 myba init
@@ -55,27 +57,34 @@ myba push
 export PAGER=
 myba log
 
-# Somewhere else, much, much later ...
+title 'Somewhere else, much, much later ...'
 
 WORK_TREE="$HOME/restore"  # From here on, $WORK_TREE overrides $HOME
 export WORK_TREE
 
 myba clone "file://$(readlink -f "$remote_git")"  # Clone by uri as non-local
 myba checkout HEAD
-myba checkout "foo/.dotfile"
-# Ensure restoration script is present in the encrypted repo
+title 'Ensure restoration script is present in the encrypted repo'
 stat "$WORK_TREE/.myba/_encrypted/myba.sh"
-# No overwrite existing file unless forced
+title 'No overwrite existing file unless forced'
+myba checkout "foo/.dotfile"
 if myba checkout "foo/.dotfile"; then exit 2; fi
 YES_OVERWRITE=1 myba checkout "foo/.dotfile"
 unset YES_OVERWRITE  # Fix for buggy macOS shell
 
+title '(Re-)decrypt encrypted commits'
 myba decrypt
 if myba decrypt; then exit 3; fi
 YES_OVERWRITE=1 myba decrypt --squash
 myba log
 
-# Another commit from this side
+title 'Re-encryption adds an encrypted repo commit'
+PASSWORD=new
+myba reencrypt
+test $(myba git_enc ls-files | wc -l) -eq $((3 + 1 + 1))
+PASSWORD=secret  # old
+
+title 'Another commit from this side'
 touch "$WORK_TREE/bar"
 myba add "$WORK_TREE/bar"
 myba rm foo/other.file
@@ -90,7 +99,7 @@ disk_usage
 myba gc
 disk_usage
 # foo + .myba + remote + remote2 + restore + overhead
-max_value=6300  # Note, this is blocksize/CI-dependent
+max_value=6700  # Note, this is blocksize/CI-dependent
 test "$(du -sk "$HOME" | cut -f1)" -lt $max_value
 
 myba log
