@@ -357,41 +357,61 @@ cmd_reencrypt() {
 }
 
 
+_trap_append() {
+    new="$1"
+    shift
+    for sig; do
+        old="$(trap | sed -nE "s/^trap -- '(.*)' .*$sig$/\1/p")"
+        [ "$old" ] && cmd="$new; $old" || cmd="$new"
+        # shellcheck disable=SC2064
+        trap "$cmd" "$sig"
+    done
+}
+
+
 _parallelize () {
     n_threads="${N_JOBS:-$1}"  # Number of threads to keep consuming stdin
     n_vars="$2"  # Number of TAB-separated values per stdin line
-    shift 2
-    _func="$1"  # Func to pass args and values to
-    terminate=
-    while [ ! "$terminate" ]; do
-        pids=
-        for _i in $(seq "$n_threads"); do
-            # Read n_vars variables, splitting by TAB
-            if ! eval "IFS='$_tab' read -r $(seq -s' ' -f 'var%.0f' "$n_vars")"; then
-                terminate=1
-                break
-            fi
-            # Call function with args and variables in background
+    _func="$3"  # Func to pass args and values to
+    shift 3
+
+    tmpdir="$PLAIN_REPO/_parallelize--internal.$$"
+    mkdir -p "$tmpdir"
+    _trap_append "rm -rfv '$tmpdir'" INT HUP EXIT
+    # Init a FIFO semaphore
+    fifo="$tmpdir/semaphore"
+    mkfifo "$fifo"
+    exec 3<>"$fifo"
+    printf "%${n_threads}s" | tr " " "\n" >&3  # n_threads tokens
+
+    pids=
+    # Read n_vars variables per line, splitting by TAB
+    while eval "IFS='$_tab' read -r $(seq -s' ' -f 'var%.0f' "$n_vars")" || [ "$var1" ]; do
+        read -r _ <&3  # Acquire semaphore or block
+        # Call function with args and variables in background
+        {
             # shellcheck disable=SC2016,SC2294
-            eval "$@" $(seq -s' ' -f '"$var%.0f"' "$n_vars") \
-                1>"$PLAIN_REPO/_fd1" \
-                2>"$PLAIN_REPO/_fd2" &
-            pids="$pids $!"
-            # Keep pid-based references to stdout/stderr
-            while [ ! -f "$PLAIN_REPO/_fd1" ] && [ ! -f "$PLAIN_REPO/_fd2" ]; do sleep .05; done
-            mv "$PLAIN_REPO/_fd1" "$PLAIN_REPO/_fd1_$!"
-            mv "$PLAIN_REPO/_fd2" "$PLAIN_REPO/_fd2_$!"
-        done
-        # Wait on all spawned jobs; transferring their exit status to ours
-        status=0
-        for pid in $pids; do
-            if ! wait "$pid"; then status=1; fi
-            cat "$PLAIN_REPO/_fd1_$pid"
-            cat "$PLAIN_REPO/_fd2_$pid" >&2
-        done
-        rm "$PLAIN_REPO"/_fd*_*
-        if [ $status -ne 0 ]; then exit 1; fi
+            eval $_func "$@" $(seq -s' ' -f '"$var%.0f"' "$n_vars")
+            # Release semaphore
+            # XXX: For some reason doesn't work with fd3 (not inherited)?
+            exec 4>"$fifo"
+            echo >&4
+            exec 4>&-
+        } 1>"$tmpdir/out" 2>"$tmpdir/err" &
+        pids="$pids $!"
+        # Keep pid-based references to stdout/stderr
+        while [ ! -f "$tmpdir/out" ] && [ ! -f "$tmpdir/err" ]; do sleep .01; done
+        mv "$tmpdir/out" "$tmpdir/out.$!"
+        mv "$tmpdir/err" "$tmpdir/err.$!"
     done
+    # Wait on all spawned jobs; transferring their exit status to ours
+    status=0
+    for pid in $pids; do
+        if ! wait "$pid"; then status=1; fi
+        cat "$tmpdir/out.$pid"
+        cat "$tmpdir/err.$pid" >&2
+    done
+    if [ $status -ne 0 ]; then exit 1; fi
 }
 
 
