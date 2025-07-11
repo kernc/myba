@@ -32,7 +32,7 @@ h1 {line-height: 1.3em;}
 a:link {color:navy}
 a:hover {color:blue !important}
 a:visited {color:#230}
-summary {width:fit-content; border:2px solid silver; cursor:pointer; padding:.2em .6em; margin:.3em 0; font-weight:bold}
+summary {width:fit-content; border:2px solid silver; cursor:pointer; padding:.2em .6em; margin:.3em 0}
 details[open] summary {border:2px solid black;}
 </style>
 <meta property="og:title" content="Myba - git-based file backup with encryption">

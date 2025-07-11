@@ -335,7 +335,7 @@ cmd_reencrypt() {
 
     WORK_TREE="$temp_dir"  # Don't switcheroo "live" config files!
 
-    # Loop through plain commit hashes, checkout into temp location, and redo a cmd_commit
+    # Loop through plain commit hashes and checkout & cmd_commit
     git_plain log --reverse --pretty=format:'%H' |
         while _read_vars commit_hash; do
             # shellcheck disable=SC2154

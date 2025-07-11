@@ -2,8 +2,8 @@
 =====
 
 [![Build status](https://img.shields.io/github/actions/workflow/status/kernc/myba/ci.yml?branch=master&style=for-the-badge)](https://github.com/kernc/myba/actions)
-[![Language: shell / Bash](https://img.shields.io/badge/lang-Shell-skyblue?style=for-the-badge)](https://github.com/kernc/myba)
-[![Source lines of code](https://img.shields.io/endpoint?url=https://ghloc.vercel.app/api/kernc/myba/badge?filter=myba.sh$&style=for-the-badge&color=skyblue&label=SLOC)](https://github.com/kernc/myba)
+[![Language: shell / Bash](https://img.shields.io/badge/lang-Shell-peachpuff?style=for-the-badge)](https://github.com/kernc/myba)
+[![Source lines of code](https://img.shields.io/endpoint?url=https%3A%2F%2Fghloc.vercel.app%2Fapi%2Fkernc%2Fmyba%2Fbadge?filter=myba.sh%26format=human&style=for-the-badge&label=SLOC&color=skyblue)](https://ghloc.vercel.app/kernc/myba)
 [![Script size](https://img.shields.io/github/size/kernc/myba/myba.sh?style=for-the-badge&color=skyblue)](https://github.com/kernc/myba)
 [![Issues](https://img.shields.io/github/issues/kernc/myba?style=for-the-badge)](https://github.com/kernc/myba/issues)
 [![Sponsors](https://img.shields.io/github/sponsors/kernc?color=pink&style=for-the-badge)](https://github.com/sponsors/kernc)
@@ -112,7 +112,8 @@ Installation
 To install everything on a Debian/Ubuntu-based system, run:
 ```sh
 # Install dependencies
-sudo apt install  gzip git git-lfs openssl gpg
+# These should be preinstalled or available on most including cloud distros
+sudo apt install  coreutils gzip git git-lfs openssl gpg
 
 # Download and put somewhere on PATH
 curl -vL 'https://bit.ly/myba-backup' > ~/.local/bin/myba
@@ -126,7 +127,8 @@ Note, only one of `openssl` _or_ `gpg` is needed, not both!
 It should be similar, if not nearly equivalent, to install on other platforms.
 Hopefully you will find most dependencies already satisfied.
 
-Please report back if you find / manage to get this working under everything but the above configuration and especially Windows/WSL!
+Please report back if you find or manage to get this working under everything but the above configuration,
+especially Windows/WSL!
 
 
 Usage
@@ -141,20 +143,27 @@ Subcommands:
   add [OPTS] PATH...    Stage files for backup/version tracking
   rm PATH...            Stage-remove files from future backups/version control
   commit [OPTS]         Commit staged changes of tracked files as a snapshot
-  push [REMOTE]         Encrypt and push files to remote repo(s) (default: all)
+  push [REMOTE]         Push encrypted repo to remote repo(s) (default: all)
   pull [REMOTE]         Pull encrypted commits from a promisor remote
   clone REPO_URL        Clone an encrypted repo and init from it
   remote CMD [OPTS]     Manage remotes of the encrypted repo
   decrypt [--squash]    Reconstruct plain repo commits from encrypted commits
+  reencrypt             Reencrypt plain repo commits with a new password
   diff [OPTS]           Compare changes between plain repo revisions
   log [OPTS]            Show commit log of the plain repo
+  status [OPTS]         Show git status of the plain repo
+  ls-files [OPTS]       Show current backup files (OPTS go via git ls-tree)
+  largest               List current backup files by file size, descending
   checkout PATH...      Sparse-checkout and decrypt files into $WORK_TREE
   checkout COMMIT       Switch files to a commit of plain or encrypted repo
   gc                    Garbage collect, remove synced encrypted packs
   git CMD [OPTS]        Inspect/execute raw git commands inside plain repo
   git_enc CMD [OPTS]    Inspect/execute raw git commands inside encrypted repo
 
-Env vars: WORK_TREE, PLAIN_REPO, PASSWORD, USE_GPG, VERBOSE, YES_OVERWRITE, ...
+PLAIN repo  <--encryption-->  ENCRYPTED repo  <--synced with-->  git REMOTE
+
+Env vars: WORK_TREE, PLAIN_REPO, PASSWORD, USE_GPG, VERBOSE, YES_OVERWRITE,
+          GIT_LFS_THRESH (in bytes)
 ```
 
 
@@ -190,15 +199,19 @@ export WORK_TREE="$HOME"
 myba init
 myba add Documents Photos Etc .dotfile
 PASSWORD='secret'  myba commit -m "my precious"
-myba remote add origin "/media/usb/backup"
+myba remote add origin "/media/usb/backup/path"
 myba remote add github "git@github.com:user/my-backup.git"
-VERBOSE=1 myba push  # Push to all configured remotes & free up disk space
+VERBOSE=1 myba push  # Push to ALL configured remotes & free up disk space
 
 # Somewhere else, much, much later, avoiding catastrophe ...
 
 export WORK_TREE="$HOME"
 PASSWORD='secret'  myba clone "..."  # Clone one of the known remotes
 myba checkout ".dotfile" # Restore backed up files in a space-efficient manner
+
+# When already cloned ...
+myba pull  # Sync encrypted remote
+myba decrypt  # Restore plain commits (original files)
 ```
 See [_smoke-test.sh_](https://github.com/kernc/myba/blob/master/smoke-test.sh) file for a more full example & test case!
 
@@ -211,9 +224,9 @@ The script is considered _mostly_ feature-complete, but there remain
 bugs and design flaws to be discovered and ironed out, as well as any
 [TODOs and FIXMEs](https://github.com/search?q=repo%3Akernc%2Fmyba+%28todo+OR+fixme+OR+xxx%29&type=code)
 marked in the source.
-**All source code lines are open to discussion.**
-Especially appreciated are targets for simplification
-and value-added testing.
+All source code lines are **open to discussion.
+Always appreciate a healthy refactoring**, simplification,
+and value-added tests.
 
 
 FAQ
@@ -221,14 +234,15 @@ FAQ
 <div markdown="1" property="about" typeof="FAQPage">
 
 <details markdown="1" property="mainEntity" typeof="Question">
-<summary property="name">Is git a good tool for backups?</summary>
+<summary property="name">Is <b>git a suitable tool</b> for maintaining backups?</summary>
 <div markdown="1" property="acceptedAnswer" typeof="Answer"><div markdown="1" property="text">
 
-The inherently core features of git/myba allow you to:
+While most sources will advise using (their) standalone solution,
+the inherently core features of git and thus myba allow you to:
 
-* track a list of important files,
-* track all changes made, with authorship info and datums, to any of the tracked files,
-* securely store copies of files at each commited snapshot,
+* track lists of important files,
+* track file modification info and changes made,
+* securely store copies of files of each commited snapshot,
 * efficiently compress non-binary files,
 * [apply custom script filters](https://git-scm.com/book/ms/v2/Customizing-Git-Git-Attributes) to files
   based on file extension / glob string match,
@@ -242,7 +256,23 @@ with long and rigorous release / support cycles.
 
 </div></div></details>
 <details markdown="1" property="mainEntity" typeof="Question">
-<summary property="name">Can git track file owner and permissions etc.?</summary>
+<summary property="name"><b>How does myba differ</b> from other backup tools like Bacula, Borg, Duplicity, restic, luckyBackup and git-crypt?</summary>
+<div markdown="1" property="acceptedAnswer" typeof="Answer"><div markdown="1" property="text">
+
+myba simply wraps raw git and is written in pure, standard **POSIX shell for maximum portability**
+and ease of use. It's got the exactly familiar git CLI API.
+
+myba does file-based (as opposed to block-based) differencing and encryption.
+
+Compared to git-crypt, <b>myba also encrypts the committed path/filenames</b> for maximum privacy.
+
+*[POSIX]: Portable Operating System Interface
+*[CLI]: Command Line Interface
+*[API]: Application Programming Interface
+
+</div></div></details>
+<details markdown="1" property="mainEntity" typeof="Question">
+<summary property="name">Can git track <b>file owner and permissions etc.</b>?</summary>
 <div markdown="1" property="acceptedAnswer" typeof="Answer"><div markdown="1" property="text">
 
 Git doesn't on its own track file owner and permission changes (other than the executable bit).
@@ -263,19 +293,20 @@ you find widely-applicable and useful.
 
 </div></div></details>
 <details markdown="1" property="mainEntity" typeof="Question">
-<summary property="name">Can we use git for continually changed databases and binary files?</summary>
+<summary property="name">Can we use git for <b>often-changing binaries</b> like databases?</summary>
 <div markdown="1" property="acceptedAnswer" typeof="Answer"><div markdown="1" property="text">
 
 Git saves whole file snapshots and doesn't do any in-file or within-file
 or across-file deduplication, so it's not well-suited to automatic continual backing up
-of databases (i.e. large binaries) that change often.
+of databases (i.e. large binaries) that change often,
+unless both repos are also regularly squashed, pruned and gc'd.
 
-However, while git repositories bloat when commiting such **large binary and media files**,
+However, while git repositories bloat when commiting such large binary and media files,
 **_myba_ only ever uses sparse-checkout**, keeping overhead disk space use to a minimum.
 
 </div></div></details>
 <details markdown="1" property="mainEntity" typeof="Question">
-<summary property="name">How to influence what files / filetypes to (ignore from) backup?</summary>
+<summary property="name">How to influence <b>what files / filetypes to (ignore from) backup</b>?</summary>
 <div markdown="1" property="acceptedAnswer" typeof="Answer"><div markdown="1" property="text">
 
 You stage files and directories for backup with version control as normally, with `myba add`.
@@ -292,26 +323,66 @@ by modifying respective files in `$PLAIN_REPO` and (encrypted repo) `$PLAIN_REPO
 
 </div></div></details>
 <details markdown="1" property="mainEntity" typeof="Question">
-<summary property="name">Encryption failed. How do I investigate / recover?</summary>
+<summary property="name">Use custom <b>pre-commit hook scripts</b> to conditionally backup some "data" at commit time ...</summary>
+<div markdown="1" property="acceptedAnswer" typeof="Answer"><div markdown="1" property="text">
+
+You can use [git hooks] to "attach" own scripts to the backup process,
+namely the [`pre-commit`][git hooks] hook.
+
+[git hooks]: https://git-scm.com/docs/githooks#_pre_commit
+
+For example, to save own music library or some such only in list form,
+one could e.g. do:
+
+```shell
+# ${WORK_TREE:-$HOME}/.myba/hooks/pre-commit:
+#!/bin/sh
+wt="$GIT_WORK_TREE"
+if git diff --cached --name-only | grep -q '^Music/'; then
+    ls -lR "$wt/path_of_interest" > "$wt/mylist.txt"
+    git add "$wt/mylist.txt"  # Will be committed
+fi
+```
+
+</div></div></details>
+<details markdown="1" property="mainEntity" typeof="Question">
+<summary property="name">How to do <b>incremental directory backups?</b></summary>
+<div markdown="1" property="acceptedAnswer" typeof="Answer"><div markdown="1" property="text">
+
+When you `myba add` a file directory, an identifying hidden file
+called `.mybabackup` gets created in it.
+Afterwards, whenever you invoke `myba commit`,  any newly added or changed files
+in that directory are staged for that snapshot / commit.
+
+</div></div></details>
+
+<details markdown="1" property="mainEntity" typeof="Question">
+<summary property="name"><b>Something failed</b>. How do I <b>debug, investigate, and recover</b>?</summary>
 <div markdown="1" property="acceptedAnswer" typeof="Answer"><div markdown="1" property="text">
 
 Myba constructs encrypted repo commits _after_ successful plain repo commits.
 
-Use `myba git` and `myba git_enc` subcommands to discover what state you're in (e.g. `myba git status`).
-Then use something like `myba git reset HEAD^ ; myba git_enc reset HEAD` to reach an acceptable state.
+Use `myba git` (run with git files in `PLAIN_REPO=`, mirroring contents of `WORK_TREE=`)
+and `myba git_enc` (run in `$PLAIN_REPO/_encrypted`) subcommands to
+discover what state you're in (e.g. `myba git status`).
+Then use something like `myba git reset HEAD^ ; myba git_enc reset HEAD`
+(or similar, as appropriate) to reach an acceptable state.
 
 **If it looks like a bug, please report it.**
-Otherwise git will let you know what the problem is.
+Otherwise git should let you know what the problem is.
 
 Myba only **deletes redundant encrypted blobs after successfully pushing to _all_ configured remotes**,
 and **never deletes or overwrites existing files in work tree** unless forced!
 
 </div></div></details>
 <details markdown="1" property="mainEntity" typeof="Question">
-<summary property="name">Can I get a simple backup contents archive?</summary>
+<summary property="name">Can I get a <b>compressed archive</b> of backup contents?</summary>
 <div markdown="1" property="acceptedAnswer" typeof="Answer"><div markdown="1" property="text">
 
-Easily. You can run e.g.: [`myba git archive --output backup.zip HEAD`](https://git-scm.com/docs/git-archive).
+For backing up files externally, see `remote add origin "/media/usb/backup/path"` example above.
+
+If you want a compressed archive, you can run e.g.: [`myba git archive --output backup.zip HEAD`](https://git-scm.com/docs/git-archive)
+(or `myba git_enc archive --output state.zip HEAD`, as found appropriate).
 
 </div></div></details>
 </div>
