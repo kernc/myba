@@ -117,7 +117,7 @@ _ask_pw () {
             [ "$PASSWORD" = "$PASSWORD2" ] || { warn 'ERROR: Password mismatch!'; exit 1; }
         )
         stty echo
-    fi
+    fi < /dev/tty
 
     # Set up encryption via OpenSSL
     _encrypt_func=_enc_openssl
