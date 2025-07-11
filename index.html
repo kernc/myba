@@ -97,7 +97,9 @@ whereas one might have a want for that, otherwise almost what's the point? 😶<
 <ul>
 <li><strong>Version-controlled (git-based) backup</strong> of plaintext documents as well as large binary files.</li>
 <li>Automatic <strong>text compression</strong> for reduced space use.</li>
-<li>Currently using industry-standard quantum-safe <strong><em>strong</em> AES256 encryption</strong> of files and paths,</li>
+<li>Currently using industry-standard
+  <a href="https://crypto.stackexchange.com/questions/6712/is-aes-256-a-post-quantum-secure-cipher-or-not">quantum-safe</a>
+  <strong><em>strong</em> AES256 encryption</strong> of files and paths,</li>
 <li><strong>Familiar git workflow</strong>: add (stage), commit, push, clone, pull, checkout ...</li>
 <li><strong>Selective (sparse) checkout</strong> of backup files for restoration, efficient size-on-disk overhead.</li>
 <li><strong>Sync to multiple clouds</strong> for nearly free by (ab)using popular git hosts.</li>
@@ -129,7 +131,7 @@ including all kinds or large binary files
 that <strong>large binaries don't change too often</strong>.</p>
 <p><strong>Myba</strong> is <strong>Git + Shell</strong>, preconfigured and wrapped as thinly as needed to provide
 fully <strong>encrypted backups</strong> that are really <strong>easily replicated and synced to the cloud</strong>.</p>
-<script async src="https://ssl.gstatic.com/trends_nrtr/3826_RC01/embed_loader.js"></script>
+<script async src="https://ssl.gstatic.com/trends_nrtr/4031_RC01/embed_loader.js"></script>
 <div id="trends"></div>
 <script>addEventListener("load", () => window.trends.embed.renderExploreWidgetTo(document.getElementById("trends"), "TIMESERIES", {"comparisonItem":[{"keyword":"/m/02mhh1","geo":"","time":"all"},{"keyword":"/m/05vqwg","geo":"","time":"all"},{"keyword":"/m/0ryppmg","geo":"","time":"all"},{"keyword":"myba","geo":"","time":"all"}],"category":0,"property":""}, {"exploreQuery":"date=all&q=%2Fm%2F02mhh1,%2Fm%2F05vqwg,%2Fm%2F0ryppmg,myba#TIMESERIES","guestPath":"https://trends.google.com:443/trends/embed/"}));</script>
 
@@ -137,10 +139,10 @@ fully <strong>encrypted backups</strong> that are really <strong>easily replicat
 <ul>
 <li><strong>Zero-knowledge cloud sync and storage</strong></li>
 <li>Replace or supplement existing <strong>poor, complex, expensive, proprietary solutions</strong>
-    (like <a href="https://www.veeam.com/products/free/backup-recovery.html">Veeam</a>,
-    <a href="https://support.apple.com/en-us/104984">Time Machine</a>,
-    <a href="https://one.google.com/about/plans">Google One</a> Photos &amp; Drive,
-    <a href="https://www.icloud.com">iCloud</a>)
+    (like Veeam,
+    Apple Time Machine,
+    Google One, Photos &amp; Drive,
+    Apple iCloud)
     or software programs with <strong>complex, unfamiliar CLI APIs or wide attack surfaces</strong>
     (<a href="https://en.wikipedia.org/wiki/Bacula">Bacula</a>,
     <a href="https://borgbackup.readthedocs.io/en/stable/usage.html">Borg Backup</a>,
@@ -148,9 +150,7 @@ fully <strong>encrypted backups</strong> that are really <strong>easily replicat
     <a href="https://www.agwa.name/projects/git-crypt/">git-crypt</a>) ...</li>
 <li>Cloud-based serverless virii</li>
 <li><strong>Protocol- and PaaS-agnostic</strong> design
-  (<a href="https://aws.amazon.com/free/?all-free-tier.sort-by=item.additionalFields.SortRank&amp;all-free-tier.sort-order=asc&amp;awsf.Free%20Tier%20Types=tier%23always-free&amp;awsf.Free%20Tier%20Categories=categories%23storage">AWS</a>
-  to <a href="https://www.backblaze.com/cloud-storage/pricing">Backblaze B2</a>,
-  <a href="https://about.gitlab.com/pricing/">GitLab</a> ...).
+  (save to AWS, Backblaze B2, GitLab ...).
   Simply add remote origins or sync (e.g.
   <a href="https://en.wikipedia.org/wiki/Rsync">rsync</a>,
   <a href="https://rclone.org">rclone</a>) a git folder.</li>
@@ -212,6 +212,7 @@ Env vars: WORK_TREE, PLAIN_REPO, PASSWORD, USE_GPG, VERBOSE, YES_OVERWRITE, ...
 <li><code>KDF_ITERS=</code> A sufficient number of iterations is used for the encryption key derivation
   function. To specify your own value and avoid rainbow table attacks on myba itself,
   you can customize this value. If you don't know, just leave it.</li>
+<li><code>GIT_LFS_THRESH=</code> File size threshold. Store files larger than this many bytes in Git LFS.</li>
 <li><code>YES_OVERWRITE=</code> If set, overwrite existing when restoring/checking out files that already
   exist in $WORK_TREE. The default is to ask instead.</li>
 <li><code>VERBOSE=</code> More verbose output about what the program is doing.</li>
@@ -248,7 +249,7 @@ and value-added testing.</p>
 <details property="mainEntity" typeof="Question">
 <summary property="name">Is git a good tool for backups?</summary>
 <div property="acceptedAnswer" typeof="Answer">
-<div markdown="1" property="text">
+<div property="text">
 <p>The inherently core features of git/myba allow you to:</p>
 <ul>
 <li>track a list of important files,</li>
@@ -265,13 +266,12 @@ is a stable and reliable tool used by millions
 of people and organizations worldwide</strong>,
 with long and rigorous release / support cycles.</p>
 </div>
-</details>
 </div>
 </details>
 <details property="mainEntity" typeof="Question">
 <summary property="name">Can git track file owner and permissions etc.?</summary>
 <div property="acceptedAnswer" typeof="Answer">
-<div markdown="1" property="text">
+<div property="text">
 <p>Git doesn't on its own track file owner and permission changes (other than the executable bit).
 Files commited by any user are <strong>restorable by any user with the right password</strong>.
 In order to restore files with specific file permission bits set, <strong>defer to
@@ -290,7 +290,7 @@ you find widely-applicable and useful.</p>
 <details property="mainEntity" typeof="Question">
 <summary property="name">Can we use git for continually changed databases and binary files?</summary>
 <div property="acceptedAnswer" typeof="Answer">
-<div markdown="1" property="text">
+<div property="text">
 <p>Git saves whole file snapshots and doesn't do any in-file or within-file
 or across-file deduplication, so it's not well-suited to automatic continual backing up
 of databases (i.e. large binaries) that change often.</p>
@@ -302,7 +302,7 @@ of databases (i.e. large binaries) that change often.</p>
 <details property="mainEntity" typeof="Question">
 <summary property="name">How to influence what files / filetypes to (ignore from) backup?</summary>
 <div property="acceptedAnswer" typeof="Answer">
-<div markdown="1" property="text">
+<div property="text">
 <p>You stage files and directories for backup with version control as normally, with <code>myba add</code>.
 You can edit <code>$PLAIN_REPO/info/exclude</code>, which is <strong>prepopulated with
 <a href="https://github.com/search?q=repo%3Akernc%2Fmyba+%22default_gitignore%3D%22&amp;type=code">default common ignore patterns</a></strong>.
@@ -320,7 +320,7 @@ by modifying respective files in <code>$PLAIN_REPO</code> and (encrypted repo) <
 <details property="mainEntity" typeof="Question">
 <summary property="name">Encryption failed. How do I investigate / recover?</summary>
 <div property="acceptedAnswer" typeof="Answer">
-<div markdown="1" property="text">
+<div property="text">
 <p>Myba constructs encrypted repo commits <em>after</em> successful plain repo commits.</p>
 <p>Use <code>myba git</code> and <code>myba git_enc</code> subcommands to discover what state you're in (e.g. <code>myba git status</code>).
 Then use something like <code>myba git reset HEAD^ ; myba git_enc reset HEAD</code> to reach an acceptable state.</p>
@@ -328,6 +328,14 @@ Then use something like <code>myba git reset HEAD^ ; myba git_enc reset HEAD</co
 Otherwise git will let you know what the problem is.</p>
 <p>Myba only <strong>deletes redundant encrypted blobs after successfully pushing to <em>all</em> configured remotes</strong>,
 and <strong>never deletes or overwrites existing files in work tree</strong> unless forced!</p>
+</div>
+</div>
+</details>
+<details property="mainEntity" typeof="Question">
+<summary property="name">Can I get a simple backup contents archive?</summary>
+<div property="acceptedAnswer" typeof="Answer">
+<div property="text">
+<p>Easily. You can run e.g.: <a href="https://git-scm.com/docs/git-archive"><code>myba git archive --output backup.zip HEAD</code></a>.</p>
 </div>
 </div>
 </details>
