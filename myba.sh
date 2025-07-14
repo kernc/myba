@@ -666,6 +666,12 @@ cmd_log () {
 }
 
 verbose () {
+    # xtrace prompt for sh, bash, zsh
+    PS4="$(
+        if [ "${LINENO:-}" ] && [ "${BASH_VERSION:-}" ]; then lineno=':$LINENO>'; fi
+        printf "\033[34;40;1m+%s${lineno:-}\033[0m " "$0"
+    )"
+    export PS4
     echo "$0: $*" >&2
     case "${VERBOSE:-}" in
     '') "$@"; ;;
