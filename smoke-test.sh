@@ -1,6 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 # shellcheck disable=SC2064,SC2139
 set -eux
+
+export PS4="$(
+    if [ "${LINENO:-}" ] && [ "${BASH_VERSION:-}" ]; then lineno=':$LINENO>'; fi
+    printf "\033[36;40;1m+%s${lineno:-}\033[0m " "$0"
+)"
 
 export LC_ALL=C
 
