@@ -277,7 +277,7 @@ cmd_decrypt () {
     read_decrypt_and_git_add_files () {
         while IFS="$_tab" _read_vars _enc_path _plain_path; do
             WORK_TREE="$temp_dir" _decrypt_file "$_enc_path" "$_plain_path"
-            WORK_TREE="$temp_dir" git_plain add "$_plain_path"
+            WORK_TREE="$temp_dir" git_plain add -v "$_plain_path"
         done
     }
 
@@ -435,7 +435,7 @@ _commit_encrypt_one () (
         # TODO: Assert not submodule :)
         # Currently warn on anything but a file
         if [ ! -f "$2" ]; then
-            warn "WARNING: Only regular files supported. A copy of '$2' will be made."
+            warn "WARNING: Only regular files supported; no links etc. A duplicate of '$2' will be commited."
         fi
         _path="$2"
     else
@@ -450,7 +450,7 @@ _commit_encrypt_one () (
 
 _commit_delete_enc_path () {
     git_enc lfs untrack "$1" || true  # Passthrough ok if Git LFS is not used
-    git_enc add '.gitattributes' || true
+    git_enc add -v '.gitattributes' || true
     git_enc rm -f --ignore-unmatch --sparse "$1"
 }
 
@@ -505,7 +505,7 @@ _encrypt_commit_plain_head_files () {
                 # If file larger than threshold, configure Git LFS
                 if [ "$(_file_size "$ENC_REPO/$_enc_path")" -gt $GIT_LFS_THRESH ]; then
                     git_enc lfs track --filename "$_enc_path"
-                    git_enc add '.gitattributes'
+                    git_enc add -v '.gitattributes'
                 fi
                 git_enc add -v --sparse "$_enc_path"
                 echo "$_enc_path$_tab$_path" >> "$PLAIN_REPO/$manifest_path"
@@ -516,13 +516,13 @@ _encrypt_commit_plain_head_files () {
     if ! git_enc rev-parse HEAD 2>/dev/null; then
         _self="$(command -v "$0" 2>/dev/null || echo "$0")"
         cp "$_self" "$ENC_REPO/$(basename "$_self")"
-        git_enc add --sparse "$(basename "$_self")"
+        git_enc add -v --sparse "$(basename "$_self")"
     fi
 
     # Stage new manifest
     gzip -c2 "$PLAIN_REPO/$manifest_path" |
         _encrypt "" > "$ENC_REPO/$manifest_path"
-    git_enc add --sparse "$manifest_path"
+    git_enc add -v --sparse "$manifest_path"
 
     # Commit to encrypted repo
     git_enc status --short
@@ -536,11 +536,11 @@ cmd_checkout() {
     if [ $# -eq 0 ]; then warn 'Nothing to checkout'; exit 1; fi
     # If a commit hash is provided, checkout that commit in either repo
     if git_plain rev-parse --verify "$1^{commit}" >/dev/null 2>&1; then
-        git_plain checkout "$1"
+        git_plain checkout "$@"
     elif git_enc rev-parse --verify "$1^{commit}" >/dev/null 2>&1; then
         git_enc sparse-checkout set "manifest"
         git_enc sparse-checkout reapply
-        git_enc checkout "$1"
+        git_enc checkout "$@"
         _ask_pw
         _decrypt_manifests
     else
