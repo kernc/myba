@@ -89,3 +89,13 @@ rclone
 typeof
 chmod
 gitignore
+coreutils
+differencing
+distros
+fi
+gc'd
+luckyBackup
+mybabackup
+reencrypt
+Reencrypt
+txt
