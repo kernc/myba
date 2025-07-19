@@ -299,7 +299,7 @@ you find widely-applicable and useful.
 Git saves whole file snapshots and doesn't do any in-file or within-file
 or across-file deduplication, so it's not well-suited to automatic continual backing up
 of databases (i.e. large binaries) that change often,
-unless both repos are also regularly squashed, pruned and gc'd.
+unless both repos are also regularly squashed, pruned and <abbr title="garbage collected">gc'd</abbr>.
 
 However, while git repositories bloat when commiting such large binary and media files,
 **_myba_ only ever uses sparse-checkout**, keeping overhead disk space use to a minimum.
@@ -339,8 +339,8 @@ one could e.g. do:
 #!/bin/sh
 wt="$GIT_WORK_TREE"
 if git diff --cached --name-only | grep -q '^Music/'; then
-    ls -lR "$wt/path_of_interest" > "$wt/mylist.txt"
-    git add "$wt/mylist.txt"  # Will be committed
+    ls -l -R "$wt/path_of_interest" > "$wt/my_list.txt"
+    git add "$wt/my_list.txt"  # Will be committed
 fi
 ```
 
