@@ -27,7 +27,7 @@ h1 {line-height: 1.3em;}
 a:link {color:navy}
 a:hover {color:blue !important}
 a:visited {color:#230}
-summary {width:fit-content; border:2px solid silver; cursor:pointer; padding:.2em .6em; margin:.3em 0; font-weight:bold}
+summary {width:fit-content; border:2px solid silver; cursor:pointer; padding:.2em .6em; margin:.3em 0}
 details[open] summary {border:2px solid black;}
 </style>
 <meta property="og:title" content="Myba - git-based file backup with encryption">
@@ -47,8 +47,8 @@ details[open] summary {border:2px solid black;}
 
 <h1 id="myba-git-based-backup-utility-with-encryption"><img src="icon.svg" width="64" alt/>  Myba — git-based backup utility with encryption</h1>
 <p><a href="https://github.com/kernc/myba/actions"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/kernc/myba/ci.yml?branch=master&amp;style=for-the-badge"></a>
-<a href="https://github.com/kernc/myba"><img alt="Language: shell / Bash" src="https://img.shields.io/badge/lang-Shell-skyblue?style=for-the-badge"></a>
-<a href="https://github.com/kernc/myba"><img alt="Source lines of code" src="https://img.shields.io/endpoint?url=https://ghloc.vercel.app/api/kernc/myba/badge?filter=myba.sh$&amp;style=for-the-badge&amp;color=skyblue&amp;label=SLOC"></a>
+<a href="https://github.com/kernc/myba"><img alt="Language: shell / Bash" src="https://img.shields.io/badge/lang-Shell-peachpuff?style=for-the-badge"></a>
+<a href="https://ghloc.vercel.app/kernc/myba"><img alt="Source lines of code" src="https://img.shields.io/endpoint?url=https%3A%2F%2Fghloc.vercel.app%2Fapi%2Fkernc%2Fmyba%2Fbadge?filter=myba.sh%26format=human&amp;style=for-the-badge&amp;label=SLOC&amp;color=skyblue"></a>
 <a href="https://github.com/kernc/myba"><img alt="Script size" src="https://img.shields.io/github/size/kernc/myba/myba.sh?style=for-the-badge&amp;color=skyblue"></a>
 <a href="https://github.com/kernc/myba/issues"><img alt="Issues" src="https://img.shields.io/github/issues/kernc/myba?style=for-the-badge"></a>
 <a href="https://github.com/sponsors/kernc"><img alt="Sponsors" src="https://img.shields.io/github/sponsors/kernc?color=pink&amp;style=for-the-badge"></a></p>
@@ -77,7 +77,7 @@ In a world of vice, instability, evergreen browsers, fast-moving markets and nea
 it's the best kind of backup utility—<strong>a timeless shell script</strong> that relies on few, well-tested and <em>stable</em> technologies.
 Its only <strong>dependencies are</strong>:</p>
 <ul>
-<li>a running <strong>shell</strong> / standard <strong>POSIX environment</strong> (sh, bash, zsh, dash, ... WSL?),</li>
+<li>a running <strong>shell</strong> / standard <strong><abbr title="Portable Operating System Interface">POSIX</abbr> environment</strong> (sh, bash, zsh, dash, ... WSL?),</li>
 <li><strong>gzip</strong></li>
 <li><strong>git</strong> (and Git LFS for files sized &gt;40 MB),</li>
 <li>either <strong>OpenSSL</strong> or <strong>GPG</strong> for encryption,</li>
@@ -143,7 +143,7 @@ fully <strong>encrypted backups</strong> that are really <strong>easily replicat
     Apple Time Machine,
     Google One, Photos &amp; Drive,
     Apple iCloud)
-    or software programs with <strong>complex, unfamiliar CLI APIs or wide attack surfaces</strong>
+    or software programs with <strong>complex, unfamiliar <abbr title="Command Line Interface">CLI</abbr> APIs or wide attack surfaces</strong>
     (<a href="https://en.wikipedia.org/wiki/Bacula">Bacula</a>,
     <a href="https://borgbackup.readthedocs.io/en/stable/usage.html">Borg Backup</a>,
     <a href="https://restic.net">restic</a>,
@@ -158,7 +158,8 @@ fully <strong>encrypted backups</strong> that are really <strong>easily replicat
 <h2 id="installation">Installation</h2>
 <p>To install everything on a Debian/Ubuntu-based system, run:</p>
 <pre><code class="language-sh"># Install dependencies
-sudo apt install  gzip git git-lfs openssl gpg
+# These should be preinstalled or available on most including cloud distros
+sudo apt install  coreutils gzip git git-lfs openssl gpg
 
 # Download and put somewhere on PATH
 curl -vL 'https://bit.ly/myba-backup' &gt; ~/.local/bin/myba
@@ -170,7 +171,8 @@ myba help
 <p>Note, only one of <code>openssl</code> <em>or</em> <code>gpg</code> is needed, not both!</p>
 <p>It should be similar, if not nearly equivalent, to install on other platforms.
 Hopefully you will find most dependencies already satisfied.</p>
-<p>Please report back if you find / manage to get this working under everything but the above configuration and especially Windows/WSL!</p>
+<p>Please report back if you find or manage to get this working under everything but the above configuration,
+especially Windows/WSL!</p>
 <h2 id="usage">Usage</h2>
 <p>You run the script with arguments according to the usage printout below.
 Myba heavily relies on <code>git</code> and thus <strong>its command-line usage largely follows that of git convention</strong>.
@@ -181,20 +183,27 @@ Subcommands:
   add [OPTS] PATH...    Stage files for backup/version tracking
   rm PATH...            Stage-remove files from future backups/version control
   commit [OPTS]         Commit staged changes of tracked files as a snapshot
-  push [REMOTE]         Encrypt and push files to remote repo(s) (default: all)
+  push [REMOTE]         Push encrypted repo to remote repo(s) (default: all)
   pull [REMOTE]         Pull encrypted commits from a promisor remote
   clone REPO_URL        Clone an encrypted repo and init from it
   remote CMD [OPTS]     Manage remotes of the encrypted repo
   decrypt [--squash]    Reconstruct plain repo commits from encrypted commits
+  reencrypt             Reencrypt plain repo commits with a new password
   diff [OPTS]           Compare changes between plain repo revisions
   log [OPTS]            Show commit log of the plain repo
+  status [OPTS]         Show git status of the plain repo
+  ls-files [OPTS]       Show current backup files (OPTS go via git ls-tree)
+  largest               List current backup files by file size, descending
   checkout PATH...      Sparse-checkout and decrypt files into $WORK_TREE
   checkout COMMIT       Switch files to a commit of plain or encrypted repo
   gc                    Garbage collect, remove synced encrypted packs
   git CMD [OPTS]        Inspect/execute raw git commands inside plain repo
   git_enc CMD [OPTS]    Inspect/execute raw git commands inside encrypted repo
 
-Env vars: WORK_TREE, PLAIN_REPO, PASSWORD, USE_GPG, VERBOSE, YES_OVERWRITE, ...
+PLAIN repo  &lt;--encryption--&gt;  ENCRYPTED repo  &lt;--synced with--&gt;  git REMOTE
+
+Env vars: WORK_TREE, PLAIN_REPO, PASSWORD, USE_GPG, VERBOSE, YES_OVERWRITE,
+          GIT_LFS_THRESH (in bytes)
 </code></pre>
 <h3 id="environment-variables">Environment variables</h3>
 <p>The script also acknowledges a few <strong>environment variables</strong> which you can <em>set</em>
@@ -224,37 +233,42 @@ export WORK_TREE=&quot;$HOME&quot;
 myba init
 myba add Documents Photos Etc .dotfile
 PASSWORD='secret'  myba commit -m &quot;my precious&quot;
-myba remote add origin &quot;/media/usb/backup&quot;
+myba remote add origin &quot;/media/usb/backup/path&quot;
 myba remote add github &quot;git@github.com:user/my-backup.git&quot;
-VERBOSE=1 myba push  # Push to all configured remotes &amp; free up disk space
+VERBOSE=1 myba push  # Push to ALL configured remotes &amp; free up disk space
 
 # Somewhere else, much, much later, avoiding catastrophe ...
 
 export WORK_TREE=&quot;$HOME&quot;
 PASSWORD='secret'  myba clone &quot;...&quot;  # Clone one of the known remotes
 myba checkout &quot;.dotfile&quot; # Restore backed up files in a space-efficient manner
+
+# When already cloned ...
+myba pull  # Sync encrypted remote
+myba decrypt  # Restore plain commits (original files)
 </code></pre>
 <p>See <a href="https://github.com/kernc/myba/blob/master/smoke-test.sh"><em>smoke-test.sh</em></a> file for a more full example &amp; test case!</p>
 <h2 id="contributing">Contributing</h2>
-<p>The project is written for a POSIX shell and is <a href="https://github.com/kernc/myba/">hosted on GitHub</a>.</p>
+<p>The project is written for a <abbr title="Portable Operating System Interface">POSIX</abbr> shell and is <a href="https://github.com/kernc/myba/">hosted on GitHub</a>.</p>
 <p>The script is considered <em>mostly</em> feature-complete, but there remain
 bugs and design flaws to be discovered and ironed out, as well as any
 <a href="https://github.com/search?q=repo%3Akernc%2Fmyba+%28todo+OR+fixme+OR+xxx%29&amp;type=code">TODOs and FIXMEs</a>
 marked in the source.
-<strong>All source code lines are open to discussion.</strong>
-Especially appreciated are targets for simplification
-and value-added testing.</p>
+All source code lines are <strong>open to discussion.
+Always appreciate a healthy refactoring</strong>, simplification,
+and value-added tests.</p>
 <h2 id="faq">FAQ</h2>
 <div property="about" typeof="FAQPage">
 <details property="mainEntity" typeof="Question">
-<summary property="name">Is git a good tool for backups?</summary>
+<summary property="name">Is <b>git a suitable tool</b> for maintaining backups?</summary>
 <div property="acceptedAnswer" typeof="Answer">
 <div property="text">
-<p>The inherently core features of git/myba allow you to:</p>
+<p>While most sources will advise using (their) standalone solution,
+the inherently core features of git and thus myba allow you to:</p>
 <ul>
-<li>track a list of important files,</li>
-<li>track all changes made, with authorship info and datums, to any of the tracked files,</li>
-<li>securely store copies of files at each commited snapshot,</li>
+<li>track lists of important files,</li>
+<li>track file modification info and changes made,</li>
+<li>securely store copies of files of each commited snapshot,</li>
 <li>efficiently compress non-binary files,</li>
 <li><a href="https://git-scm.com/book/ms/v2/Customizing-Git-Git-Attributes">apply custom script filters</a> to files
   based on file extension / glob string match,</li>
@@ -269,7 +283,18 @@ with long and rigorous release / support cycles.</p>
 </div>
 </details>
 <details property="mainEntity" typeof="Question">
-<summary property="name">Can git track file owner and permissions etc.?</summary>
+<summary property="name"><b>How does myba differ</b> from other backup tools like Bacula, Borg, Duplicity, restic, luckyBackup and git-crypt?</summary>
+<div property="acceptedAnswer" typeof="Answer">
+<div property="text">
+<p>myba simply wraps raw git and is written in pure, standard <strong><abbr title="Portable Operating System Interface">POSIX</abbr> shell for maximum portability</strong>
+and ease of use. It's got the exactly familiar git <abbr title="Command Line Interface">CLI</abbr> <abbr title="Application Programming Interface">API</abbr>.</p>
+<p>myba does file-based (as opposed to block-based) differencing and encryption.</p>
+<p>Compared to git-crypt, <b>myba also encrypts the committed path/filenames</b> for maximum privacy.</p>
+</div>
+</div>
+</details>
+<details property="mainEntity" typeof="Question">
+<summary property="name">Can git track <b>file owner and permissions etc.</b>?</summary>
 <div property="acceptedAnswer" typeof="Answer">
 <div property="text">
 <p>Git doesn't on its own track file owner and permission changes (other than the executable bit).
@@ -288,19 +313,20 @@ you find widely-applicable and useful.</p>
 </div>
 </details>
 <details property="mainEntity" typeof="Question">
-<summary property="name">Can we use git for continually changed databases and binary files?</summary>
+<summary property="name">Can we use git for <b>often-changing binaries</b> like databases?</summary>
 <div property="acceptedAnswer" typeof="Answer">
 <div property="text">
 <p>Git saves whole file snapshots and doesn't do any in-file or within-file
 or across-file deduplication, so it's not well-suited to automatic continual backing up
-of databases (i.e. large binaries) that change often.</p>
-<p>However, while git repositories bloat when commiting such <strong>large binary and media files</strong>,
+of databases (i.e. large binaries) that change often,
+unless both repos are also regularly squashed, pruned and <abbr title="garbage collected">gc'd</abbr>.</p>
+<p>However, while git repositories bloat when commiting such large binary and media files,
 <strong><em>myba</em> only ever uses sparse-checkout</strong>, keeping overhead disk space use to a minimum.</p>
 </div>
 </div>
 </details>
 <details property="mainEntity" typeof="Question">
-<summary property="name">How to influence what files / filetypes to (ignore from) backup?</summary>
+<summary property="name">How to influence <b>what files / filetypes to (ignore from) backup</b>?</summary>
 <div property="acceptedAnswer" typeof="Answer">
 <div property="text">
 <p>You stage files and directories for backup with version control as normally, with <code>myba add</code>.
@@ -318,24 +344,59 @@ by modifying respective files in <code>$PLAIN_REPO</code> and (encrypted repo) <
 </div>
 </details>
 <details property="mainEntity" typeof="Question">
-<summary property="name">Encryption failed. How do I investigate / recover?</summary>
+<summary property="name">Use custom <b>pre-commit hook scripts</b> to conditionally backup some "data" at commit time ...</summary>
+<div property="acceptedAnswer" typeof="Answer">
+<div property="text">
+<p>You can use <a href="https://git-scm.com/docs/githooks#_pre_commit">git hooks</a> to "attach" own scripts to the backup process,
+namely the <a href="https://git-scm.com/docs/githooks#_pre_commit"><code>pre-commit</code></a> hook.</p>
+<p>For example, to save own music library or some such only in list form,
+one could e.g. do:</p>
+<pre><code class="language-shell"># ${WORK_TREE:-$HOME}/.myba/hooks/pre-commit:
+#!/bin/sh
+wt=&quot;$GIT_WORK_TREE&quot;
+if git diff --cached --name-only | grep -q '^Music/'; then
+    ls -l -R &quot;$wt/path_of_interest&quot; &gt; &quot;$wt/my_list.txt&quot;
+    git add &quot;$wt/my_list.txt&quot;  # Will be committed
+fi
+</code></pre>
+</div>
+</div>
+</details>
+<details property="mainEntity" typeof="Question">
+<summary property="name">How to do <b>incremental directory backups?</b></summary>
+<div property="acceptedAnswer" typeof="Answer">
+<div property="text">
+<p>When you <code>myba add</code> a file directory, an identifying hidden file
+called <code>.mybabackup</code> gets created in it.
+Afterwards, whenever you invoke <code>myba commit</code>,  any newly added or changed files
+in that directory are staged for that snapshot / commit.</p>
+</div>
+</div>
+</details>
+<details property="mainEntity" typeof="Question">
+<summary property="name"><b>Something failed</b>. How do I <b>debug, investigate, and recover</b>?</summary>
 <div property="acceptedAnswer" typeof="Answer">
 <div property="text">
 <p>Myba constructs encrypted repo commits <em>after</em> successful plain repo commits.</p>
-<p>Use <code>myba git</code> and <code>myba git_enc</code> subcommands to discover what state you're in (e.g. <code>myba git status</code>).
-Then use something like <code>myba git reset HEAD^ ; myba git_enc reset HEAD</code> to reach an acceptable state.</p>
+<p>Use <code>myba git</code> (run with git files in <code>PLAIN_REPO=</code>, mirroring contents of <code>WORK_TREE=</code>)
+and <code>myba git_enc</code> (run in <code>$PLAIN_REPO/_encrypted</code>) subcommands to
+discover what state you're in (e.g. <code>myba git status</code>).
+Then use something like <code>myba git reset HEAD^ ; myba git_enc reset HEAD</code>
+(or similar, as appropriate) to reach an acceptable state.</p>
 <p><strong>If it looks like a bug, please report it.</strong>
-Otherwise git will let you know what the problem is.</p>
+Otherwise git should let you know what the problem is.</p>
 <p>Myba only <strong>deletes redundant encrypted blobs after successfully pushing to <em>all</em> configured remotes</strong>,
 and <strong>never deletes or overwrites existing files in work tree</strong> unless forced!</p>
 </div>
 </div>
 </details>
 <details property="mainEntity" typeof="Question">
-<summary property="name">Can I get a simple backup contents archive?</summary>
+<summary property="name">Can I get a <b>compressed archive</b> of backup contents?</summary>
 <div property="acceptedAnswer" typeof="Answer">
 <div property="text">
-<p>Easily. You can run e.g.: <a href="https://git-scm.com/docs/git-archive"><code>myba git archive --output backup.zip HEAD</code></a>.</p>
+<p>For backing up files externally, see <code>remote add origin "/media/usb/backup/path"</code> example above.</p>
+<p>If you want a compressed archive, you can run e.g.: <a href="https://git-scm.com/docs/git-archive"><code>myba git archive --output backup.zip HEAD</code></a>
+(or <code>myba git_enc archive --output state.zip HEAD</code>, as found appropriate).</p>
 </div>
 </div>
 </details>
