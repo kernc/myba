@@ -383,6 +383,7 @@ _trap_append() {
 
 _parallelize () {
     n_threads="${N_JOBS:-$1}"  # Number of threads to keep consuming stdin
+    [ $n_threads -gt 0 ] || n_threads="$(getconf _NPROCESSORS_ONLN || getconf NPROCESSORS_ONLN)"
     n_vars="$2"  # Number of TAB-separated values per stdin line
     _func="$3"  # Func to pass args and values to
     shift 3
@@ -487,7 +488,7 @@ _encrypt_commit_plain_head_files () {
     # Encrypt and stage encrypted files
     manifest_path="manifest/$(git_plain rev-parse HEAD)"
     git_plain show --name-status --pretty=format: HEAD |
-        _parallelize 8 2 _commit_encrypt_one
+        _parallelize 0 2 _commit_encrypt_one
     # Do git stuff here and now, single process, avoiding errors like:
     #     fatal: Unable to create .../_encrypted/.git/index.lock': File exists
     git_plain show --name-status --pretty=format: HEAD |
@@ -562,7 +563,7 @@ cmd_checkout() {
         git_enc sparse-checkout reapply
 
         _ask_pw
-        _parallelize 8 2 _checkout_file < "$working_manifest"
+        _parallelize 0 2 _checkout_file < "$working_manifest"
         rm "$working_manifest"
     fi
 }
