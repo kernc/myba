@@ -133,7 +133,7 @@ _ask_pw () {
     fi
 }
 _encrypted_path () (
-    set +x  # Avoid terminal noise and secret-spilling in this subshell
+    set +x  # Avoid terminal noise and secret-spilling in this subshell (Notice () parenthesis)
     echo "$1$PASSWORD" |
         shasum -a512 |
         cut -c-128 |
@@ -237,9 +237,7 @@ cmd_init () {
     git_enc config push.default upstream
     git_enc config fetch.parallel 4
     # Set up default gitignore
-    case $- in *x*) xtrace_was_on=true; set +x ;; esac
     echo "$default_gitignore" > "$PLAIN_REPO/info/exclude"
-    if [ "${xtrace_was_on:-}" ]; then set -x; fi
 
     echo '* -text -diff' >"$ENC_REPO/.git/info/attributes"
     # Encrypted repo is a sparse-checkout
@@ -398,6 +396,7 @@ _parallelize () {
     printf "%${n_threads}s" | tr " " "\n" >&3  # n_threads tokens
 
     pids=
+    _track_job () { pids="$pids $!"; }
     # Read n_vars variables per line, splitting by TAB
     while eval "IFS='$_tab' read -r $(seq -s' ' -f 'var%.0f' "$n_vars")" || [ "$var1" ]; do
         read -r _ <&3  # Acquire semaphore or block
@@ -411,7 +410,7 @@ _parallelize () {
             echo >&4
             exec 4>&-
         } 1>"$tmpdir/out" 2>"$tmpdir/err" &
-        pids="$pids $!"
+        quiet _track_job
         # Keep pid-based references to stdout/stderr
         while [ ! -f "$tmpdir/out" ] && [ ! -f "$tmpdir/err" ]; do sleep .01; done
         mv "$tmpdir/out" "$tmpdir/out.$!"
@@ -456,8 +455,9 @@ _commit_encrypt_one () (
 
 
 _commit_delete_enc_path () {
-    git_enc lfs untrack "$1" || true  # Passthrough ok if Git LFS is not used
-    git_enc add -v '.gitattributes' || true
+    git_enc lfs untrack "$1" &&
+        git_enc add -v --sparse '.gitattributes' ||
+        true  # Passthrough ok if Git LFS is not used
     git_enc rm -f --ignore-unmatch --sparse "$1"
 }
 
@@ -491,7 +491,9 @@ _encrypt_commit_plain_head_files () {
         _parallelize 0 2 _commit_encrypt_one
     # Do git stuff here and now, single process, avoiding errors like:
     #     fatal: Unable to create .../_encrypted/.git/index.lock': File exists
-    git_plain show --name-status --pretty=format: HEAD |
+    git_plain show --name-status --pretty=format: HEAD | {
+        files_to_add=
+        _add_file () { files_to_add="$files_to_add $_enc_path"; }
         while IFS="$_tab" _read_vars _status _path; do
             _status="$(echo "$_status" | cut -c1)"
             # Handle statuses
@@ -512,12 +514,14 @@ _encrypt_commit_plain_head_files () {
                 # If file larger than threshold, configure Git LFS
                 if [ "$(_file_size "$ENC_REPO/$_enc_path")" -gt $GIT_LFS_THRESH ]; then
                     git_enc lfs track --filename "$_enc_path"
-                    git_enc add -v '.gitattributes'
+                    git_enc add -v --sparse '.gitattributes'
                 fi
-                git_enc add -v --sparse "$_enc_path"
+                quiet _add_file
                 echo "$_enc_path$_tab$_path" >> "$PLAIN_REPO/$manifest_path"
             fi
         done
+        if [ "$files_to_add" ]; then git_enc add -v --sparse -- $files_to_add; fi
+    }
 
     # If first commit, add self
     if ! git_enc rev-parse HEAD 2>/dev/null; then
@@ -685,6 +689,11 @@ verbose () {
     *) set -x; "$@"; set +x; ;;
     esac
     echo "$0: $1 done ok" >&2
+}
+quiet () {
+    case $- in *x*) set +x; xtrace_on=1 ;; *) xtrace_on= ;; esac
+    "$@"
+    if [ "$xtrace_on" ]; then set -x; fi
 }
 
 
