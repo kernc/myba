@@ -324,9 +324,13 @@ cmd_reencrypt() {
 
     # Remove, but not squash, current encrypted files
     git_enc sparse-checkout disable
-    # shellcheck disable=SC2046
-    git_enc rm $(git_enc ls-files | grep -v "^${0##*/}$")
-    git_enc commit -m 'reencrypt'
+    enc_files="$(git_enc ls-files | grep -v "^${0##*/}$" || true)"
+    if [ "$enc_files" ]; then
+        # shellcheck disable=SC2046
+        git_enc rm $enc_files
+        git_enc commit -m 'reencrypt'
+    fi
+
     mkdir -p "$ENC_REPO/manifest"
 
     temp_dir="$(_mktemp -d)"
