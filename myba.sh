@@ -226,6 +226,7 @@ cmd_init () {
     git_plain config diff.renameLimit 100000
     git_plain config core.excludesfile ""  # Don't look at $XDG_CONFIG_HOME/git/ignore
     git_plain config advice.addIgnoredFile true  # Warn user to use `add -f` on gitignored file
+    git_plain config init.defaultBranch master
     git_enc config user.name "$USER"
     git_enc config user.email "$email"
     # All our files are strictly binary (encrypted)
@@ -235,6 +236,7 @@ cmd_init () {
     git_enc config push.autoSetupRemote true
     git_enc config push.default upstream
     git_enc config fetch.parallel 4
+    git_enc config init.defaultBranch master
     # Set up default gitignore
     echo "$default_gitignore" > "$PLAIN_REPO/info/exclude"
 
