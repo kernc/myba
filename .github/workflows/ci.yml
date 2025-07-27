@@ -5,6 +5,8 @@ on:
     tags: ['v*']
   pull_request: { branches: [master] }
   schedule: [ cron: '4 11 28 * *' ]
+  workflow_dispatch:
+
 
 jobs:
   test:
@@ -26,6 +28,7 @@ jobs:
       - run: csh -c 'time ./smoke-test.sh'
         continue-on-error: true  # XXX: Error: set: Variable name must begin with a letter.
 
+
   test-macos:
     timeout-minutes: 5
     needs: test
@@ -33,3 +36,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: ./smoke-test.sh
+
+
+  deploy-docs:
+    runs-on: ubuntu-latest
+    needs: [test, test-macos]
+    permissions:
+      pages: write
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get install aspell
+      - run: .github/scripts/spellcheck.sh README.md
+      - run: .github/scripts/spellcheck.sh README.full.md
+      - run: pip install --user markdown
+      - run: .github/scripts/build-website.sh
+      - uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./output
