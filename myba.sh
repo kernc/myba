@@ -520,7 +520,19 @@ _encrypt_commit_plain_head_files () {
                 echo "$_enc_path$_tab$_path" >> "$PLAIN_REPO/$manifest_path"
             fi
         done
-        if [ "$files_to_add" ]; then git_enc add -v --sparse -- $files_to_add; fi
+        if [ "$files_to_add" ]; then
+            # FIXME: Prevent git-add doing a git-fetch on every promisor remote for every file.
+            #   A speed up of ~1s/file is achieved. Can we do it in some cleaner way?
+            _cfg="$ENC_REPO/.git/config"
+            cp "$_cfg" "$_cfg.$$"
+            _restore_removed_remotes () { mv "$_cfg.$$" "$_cfg" || true; }
+            _trap_append _restore_removed_remotes INT HUP EXIT TERM
+            for remote in $(git_enc remote); do git_enc remote rm $remote; done
+
+            git_enc add -v --sparse -- $files_to_add
+
+            _restore_removed_remotes
+        fi
     }
 
     # If first commit, add self
