@@ -485,11 +485,12 @@ cmd_commit () {
 # shellcheck disable=SC2031
 _encrypt_commit_plain_head_files () {
     # Encrypt and stage encrypted files
-    manifest_path="manifest/$(git_plain rev-parse HEAD)"
     git_plain show --name-status --pretty=format: HEAD |
         _parallelize 0 2 _commit_encrypt_one
     # Do git stuff here and now, single process, avoiding errors like:
     #     fatal: Unable to create .../_encrypted/.git/index.lock': File exists
+    manifest_path="manifest/$(git_plain rev-parse HEAD)"
+    : > "$PLAIN_REPO/$manifest_path"
     git_plain show --name-status --pretty=format: HEAD | {
         files_to_add=
         _add_file () { files_to_add="$files_to_add $_enc_path"; }
@@ -542,9 +543,13 @@ _encrypt_commit_plain_head_files () {
     fi
 
     # Stage new manifest
-    gzip -c2 "$PLAIN_REPO/$manifest_path" |
-        _encrypt "" > "$ENC_REPO/$manifest_path"
-    git_enc add -v --sparse "$manifest_path"
+    if [ "$(_file_size "$PLAIN_REPO/$manifest_path")" -gt 0 ]; then
+        gzip -c2 "$PLAIN_REPO/$manifest_path" |
+            _encrypt "" > "$ENC_REPO/$manifest_path"
+        git_enc add -v --sparse "$manifest_path"
+    else
+        rm "$PLAIN_REPO/$manifest_path"
+    fi
 
     # Commit to encrypted repo
     git_enc status --short
