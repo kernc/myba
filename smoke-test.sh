@@ -12,7 +12,7 @@ export LC_ALL=C
 _libdir="$(dirname "$0")"
 myba () { "$_libdir/myba.sh" "$@"; }
 
-disk_usage () { du -h "$HOME" | sort -h; }
+disk_usage () { du --threshold=10K -h "$HOME" | sort -h; }
 
 export KDF_ITERS=100  # Much faster encryption
 
@@ -103,9 +103,15 @@ myba push
 disk_usage
 myba gc
 disk_usage
-# foo + .myba + remote + remote2 + restore + overhead
-max_value=6700  # Note, this is blocksize/CI-dependent
-test "$(du -sk "$HOME" | cut -f1)" -lt $max_value
+# foo + .myba + restore + overhead (excludes: remote + remote2)
+max_size=3800  # Note, this is blocksize/CI-dependent
+size_on_disk="$(
+    du --summarize --block-size=1K --threshold=500K \
+        --exclude="$remote_git/*" --exclude="$remote_git2/*" \
+        "$HOME" |
+    cut -f1
+)"
+test "$size_on_disk" -lt $max_size
 
 myba log
 
