@@ -268,7 +268,7 @@ cmd_decrypt () {
     fi
     temp_dir="$(_mktemp -d)"
     # shellcheck disable=SC2064
-    trap "rm -rf '$temp_dir'" INT HUP EXIT
+    trap "rm -rf '$temp_dir'" INT HUP TERM EXIT
 
     have_commitable_changes () { WORK_TREE="$temp_dir" git_plain diff --staged --quiet; }
     read_decrypt_and_git_add_files () {
@@ -332,12 +332,12 @@ cmd_reencrypt() {
 
     temp_dir="$(_mktemp -d)"
     # shellcheck disable=SC2064
-    trap "rm -rf '$temp_dir'" INT HUP EXIT
+    trap "rm -rf '$temp_dir'" INT HUP TERM EXIT
 
     WORK_TREE="$temp_dir"  # Don't switcheroo "live" config files!
 
     latest_commit="$(git_plain rev-parse HEAD)"
-    _trap_append "git_plain checkout '$latest_commit'" INT HUP EXIT
+    _trap_append "git_plain checkout '$latest_commit'" INT HUP TERM EXIT
     # Loop through plain commit hashes and checkout & cmd_commit
     git_plain rev-list --reverse HEAD |
         while _read_vars commit_hash; do
@@ -387,7 +387,7 @@ _parallelize () {
 
     tmpdir="$PLAIN_REPO/_parallelize--internal.$$"
     mkdir -p "$tmpdir"
-    _trap_append "rm -rfv '$tmpdir'" INT HUP EXIT
+    _trap_append "rm -rfv '$tmpdir'" INT HUP TERM EXIT
     # Init a FIFO semaphore
     fifo="$tmpdir/semaphore"
     mkfifo "$fifo"
@@ -526,7 +526,7 @@ _encrypt_commit_plain_head_files () {
             _cfg="$ENC_REPO/.git/config"
             cp "$_cfg" "$_cfg.$$"
             _restore_removed_remotes () { mv "$_cfg.$$" "$_cfg" || true; }
-            _trap_append _restore_removed_remotes INT HUP EXIT TERM
+            _trap_append _restore_removed_remotes INT HUP TERM EXIT
             for remote in $(git_enc remote); do git_enc remote rm $remote; done
 
             git_enc add -v --sparse -- $files_to_add
