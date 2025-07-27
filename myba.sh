@@ -134,10 +134,9 @@ _ask_pw () {
 }
 _encrypted_path () (
     set +x  # Avoid terminal noise and secret-spilling in this subshell (Notice () parenthesis)
-    echo "$1$PASSWORD" |
-        shasum -a512 |
-        cut -c-128 |
-        sed -E 's,(...)(...)(...)(.*),\1/\2/\3/\4,'
+    echo "$1$PASSWORD$1$PASSWORD" |
+        shasum -a512 | cut -d' ' -f1 |
+        sed -E 's,(..)(..)(.*),d/\1/\2/\3,'
 )
 
 _openssl_common () { openssl enc -aes-256-ctr -pbkdf2 -md sha512 -iter "$_kdf_iters" -salt -pass fd:3 "$@"; }
