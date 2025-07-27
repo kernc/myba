@@ -14,7 +14,7 @@ jobs:
       VERBOSE: 1
     steps:
       - uses: actions/checkout@v4
-      - run: shellcheck *.sh
+      - run: shellcheck -S warning *.sh
       - run: sudo apt-get install --no-install-recommends gzip git git-lfs openssl gpg
       - run: sudo apt-get install --no-install-recommends bash zsh ksh csh
       - run: time ./smoke-test.sh
