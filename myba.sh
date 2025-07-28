@@ -99,6 +99,17 @@ git_plain () { git --work-tree="$WORK_TREE" --git-dir="$PLAIN_REPO" "$@"; }
 _git_plain_nonbare () { git -C "$PLAIN_REPO" "$@"; }
 git_enc () { git -C "$ENC_REPO" "$@"; }
 
+_debug_git () { GIT_TRACE_PACK_ACCESS=1 GIT_TRACE=1 "$@"; }
+
+_git_enc_sparse_checkout_files () {
+    # sparse-checkout cone requires dirs
+    # TODO: debug why upon decrypt receiving the whole
+    sed -E 's,[^/]+$,,' |
+        sort -u |
+        _debug_git git_enc sparse-checkout set --stdin;
+    git_enc sparse-checkout list
+}
+
 _is_binary_stream () { dd bs=8192 count=1 status=none | LC_ALL=C tr -dc '\000' | LC_ALL=C grep -qa .; }
 _mktemp () { mktemp -t "$(basename "$0" .sh)-XXXXXXX" "$@"; }
 _file_size () { stat -c%s "$@" 2>/dev/null || stat -f%z "$@"; }
@@ -295,7 +306,7 @@ cmd_decrypt () {
             while IFS= _read_vars _enc_commit; do
                 # shellcheck disable=SC2154
                 git_enc show --name-only --pretty=format: "$_enc_commit" |
-                    git_enc sparse-checkout set --stdin
+                    _git_enc_sparse_checkout_files
                 git_enc sparse-checkout reapply
 
                 # Decrypt and stage files from this commit into temp_dir
@@ -562,7 +573,7 @@ _encrypt_commit_plain_head_files () {
 
 
 cmd_checkout() {
-    if [ $# -eq 0 ]; then warn 'Nothing to checkout'; exit 1; fi
+    if [ $# -eq 0 ]; then warn "Usage: ${0##*/} checkout (COMMIT | FILE...)"; exit 1; fi
     # If a commit hash is provided, checkout that commit in either repo
     if git_plain rev-parse --verify "$1^{commit}" >/dev/null 2>&1; then
         git_plain checkout "$@"
@@ -575,14 +586,15 @@ cmd_checkout() {
     else
         # Otherwise, assume the arguments are paths to files/directories
         working_manifest="$PLAIN_REPO/working_manifest"
-        for pattern in "$@"; do
-            grep -REIh "$_tab$pattern"'($|/)' "$PLAIN_REPO/manifest"
+        for file in "$@"; do
+            grep -REIh "$_tab$file"'($|/)' "$PLAIN_REPO/manifest"
         done | sort -u > "$working_manifest"
 
         cut -f1 "$working_manifest" |
-            git_enc sparse-checkout set --stdin
+            _git_enc_sparse_checkout_files
         git_enc sparse-checkout add "manifest"
         git_enc sparse-checkout reapply
+        git_enc sparse-checkout list
 
         _ask_pw
         _parallelize 0 2 _checkout_file < "$working_manifest"
