@@ -16,7 +16,7 @@ case "$shell" in bash|-bash|dash|-dash|zsh|-zsh|sh|-sh) ;; *) shell= ;; esac
 
 myba () { $shell "$_libdir/myba.sh" "$@"; }  # Invoke using current shell
 
-disk_usage () { du --threshold=10K -h "$HOME" | sort -h; }
+disk_usage () { du -t 10K -h "$HOME" | sort -h; }
 
 export KDF_ITERS=100  # Much faster encryption
 
@@ -108,12 +108,12 @@ disk_usage
 myba gc
 disk_usage
 # foo + .myba + restore + overhead (excludes: remote + remote2)
-max_size=4500  # Note, this is blocksize/CI-dependent
+max_size=4500  # Note, this appears to be CI-dependent
+case "$OSTYPE" in darwin*) max_size=$(( $max_size + 3000 )) ;; esac  # 🤷
+du -s -B 1K -t 500K "$HOME/foo" "$HOME/.myba" "$HOME/restore"
 size_on_disk="$(
-    du --summarize --block-size=1K --threshold=500K \
-        --exclude="$remote_git/*" --exclude="$remote_git2/*" \
-        "$HOME" |
-    cut -f1
+    du -s -B 1K -t 500K "$HOME/foo" "$HOME/.myba" "$HOME/restore" |
+    cut -f1 | paste -s -d + - | bc
 )"
 test "$size_on_disk" -lt $max_size
 

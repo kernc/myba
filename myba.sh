@@ -569,7 +569,7 @@ _encrypt_commit_plain_head_files () {
     git_enc status --short
     git_enc commit -m "$(
         git_plain show --format='%B' --name-status |
-            gzip -c9 | _encrypt "" | base64 -w 0)"
+            gzip -c9 | _encrypt "" | { base64 -w 0 || base64; })"
 }
 
 
@@ -692,7 +692,7 @@ cmd_largest () {
     git_plain ls-tree --full-tree -r -t --full-name --format='%(objectsize:padded)%x09%(path)' HEAD |
         sort -r -n "$@" |
         grep -v '^ *-' |
-        numfmt --to=iec-i --suffix=B
+        { numfmt --to=iec-i --suffix=B || gnumfmt --to=iec-i --suffix=B; }
 }
 
 
