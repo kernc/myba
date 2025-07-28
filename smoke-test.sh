@@ -10,7 +10,11 @@ export PS4
 export LC_ALL=C
 
 _libdir="$(dirname "$0")"
-myba () { "$_libdir/myba.sh" "$@"; }
+
+shell="$(ps -p $$ -o comm=)"
+case "$shell" in bash|-bash|dash|-dash|zsh|-zsh|sh|-sh) ;; *) shell= ;; esac
+
+myba () { $shell "$_libdir/myba.sh" "$@"; }  # Invoke using current shell
 
 disk_usage () { du --threshold=10K -h "$HOME" | sort -h; }
 
