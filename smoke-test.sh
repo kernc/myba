@@ -88,16 +88,16 @@ YES_OVERWRITE=1 myba decrypt --squash
 myba log
 
 title 'Re-encryption adds an encrypted repo commit'
-PASSWORD=new
+PASSWORD=new  # This is now the new password now
 myba reencrypt
 test "$(myba git_enc ls-files | wc -l)" -eq $((3 + 1 + 1))
-PASSWORD=secret  # old
 
 title 'Another commit from this side'
 touch "$WORK_TREE/bar"
 myba add "$WORK_TREE/bar"
 myba rm foo/other.file
 myba checkout renamed.file
+test "$(cat "$WORK_TREE/renamed.file")" = "bar"
 cp "$WORK_TREE/renamed.file" "$WORK_TREE/renamed.file.2"
 myba add renamed.file.2
 myba git mv renamed.file renamed.file.3
