@@ -20,7 +20,7 @@ export KDF_ITERS=100  # Much faster encryption
 # $HOME is the default WORK_TREE dir
 HOME="$(mktemp -d -t myba-test-XXXXXXX)"
 export HOME
-trap 'rm -fr "$HOME"; trap - INT HUP EXIT' INT HUP EXIT
+trap "rm -fr \"$HOME\"; trap - INT HUP EXIT TERM" INT HUP TERM EXIT
 if [ ! "${CI:-}" ]; then case "$HOME" in /tmp*|/var/*) ;; *) exit 9 ;; esac; fi
 
 mkdir "$HOME/foo"
