@@ -137,7 +137,7 @@ _ask_pw () {
     _decrypt_func=_dec_openssl
     _kdf_iters="${KDF_ITERS:-321731}"
     # Set up encryption via GPG
-    if [ "${USE_GPG+1}" ]; then
+    if [ "${USE_GPG:+1}" ]; then
         _encrypt_func=_enc_gpg
         _decrypt_func=_dec_gpg
         _kdf_iters="${KDF_ITERS:-32111731}"  # OpenSSL and GPG use different KDF algos
@@ -156,6 +156,7 @@ _dec_openssl () { { printf 'Salted__'; cat; } | _openssl_common -d "$@"; }
 _gpg_common () {
     gpg --compress-level 0 \
         --passphrase-fd 3 --pinentry-mode loopback --batch \
+        --no-tty --no-greeting --no-autostart --no-random-seed-file --no-keyring \
         --cipher-algo AES256 --digest-algo SHA512 \
         --s2k-cipher-algo AES256 --s2k-digest-algo SHA512 --s2k-mode 3 --s2k-count "$_kdf_iters" \
         "$@"
