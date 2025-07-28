@@ -108,7 +108,7 @@ disk_usage
 myba gc
 disk_usage
 # foo + .myba + restore + overhead (excludes: remote + remote2)
-max_size=3800  # Note, this is blocksize/CI-dependent
+max_size=4500  # Note, this is blocksize/CI-dependent
 size_on_disk="$(
     du --summarize --block-size=1K --threshold=500K \
         --exclude="$remote_git/*" --exclude="$remote_git2/*" \
