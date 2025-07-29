@@ -49,7 +49,7 @@ set -eu
 
 # Configuration via env vars
 WORK_TREE="${WORK_TREE:-${HOME:-~}}"
-PLAIN_REPO="$WORK_TREE/.myba"
+PLAIN_REPO="${PLAIN_REPO:-$WORK_TREE/.myba}"
 ENC_REPO="$PLAIN_REPO/_encrypted"
 #PASSWORD=  # Replace with your encryption password or if null, read stdin
 GIT_LFS_THRESH="${GIT_LFS_THRESH:-$((40 * 1024 * 1024))}"  # 50 MB limit on GitHub/GitLab
