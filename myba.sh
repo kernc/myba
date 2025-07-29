@@ -303,9 +303,11 @@ cmd_decrypt () {
             WORK_TREE="$temp_dir" git_plain commit -m "Restore '$1' at $(date '+%Y-%m-%d %H:%M:%S%z')"
         fi
     else
+        quiet _trap_append "git_enc checkout --force \"$(git_enc rev-parse HEAD)\"" INT HUP TERM EXIT
         git_enc rev-list --reverse HEAD |
             while IFS= _read_vars _enc_commit; do
                 # shellcheck disable=SC2154
+                git_enc checkout --force "$_enc_commit"
                 git_enc show --name-only --pretty=format: "$_enc_commit" |
                     _git_enc_sparse_checkout_files
                 git_enc sparse-checkout reapply
@@ -350,8 +352,7 @@ cmd_reencrypt() {
 
     WORK_TREE="$temp_dir"  # Don't switcheroo "live" config files!
 
-    latest_commit="$(git_plain rev-parse HEAD)"
-    quiet _trap_append "git_plain checkout \"$latest_commit\"" INT HUP TERM EXIT
+    quiet _trap_append "git_plain checkout --force \"$(git_plain rev-parse HEAD)\"" INT HUP TERM EXIT
     # Loop through plain commit hashes and checkout & cmd_commit
     git_plain rev-list --reverse HEAD |
         while _read_vars commit_hash; do
