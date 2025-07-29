@@ -303,8 +303,8 @@ cmd_decrypt () {
             WORK_TREE="$temp_dir" git_plain commit -m "Restore '$1' at $(date '+%Y-%m-%d %H:%M:%S%z')"
         fi
     else
-        quiet _trap_append "git_enc checkout --force \"$(git_enc rev-parse HEAD)\"" INT HUP TERM EXIT
-        git_enc rev-list --reverse HEAD |
+        quiet _trap_append "git_enc checkout --force master" INT HUP TERM EXIT
+        git_enc rev-list --reverse master |
             while IFS= _read_vars _enc_commit; do
                 # shellcheck disable=SC2154
                 git_enc checkout --force "$_enc_commit"
@@ -352,9 +352,9 @@ cmd_reencrypt() {
 
     WORK_TREE="$temp_dir"  # Don't switcheroo "live" config files!
 
-    quiet _trap_append "git_plain checkout --force \"$(git_plain rev-parse HEAD)\"" INT HUP TERM EXIT
+    quiet _trap_append "git_plain checkout --force master" INT HUP TERM EXIT
     # Loop through plain commit hashes and checkout & cmd_commit
-    git_plain rev-list --reverse HEAD |
+    git_plain rev-list --reverse master |
         while _read_vars commit_hash; do
             # shellcheck disable=SC2154
             git_plain checkout "$commit_hash"
@@ -551,7 +551,7 @@ _encrypt_commit_plain_head_files () {
     }
 
     # If first commit, add self
-    if ! git_enc rev-parse HEAD 2>/dev/null; then
+    if ! git_enc rev-parse master 2>/dev/null; then
         _self="$(command -v "$0" 2>/dev/null || echo "$0")"
         cp "$_self" "$ENC_REPO/$(basename "$_self")"
         git_enc add -vf --sparse "$(basename "$_self")"
