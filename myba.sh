@@ -175,13 +175,15 @@ _encrypt_file () {
         compress_if_text |
         _encrypt "$_plain_path" > "$ENC_REPO/$_enc_path"
 }
+_bind_tty_fd7 () { sh -c ':>/dev/tty' 2>/dev/null && exec 7< /dev/tty || exec 7< /dev/null; }  # Fd 7 used in _decrypt_file
 _decrypt_file () {
     _enc_path="$1"
     _plain_path="$2"
     # Check if the plain file already exists
+    [ ! -d "/proc/$$" ] || [ -e "/proc/$$/fd/7" ]  # Assert fd-7 is available
     if [ -f "$WORK_TREE/$_plain_path" ] && [ -z "${YES_OVERWRITE:-}" ]; then
         warn "WARNING: File '$WORK_TREE/$_plain_path' exists. Overwrite? [y/N]"
-        read _choice
+        read _choice <&7
         case "$_choice" in [Yy]*) ;; *) warn "Skipping '$WORK_TREE/$_plain_path'"; return 0 ;; esac
     fi
     decrypted_tmpfile="$(_mktemp)"
@@ -297,6 +299,7 @@ cmd_decrypt () {
     }
 
     _ask_pw
+    _bind_tty_fd7
     if [ "${1:-}" = "--squash" ]; then
         git_enc sparse-checkout disable
         git_enc ls-files "manifest/" |
@@ -604,6 +607,7 @@ cmd_checkout() {
         git_enc sparse-checkout reapply
 
         _ask_pw
+        _bind_tty_fd7
         _parallelize 0 2 _checkout_file < "$working_manifest"
     fi
 }

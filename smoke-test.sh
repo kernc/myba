@@ -77,7 +77,7 @@ title 'Ensure restoration script is present in the encrypted repo'
 stat "$WORK_TREE/.myba/_encrypted/myba.sh"
 title 'No overwrite existing file unless forced'
 myba checkout "foo/.dotfile"
-if myba checkout "foo/.dotfile"; then exit 2; fi
+if setsid myba checkout "foo/.dotfile"; then exit 2; fi
 YES_OVERWRITE=1 myba checkout "foo/.dotfile"
 unset YES_OVERWRITE  # Fix for buggy macOS shell
 
