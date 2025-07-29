@@ -288,7 +288,7 @@ cmd_decrypt () {
     read_decrypt_and_git_add_files () {
         while IFS="$_tab" _read_vars _enc_path _plain_path; do
             WORK_TREE="$temp_dir" _decrypt_file "$_enc_path" "$_plain_path"
-            WORK_TREE="$temp_dir" git_plain add -v "$_plain_path"
+            WORK_TREE="$temp_dir" git_plain add -vf "$_plain_path"  # -f to ignore .gitignore
         done
     }
 
@@ -470,7 +470,7 @@ _commit_encrypt_one () (
 
 _commit_delete_enc_path () {
     git_enc lfs untrack "$1" &&
-        git_enc add -v --sparse '.gitattributes' ||
+        git_enc add -vf --sparse '.gitattributes' ||
         true  # Passthrough ok if Git LFS is not used
     git_enc rm -f --ignore-unmatch --sparse "$1"
 }
@@ -482,7 +482,7 @@ _update_added_dirs () {
                   sed -E "s,/$mybabackup_dir([\"']?)\$,\1," |
                   sort -u)"
     if [ "$backup_dirs" ]; then
-        git_plain add -v "$backup_dirs"
+        git_plain add -vf "$backup_dirs"
     fi
 }
 
@@ -529,7 +529,7 @@ _encrypt_commit_plain_head_files () {
                 # If file larger than threshold, configure Git LFS
                 if [ "$(_file_size "$ENC_REPO/$_enc_path")" -gt $GIT_LFS_THRESH ]; then
                     git_enc lfs track --filename "$_enc_path"
-                    git_enc add -v --sparse '.gitattributes'
+                    git_enc add -vf --sparse '.gitattributes'
                 fi
                 quiet _add_file
                 echo "$_enc_path$_tab$_path" >> "$PLAIN_REPO/$manifest_path"
@@ -544,7 +544,7 @@ _encrypt_commit_plain_head_files () {
             quiet _trap_append _restore_removed_remotes INT HUP TERM EXIT
             for remote in $(git_enc remote); do git_enc remote rm $remote; done
 
-            git_enc add -v --sparse -- $files_to_add
+            git_enc add -vf --sparse -- $files_to_add
 
             _restore_removed_remotes
         fi
@@ -554,14 +554,14 @@ _encrypt_commit_plain_head_files () {
     if ! git_enc rev-parse HEAD 2>/dev/null; then
         _self="$(command -v "$0" 2>/dev/null || echo "$0")"
         cp "$_self" "$ENC_REPO/$(basename "$_self")"
-        git_enc add -v --sparse "$(basename "$_self")"
+        git_enc add -vf --sparse "$(basename "$_self")"
     fi
 
     # Stage new manifest
     if [ "$(_file_size "$PLAIN_REPO/$manifest_path")" -gt 0 ]; then
         gzip -c2 "$PLAIN_REPO/$manifest_path" |
             _encrypt "" > "$ENC_REPO/$manifest_path"
-        git_enc add -v --sparse "$manifest_path"
+        git_enc add -vf --sparse "$manifest_path"
     else
         rm "$PLAIN_REPO/$manifest_path"
     fi
@@ -683,7 +683,7 @@ cmd_add () {
     for dir in "$@"; do
         if [ -d "$dir" ]; then
             touch "$dir/$mybabackup_dir"
-            git_plain add -v "$dir/$mybabackup_dir"
+            git_plain add -vf "$dir/$mybabackup_dir"
         fi
     done
 }
