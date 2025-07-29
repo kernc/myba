@@ -75,7 +75,7 @@ usage () {
     echo "  diff [OPTS]           Compare changes between plain repo revisions"
     echo "  log [OPTS]            Show commit log of the plain repo"
     echo "  status [OPTS]         Show git status of the plain repo"
-    echo "  ls-files [OPTS]       Show current backup files (OPTS go via git ls-tree)"
+    echo "  ls-files [OPTS]       Show current backup files"
     echo "  largest               List current backup files by file size, descending"
     echo "  checkout PATH...      Sparse-checkout and decrypt files into \$WORK_TREE"
     echo "  checkout COMMIT       Switch files to a commit of plain or encrypted repo"
@@ -201,6 +201,7 @@ _decrypt_manifests () {
         _decrypt "" < "$file" | gzip -dc > "$PLAIN_REPO/manifest/$fname"
         if _is_binary_stream < "$PLAIN_REPO/manifest/$fname"; then
             warn "WARNING: Likely invalid decryption password for commit '$fname', or your manifest file contains binary paths."
+            rm "$PLAIN_REPO/manifest/$fname"
             status=1
         fi
     done
@@ -238,6 +239,7 @@ cmd_init () {
     git_plain config diff.renameLimit 100000
     git_plain config core.excludesfile ""  # Don't look at $XDG_CONFIG_HOME/git/ignore
     git_plain config advice.addIgnoredFile true  # Warn user to use `add -f` on gitignored file
+    git_plain config advice.detachedHead false  # Subprocedures do detached-head checkouts
     git_plain config init.defaultBranch master
     git_enc config user.name "$USER"
     git_enc config user.email "$email"
@@ -246,8 +248,10 @@ cmd_init () {
     git_enc config diff.renames "copies"
     git_enc config diff.renameLimit 100000
     git_enc config push.autoSetupRemote true
-    git_enc config push.default upstream
+    git_enc config push.default current
+    git_enc config push.followTags true
     git_enc config fetch.parallel 4
+    git_enc config advice.detachedHead false  # Subprocedures do detached-head checkouts
     git_enc config init.defaultBranch master
     # Set up default gitignore
     echo "$default_gitignore" > "$PLAIN_REPO/info/exclude"
@@ -400,7 +404,7 @@ _parallelize () {
     _func="$3"  # Func to pass args and values to
     shift 3
 
-    tmpdir="$PLAIN_REPO/_parallelize--internal.$$"
+    tmpdir="$PLAIN_REPO/parallelize.$$"
     mkdir -p "$tmpdir"
     quiet _trap_append "rm -rfv \"$tmpdir\"" INT HUP TERM EXIT
     # Init a FIFO semaphore
@@ -587,20 +591,20 @@ cmd_checkout() {
         _decrypt_manifests
     else
         # Otherwise, assume the arguments are paths to files/directories
-        working_manifest="$PLAIN_REPO/working_manifest"
+        working_manifest="$PLAIN_REPO/checkout.$$"
+        _trap_append "rm -v \"$working_manifest\"" INT HUP TERM EXIT
         for file in "$@"; do
             grep -REIh "$_tab$file"'($|/)' "$PLAIN_REPO/manifest"
         done | sort -u > "$working_manifest"
 
-        cut -f1 "$working_manifest" |
-            _git_enc_sparse_checkout_files
-        git_enc sparse-checkout add "manifest"
+        {
+            echo 'manifest/'
+            cut -f1 "$working_manifest"
+        } | _git_enc_sparse_checkout_files
         git_enc sparse-checkout reapply
-        git_enc sparse-checkout list
 
         _ask_pw
         _parallelize 0 2 _checkout_file < "$working_manifest"
-        rm "$working_manifest"
     fi
 }
 
@@ -649,10 +653,10 @@ cmd_push () {
         git_enc remote show -n |
             while _read_vars _origin; do
                 # shellcheck disable=SC2154
-                git_enc push --verbose --all "$_origin"
+                git_enc push --verbose "$_origin" master
             done
     else
-        git_enc push --verbose --all "$@"
+        git_enc push --verbose "$@"
     fi
     git_enc fetch --refetch --all --verbose --no-write-fetch-head
 
@@ -827,7 +831,7 @@ case "$cmd" in
     git)
         # Handle buggy ls-files in bare plain repo
         # https://stackoverflow.com/questions/25906192/git-ls-files-in-bare-repository
-        if [ $# -gt 0 ] && [ "$1" = "ls-files" ]; then
+        if [ "${1:-}" = "ls-files" ]; then
             shift
             verbose _git_plain_nonbare ls-files "$@"
         else

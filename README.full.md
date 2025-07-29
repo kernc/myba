@@ -21,9 +21,9 @@ Its only **dependencies are**:
 * a running **shell** / standard **POSIX environment** (sh, bash, zsh, dash, ... WSL?),
 * **gzip**
 * **git** (and Git LFS for files sized >40 MB),
-* either **OpenSSL** or **GPG** for encryption,
+* either **OpenSSL** (AES256-CTR) or **GPG** (AES256-CFB) for encryption,
 
-all of which everyone should discover most popularly available.
+all of which you should discover most popularly available.
 
 **Git does a great job of securely storing and tracking changes and backing up important documents,**
 it is popular and widely-deployed,
@@ -152,7 +152,7 @@ Subcommands:
   diff [OPTS]           Compare changes between plain repo revisions
   log [OPTS]            Show commit log of the plain repo
   status [OPTS]         Show git status of the plain repo
-  ls-files [OPTS]       Show current backup files (OPTS go via git ls-tree)
+  ls-files [OPTS]       Show current backup files
   largest               List current backup files by file size, descending
   checkout PATH...      Sparse-checkout and decrypt files into $WORK_TREE
   checkout COMMIT       Switch files to a commit of plain or encrypted repo

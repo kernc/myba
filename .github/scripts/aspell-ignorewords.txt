@@ -1,4 +1,6 @@
 AES
+CTR
+CFB
 APIs
 Backblaze
 Bacula

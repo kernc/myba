@@ -19,9 +19,9 @@ Its only **dependencies are**:
 * a running **shell** / standard **POSIX environment** (sh, bash, zsh, dash, ... WSL?),
 * **gzip**
 * **git** (and Git LFS for files sized >40 MB),
-* either **OpenSSL** or **GPG** (~4x slower) for encryption,
+* either **OpenSSL** (AES256-CTR) or **GPG** (AES256-CFB) for encryption,
 
-all of which everyone should discover most popularly available.
+all of which you should discover most popularly available.
 
 ### **Learn more** about the project on [**`myba` backup project website**](https://kernc.github.io/myba/).
 
