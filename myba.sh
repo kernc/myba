@@ -276,7 +276,7 @@ cmd_clone () {
 
 cmd_decrypt () {
     # Convert the encrypted commit messages back to plain repo commits
-    if [ "$(git_plain ls-files)" ]; then
+    if [ "$(_git_plain_nonbare ls-files)" ]; then
         if [ ! "${YES_OVERWRITE:-}" ]; then
             warn "WARNING: Plain repo in '$PLAIN_REPO' already restored (and possibly commited to). To overwrite, set \$YES_OVERWRITE=1."
             exit 1
@@ -293,7 +293,7 @@ cmd_decrypt () {
     have_commitable_changes () { WORK_TREE="$temp_dir" git_plain diff --staged --quiet; }
     read_decrypt_and_git_add_files () {
         while IFS="$_tab" _read_vars _enc_path _plain_path; do
-            WORK_TREE="$temp_dir" _decrypt_file "$_enc_path" "$_plain_path"
+            WORK_TREE="$temp_dir" YES_OVERWRITE=1 _decrypt_file "$_enc_path" "$_plain_path"
             WORK_TREE="$temp_dir" git_plain add -vf "$_plain_path"  # -f to ignore .gitignore
         done
     }
