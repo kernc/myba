@@ -731,12 +731,10 @@ verbose () {
         printf "\033[34;40;1m+%s${lineno:-}\033[0m " "$0"
     )"
     export PS4
-    echo "$0: $*" >&2
     case "${VERBOSE:-}" in
     '') "$@"; ;;
     *) set -x; "$@"; set +x; ;;
     esac
-    echo "$0: $1 done ok" >&2
 }
 quiet () {
     case $- in *x*) set +x; xtrace_on=1 ;; *) xtrace_on= ;; esac
