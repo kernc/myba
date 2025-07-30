@@ -8,7 +8,7 @@ preamble='<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Myba - git-based file backup with encryption</title>
+<title>Myba - git-based backup with encryption</title>
 <link rel="logo icon" href="icon.svg">
 <meta name="theme-color" content="#333">
 <meta property="name" content="myba">
@@ -21,7 +21,7 @@ preamble='<!doctype html>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-JT9W3RXCJD"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-JT9W3RXCJD");</script>
 <style>
-html{background:DarkOliveGreen; line-height: 1.4em; font-family:sans-serif;}
+html{line-height: 1.4em; font-family:sans-serif; background: repeating-linear-gradient(60deg, #F5F5F560 0 10px, #00640060 10px 80px, #9ACD3260 80px 120px, #556B2F60 120px 170px, #2F4F4F60 170px 190px, #F0E68C60 190px 200px, #6B8E2360 200px 220px ), repeating-linear-gradient(-60deg, #F5F5F560 0 10px, #00640060 10px 80px, #9ACD3260 80px 120px, #556B2F60 120px 170px, #2F4F4F60 170px 190px, #F0E68C60 190px 200px, #6B8E2360 200px 220px ), repeating-linear-gradient(180deg, #F5F5F560 0 10px, #00640060 10px 80px, #9ACD3260 80px 120px, #556B2F60 120px 170px, #2F4F4F60 170px 190px, #F0E68C60 190px 200px, #6B8E2360 200px 220px ), black;}
 article {background:#fffb; padding:2em; margin:auto; max-width: 900px;}
 pre {background:#fff8;}
 code:not(pre code) {background:#fff8; padding: .2em .5em; white-space: nowrap;}
@@ -29,13 +29,14 @@ ul li code:not(pre code):first-child {font-weight: bold;}
 h1,h2,h3,h4 {margin-top: 2em}
 h1 img {vertical-align: middle; margin: 0 1em 1em 0;}
 h1 {line-height: 1.3em;}
+a {font-weight:bold}
 a:link {color:navy}
 a:hover {color:blue !important}
 a:visited {color:#230}
 summary {width:fit-content; border:2px solid silver; cursor:pointer; padding:.2em .6em; margin:.3em 0}
 details[open] summary {border:2px solid black;}
 </style>
-<meta property="og:title" content="Myba - git-based file backup with encryption">
+<meta property="og:title" content="Myba - git-based backup with encryption">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://kernc.github.io/myba/">
 <meta property="og:image" content="https://kernc.github.io/myba/icon.svg">

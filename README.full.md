@@ -1,4 +1,4 @@
-<img src="icon.svg" width="64" alt/>  Myba — git-based backup utility with encryption
+<img src="icon.svg" width="64" alt/>  Myba — git-based backup with encryption
 =====
 
 [![Build status](https://img.shields.io/github/actions/workflow/status/kernc/myba/ci.yml?branch=master&style=for-the-badge)](https://github.com/kernc/myba/actions)
@@ -14,8 +14,8 @@
 open-source, secure, distributed, version-controlled, encrypted
 file backup software based on `git`**,
 for **Linux, MacOS, BSDs**, and possibly even **Windows/WSL**.
-In a world of vice, instability, evergreen browsers, fast-moving markets and near constant _supply chain attacks_,
-it's the best kind of backup utility—**a timeless shell script** that relies on few, well-tested and _stable_ technologies.
+In a world of vice, instability, "evergreen" browsers, fast-moving markets and near constant _supply chain attacks_,
+it's the only kind of backup—**a timeless shell script** that relies on few, well-tested, _stable_ technologies.
 Its only **dependencies are**:
 
 * a running **shell** / standard **POSIX environment** (sh, bash, zsh, dash, ... WSL?),
@@ -23,17 +23,17 @@ Its only **dependencies are**:
 * **git** (and Git LFS for files sized >40 MB),
 * either **OpenSSL** (AES256-CTR) or **GPG** (AES256-CFB) for encryption,
 
-all of which you should discover most popularly available.
+all of which you should find most popularly available.
 
-**Git does a great job of securely storing and tracking changes and backing up important documents,**
-it is popular and widely-deployed,
-[feature-rich](https://git-man-page-generator.lokaltog.net/),
+**Git does a great job of securely storing and tracking changes and backing up important documents.**
+It is popular,
+[feature-rich](https://git-man-page-generator.lokaltog.net/) and widely-deployed,
 but it doesn't on its own support encryption, which might be important if the backed-up data 
-is going to be shared with untrusted (and untrustworthy) third parties
-and various intermediary data "processors".
+is going to be shared with untrusted (untrustworthy) third parties
+and their intermediary "data processors".
 One _could_ most simply set up an encryption-decryption process
 consisting of [**`clean` and `smudge` git filters** issued pre commits and post checkouts](https://git-scm.com/book/ms/v2/Customizing-Git-Git-Attributes#filters_a),
-respectively, but **git filters can't encrypt the tracked file paths / filenames**,
+respectively, but **git filters don't encrypt the tracked file paths / filenames**,
 whereas one might have a want for that, otherwise almost what's the point? 😶
 
 Features
@@ -51,9 +51,9 @@ Features
 
 How it works
 ------------
-Myba relies on a two-repo solution. On any _client_, **two repositories** are created.
+Myba relies on a **two-repo solution**. On any _client_, **two repositories** are created.
 **One plaintext** [`--bare`](https://git-scm.com/book/en/v2/Git-on-the-Server-Getting-Git-on-a-Server) repo,
-such as in [this guide](https://www.atlassian.com/git/tutorials/dotfiles),
+such as in [this dotfiles management guide](https://www.atlassian.com/git/tutorials/dotfiles),
 with `$WORK_TREE` set to the root of your volume of interest,
 such as `/` or `$HOME` (default).
 And **one encrypted** repo that holds encrypted file counterparts.
@@ -71,15 +71,15 @@ the **local encrypted blobs are deleted to save disk space**,
 relying on recently-stabilized
 [`git sparse-checkout`](https://git-scm.com/docs/git-sparse-checkout) and 
 [partial `git clone --filter=blob:none`](https://git-scm.com/docs/partial-clone) features,
-all in all at a minimized and efficient space cost best-suited to backing up
+all in all at a minimized and efficient space cost, best-suited to backing up
 text and configuration files, source code files, documents and pictures,
-including all kinds or large binary files
+including all kinds of large binary files
 (as much as you can afford to sync to your cloud storage),
 **all under the assumptions that text files compress well** and
-that **large binaries don't change too often**.
+that **large binaries don't change often**.
 
 **Myba** is **Git + Shell**, preconfigured and wrapped as thinly as needed to provide
-fully **encrypted backups** that are really **easily replicated and synced to the cloud**.
+**fully encrypted backups** that are really **easily replicated and synced**  to the cloud.
 
 <script async src="https://ssl.gstatic.com/trends_nrtr/4031_RC01/embed_loader.js"></script>
 <div id="trends"></div>
@@ -224,10 +224,12 @@ Contributing
 ------------
 The project is written for a POSIX shell and is [hosted on GitHub](https://github.com/kernc/myba/).
 
-The script is considered _mostly_ feature-complete, but there remain
+The script is considered _mostly_ production-ready and feature-complete,
+but as always, there remain
 bugs and design flaws to be discovered and ironed out, as well as any
 [TODOs and FIXMEs](https://github.com/search?q=repo%3Akernc%2Fmyba+%28todo+OR+fixme+OR+xxx%29&type=code)
 marked in the source.
+The script is used in production environments, whereas YMMV.
 All source code lines are **open to discussion.
 Always appreciate a healthy refactoring**, simplification,
 and value-added tests.
