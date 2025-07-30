@@ -157,6 +157,7 @@ Subcommands:
   checkout PATH...      Sparse-checkout and decrypt files into $WORK_TREE
   checkout COMMIT       Switch files to a commit of plain or encrypted repo
   gc                    Garbage collect, remove synced encrypted packs
+  pw                    Secure password input. Usage: PASSWORD="$(myba pw)"
   git CMD [OPTS]        Inspect/execute raw git commands inside plain repo
   git_enc CMD [OPTS]    Inspect/execute raw git commands inside encrypted repo
 
@@ -198,15 +199,18 @@ export WORK_TREE="$HOME"
 
 myba init
 myba add Documents Photos Etc .dotfile
-PASSWORD='secret'  myba commit -m "my precious"
+PASSWORD="$(myba pw)"  # Secure read from the controlling terminal
+export PASSWORD
+myba commit -m "my precious"
 myba remote add origin "/media/usb/backup/path"
 myba remote add github "git@github.com:user/my-backup.git"
 VERBOSE=1 myba push  # Push to ALL configured remotes & free up disk space
 
-# Somewhere else, much, much later, avoiding catastrophe ...
+# Somewhere else, post apocalypse, yet avoiding catastrophe ...
 
 export WORK_TREE="$HOME"
-PASSWORD='secret'  myba clone "..."  # Clone one of the known remotes
+export PASSWORD=...
+myba clone ...  # Clone one of the known remotes
 myba checkout ".dotfile" # Restore backed up files in a space-efficient manner
 
 # When already cloned ...

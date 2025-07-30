@@ -80,6 +80,7 @@ usage () {
     echo "  checkout PATH...      Sparse-checkout and decrypt files into \$WORK_TREE"
     echo "  checkout COMMIT       Switch files to a commit of plain or encrypted repo"
     echo "  gc                    Garbage collect, remove synced encrypted packs"
+    echo "  pw                    Secure password input. Usage: PASSWORD=\"$(myba pw)\""
     echo "  git CMD [OPTS]        Inspect/execute raw git commands inside plain repo"
     echo "  git_enc CMD [OPTS]    Inspect/execute raw git commands inside encrypted repo"
     echo
@@ -118,18 +119,23 @@ _read_vars () {
     read -r "$@" || [ "$(eval echo '$'"$1")" ];
 }
 
+cmd_pw () {
+    stty -echo
+    {
+        IFS= read -p "Enter encryption PASSWORD=: " -r PASSWORD
+        echo
+        (
+            IFS= read -p "Repeat: " -r PASSWORD2
+            [ "$PASSWORD" = "$PASSWORD2" ] || { warn 'ERROR: Password mismatch!'; exit 1; }
+        )
+    } < /dev/tty
+    stty echo
+    echo
+    echo "$PASSWORD"
+}
 _ask_pw () {
     if [ -z "${PASSWORD+1}" ]; then
-        stty -echo
-        {
-            IFS= read -p "Enter encryption PASSWORD=: " -r PASSWORD
-            echo
-            (
-                IFS= read -p "Repeat: " -r PASSWORD2
-                [ "$PASSWORD" = "$PASSWORD2" ] || { warn 'ERROR: Password mismatch!'; exit 1; }
-            )
-        } < /dev/tty
-        stty echo
+        cmd_pw > /dev/null
     fi
 
     # Set up encryption via OpenSSL
@@ -831,6 +837,7 @@ case "$cmd" in
     largest) verbose cmd_largest "$@" ;;
     checkout) verbose cmd_checkout "$@" ;;
     gc) verbose cmd_gc "$@" ;;
+    pw) verbose cmd_pw "$@" ;;
     git_enc) verbose git_enc "$@" ;;
     git)
         # Handle buggy ls-files in bare plain repo
