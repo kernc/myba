@@ -106,9 +106,9 @@ whereas one might have a want for that, otherwise almost what's the point? 😶<
 <li><strong>Or sync anywhere simply</strong> by cloning or checking-out a directory ...</li>
 </ul>
 <h2 id="how-it-works">How it works</h2>
-<p>Myba relies on a two-repo solution. On any <em>client</em>, <strong>two repositories</strong> are created.
+<p>Myba relies on a <strong>two-repo solution</strong>. On any <em>client</em>, <strong>two repositories</strong> are created.
 <strong>One plaintext</strong> <a href="https://git-scm.com/book/en/v2/Git-on-the-Server-Getting-Git-on-a-Server"><code>--bare</code></a> repo,
-such as in <a href="https://www.atlassian.com/git/tutorials/dotfiles">this guide</a>,
+such as in <a href="https://www.atlassian.com/git/tutorials/dotfiles">this dotfiles management guide</a>,
 with <code>$WORK_TREE</code> set to the root of your volume of interest,
 such as <code>/</code> or <code>$HOME</code> (default).
 And <strong>one encrypted</strong> repo that holds encrypted file counterparts.</p>
@@ -123,14 +123,14 @@ the <strong>local encrypted blobs are deleted to save disk space</strong>,
 relying on recently-stabilized
 <a href="https://git-scm.com/docs/git-sparse-checkout"><code>git sparse-checkout</code></a> and 
 <a href="https://git-scm.com/docs/partial-clone">partial <code>git clone --filter=blob:none</code></a> features,
-all in all at a minimized and efficient space cost best-suited to backing up
+all in all at a minimized and efficient space cost, best-suited to backing up
 text and configuration files, source code files, documents and pictures,
-including all kinds or large binary files
+including all kinds of large binary files
 (as much as you can afford to sync to your cloud storage),
 <strong>all under the assumptions that text files compress well</strong> and
-that <strong>large binaries don't change too often</strong>.</p>
+that <strong>large binaries don't change often</strong>.</p>
 <p><strong>Myba</strong> is <strong>Git + Shell</strong>, preconfigured and wrapped as thinly as needed to provide
-fully <strong>encrypted backups</strong> that are really <strong>easily replicated and synced to the cloud</strong>.</p>
+<strong>fully encrypted backups</strong> that are really <strong>easily replicated and synced</strong>  to the cloud.</p>
 <script async src="https://ssl.gstatic.com/trends_nrtr/4031_RC01/embed_loader.js"></script>
 <div id="trends"></div>
 <script>addEventListener("load", () => window.trends.embed.renderExploreWidgetTo(document.getElementById("trends"), "TIMESERIES", {"comparisonItem":[{"keyword":"/m/02mhh1","geo":"","time":"all"},{"keyword":"/m/05vqwg","geo":"","time":"all"},{"keyword":"/m/0ryppmg","geo":"","time":"all"},{"keyword":"myba","geo":"","time":"all"}],"category":0,"property":""}, {"exploreQuery":"date=all&q=%2Fm%2F02mhh1,%2Fm%2F05vqwg,%2Fm%2F0ryppmg,myba#TIMESERIES","guestPath":"https://trends.google.com:443/trends/embed/"}));</script>
