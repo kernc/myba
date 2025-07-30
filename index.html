@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Myba - git-based file backup with encryption</title>
+<title>Myba - git-based backup with encryption</title>
 <link rel="logo icon" href="icon.svg">
 <meta name="theme-color" content="#333">
 <meta property="name" content="myba">
@@ -16,7 +16,7 @@
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-JT9W3RXCJD"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-JT9W3RXCJD");</script>
 <style>
-html{background:DarkOliveGreen; line-height: 1.4em; font-family:sans-serif;}
+html{line-height: 1.4em; font-family:sans-serif; background: repeating-linear-gradient(60deg, #F5F5F560 0 10px, #00640060 10px 80px, #9ACD3260 80px 120px, #556B2F60 120px 170px, #2F4F4F60 170px 190px, #F0E68C60 190px 200px, #6B8E2360 200px 220px ), repeating-linear-gradient(-60deg, #F5F5F560 0 10px, #00640060 10px 80px, #9ACD3260 80px 120px, #556B2F60 120px 170px, #2F4F4F60 170px 190px, #F0E68C60 190px 200px, #6B8E2360 200px 220px ), repeating-linear-gradient(180deg, #F5F5F560 0 10px, #00640060 10px 80px, #9ACD3260 80px 120px, #556B2F60 120px 170px, #2F4F4F60 170px 190px, #F0E68C60 190px 200px, #6B8E2360 200px 220px ), black;}
 article {background:#fffb; padding:2em; margin:auto; max-width: 900px;}
 pre {background:#fff8;}
 code:not(pre code) {background:#fff8; padding: .2em .5em; white-space: nowrap;}
@@ -30,7 +30,7 @@ a:visited {color:#230}
 summary {width:fit-content; border:2px solid silver; cursor:pointer; padding:.2em .6em; margin:.3em 0}
 details[open] summary {border:2px solid black;}
 </style>
-<meta property="og:title" content="Myba - git-based file backup with encryption">
+<meta property="og:title" content="Myba - git-based backup with encryption">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://kernc.github.io/myba/">
 <meta property="og:image" content="https://kernc.github.io/myba/icon.svg">
@@ -45,7 +45,7 @@ details[open] summary {border:2px solid black;}
 </head>
 <body><main><article>
 
-<h1 id="myba-git-based-backup-utility-with-encryption"><img src="icon.svg" width="64" alt/>  Myba — git-based backup utility with encryption</h1>
+<h1 id="myba-git-based-backup-with-encryption"><img src="icon.svg" width="64" alt/>  Myba — git-based backup with encryption</h1>
 <p><a href="https://github.com/kernc/myba/actions"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/kernc/myba/ci.yml?branch=master&amp;style=for-the-badge"></a>
 <a href="https://github.com/kernc/myba"><img alt="Language: shell / Bash" src="https://img.shields.io/badge/lang-Shell-peachpuff?style=for-the-badge"></a>
 <a href="https://ghloc.vercel.app/kernc/myba"><img alt="Source lines of code" src="https://img.shields.io/endpoint?url=https%3A%2F%2Fghloc.vercel.app%2Fapi%2Fkernc%2Fmyba%2Fbadge?filter=myba.sh%26format=human&amp;style=for-the-badge&amp;label=SLOC&amp;color=skyblue"></a>
@@ -73,8 +73,8 @@ details[open] summary {border:2px solid black;}
 open-source, secure, distributed, version-controlled, encrypted
 file backup software based on <code>git</code></strong>,
 for <strong>Linux, MacOS, BSDs</strong>, and possibly even <strong>Windows/WSL</strong>.
-In a world of vice, instability, evergreen browsers, fast-moving markets and near constant <em>supply chain attacks</em>,
-it's the best kind of backup utility—<strong>a timeless shell script</strong> that relies on few, well-tested and <em>stable</em> technologies.
+In a world of vice, instability, "evergreen" browsers, fast-moving markets and near constant <em>supply chain attacks</em>,
+it's the only kind of backup—<strong>a timeless shell script</strong> that relies on few, well-tested, <em>stable</em> technologies.
 Its only <strong>dependencies are</strong>:</p>
 <ul>
 <li>a running <strong>shell</strong> / standard <strong><abbr title="Portable Operating System Interface">POSIX</abbr> environment</strong> (sh, bash, zsh, dash, ... WSL?),</li>
@@ -82,16 +82,16 @@ Its only <strong>dependencies are</strong>:</p>
 <li><strong>git</strong> (and Git LFS for files sized &gt;40 MB),</li>
 <li>either <strong>OpenSSL</strong> (AES256-CTR) or <strong>GPG</strong> (AES256-CFB) for encryption,</li>
 </ul>
-<p>all of which you should discover most popularly available.</p>
-<p><strong>Git does a great job of securely storing and tracking changes and backing up important documents,</strong>
-it is popular and widely-deployed,
-<a href="https://git-man-page-generator.lokaltog.net/">feature-rich</a>,
+<p>all of which you should find most popularly available.</p>
+<p><strong>Git does a great job of securely storing and tracking changes and backing up important documents.</strong>
+It is popular,
+<a href="https://git-man-page-generator.lokaltog.net/">feature-rich</a> and widely-deployed,
 but it doesn't on its own support encryption, which might be important if the backed-up data 
-is going to be shared with untrusted (and untrustworthy) third parties
-and various intermediary data "processors".
+is going to be shared with untrusted (untrustworthy) third parties
+and their intermediary "data processors".
 One <em>could</em> most simply set up an encryption-decryption process
 consisting of <a href="https://git-scm.com/book/ms/v2/Customizing-Git-Git-Attributes#filters_a"><strong><code>clean</code> and <code>smudge</code> git filters</strong> issued pre commits and post checkouts</a>,
-respectively, but <strong>git filters can't encrypt the tracked file paths / filenames</strong>,
+respectively, but <strong>git filters don't encrypt the tracked file paths / filenames</strong>,
 whereas one might have a want for that, otherwise almost what's the point? 😶</p>
 <h2 id="features">Features</h2>
 <ul>
@@ -192,11 +192,12 @@ Subcommands:
   diff [OPTS]           Compare changes between plain repo revisions
   log [OPTS]            Show commit log of the plain repo
   status [OPTS]         Show git status of the plain repo
-  ls-files [OPTS]       Show current backup files (OPTS go via git ls-tree)
+  ls-files [OPTS]       Show current backup files
   largest               List current backup files by file size, descending
   checkout PATH...      Sparse-checkout and decrypt files into $WORK_TREE
   checkout COMMIT       Switch files to a commit of plain or encrypted repo
   gc                    Garbage collect, remove synced encrypted packs
+  pw                    Secure password input. Usage: PASSWORD=&quot;$(myba pw)&quot;
   git CMD [OPTS]        Inspect/execute raw git commands inside plain repo
   git_enc CMD [OPTS]    Inspect/execute raw git commands inside encrypted repo
 
@@ -232,15 +233,18 @@ export WORK_TREE=&quot;$HOME&quot;
 
 myba init
 myba add Documents Photos Etc .dotfile
-PASSWORD='secret'  myba commit -m &quot;my precious&quot;
+PASSWORD=&quot;$(myba pw)&quot;  # Secure read from the controlling terminal
+export PASSWORD
+myba commit -m &quot;my precious&quot;
 myba remote add origin &quot;/media/usb/backup/path&quot;
 myba remote add github &quot;git@github.com:user/my-backup.git&quot;
 VERBOSE=1 myba push  # Push to ALL configured remotes &amp; free up disk space
 
-# Somewhere else, much, much later, avoiding catastrophe ...
+# Somewhere else, post apocalypse, yet avoiding catastrophe ...
 
 export WORK_TREE=&quot;$HOME&quot;
-PASSWORD='secret'  myba clone &quot;...&quot;  # Clone one of the known remotes
+export PASSWORD=...
+myba clone ...  # Clone one of the known remotes
 myba checkout &quot;.dotfile&quot; # Restore backed up files in a space-efficient manner
 
 # When already cloned ...
