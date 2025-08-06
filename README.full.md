@@ -340,9 +340,9 @@ namely the [`pre-commit`][git hooks] hook.
 For example, to save own music library or some such only in list form,
 one could e.g. do:
 
-```shell
-# ${WORK_TREE:-$HOME}/.myba/hooks/pre-commit:
+```sh
 #!/bin/sh
+# ${WORK_TREE:-$HOME}/.myba/hooks/pre-commit:
 wt="$GIT_WORK_TREE"
 if git diff --cached --name-only | grep -q '^Music/'; then
     ls -l -R "$wt/path_of_interest" > "$wt/my_list.txt"
