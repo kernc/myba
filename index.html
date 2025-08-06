@@ -358,8 +358,8 @@ by modifying respective files in <code>$PLAIN_REPO</code> and (encrypted repo) <
 namely the <a href="https://git-scm.com/docs/githooks#_pre_commit"><code>pre-commit</code></a> hook.</p>
 <p>For example, to save own music library or some such only in list form,
 one could e.g. do:</p>
-<pre><code class="language-shell"># ${WORK_TREE:-$HOME}/.myba/hooks/pre-commit:
-#!/bin/sh
+<pre><code class="language-sh">#!/bin/sh
+# ${WORK_TREE:-$HOME}/.myba/hooks/pre-commit:
 wt=&quot;$GIT_WORK_TREE&quot;
 if git diff --cached --name-only | grep -q '^Music/'; then
     ls -l -R &quot;$wt/path_of_interest&quot; &gt; &quot;$wt/my_list.txt&quot;
