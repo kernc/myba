@@ -21,9 +21,9 @@ preamble='<!doctype html>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-JT9W3RXCJD"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-JT9W3RXCJD");</script>
 <style>
-html{line-height: 1.4em; font-family:sans-serif; background: repeating-linear-gradient(60deg, #F5F5F560 0 10px, #00640060 10px 80px, #9ACD3260 80px 120px, #556B2F60 120px 170px, #2F4F4F60 170px 190px, #F0E68C60 190px 200px, #6B8E2360 200px 220px ), repeating-linear-gradient(-60deg, #F5F5F560 0 10px, #00640060 10px 80px, #9ACD3260 80px 120px, #556B2F60 120px 170px, #2F4F4F60 170px 190px, #F0E68C60 190px 200px, #6B8E2360 200px 220px ), repeating-linear-gradient(180deg, #F5F5F560 0 10px, #00640060 10px 80px, #9ACD3260 80px 120px, #556B2F60 120px 170px, #2F4F4F60 170px 190px, #F0E68C60 190px 200px, #6B8E2360 200px 220px ), black;}
+html{line-height: 1.6em; font-family:sans-serif; background: repeating-linear-gradient(60deg, #F5F5F560 0 10px, #00640060 10px 80px, #9ACD3260 80px 120px, #556B2F60 120px 170px, #2F4F4F60 170px 190px, #F0E68C60 190px 200px, #6B8E2360 200px 220px ), repeating-linear-gradient(-60deg, #F5F5F560 0 10px, #00640060 10px 80px, #9ACD3260 80px 120px, #556B2F60 120px 170px, #2F4F4F60 170px 190px, #F0E68C60 190px 200px, #6B8E2360 200px 220px ), repeating-linear-gradient(180deg, #F5F5F560 0 10px, #00640060 10px 80px, #9ACD3260 80px 120px, #556B2F60 120px 170px, #2F4F4F60 170px 190px, #F0E68C60 190px 200px, #6B8E2360 200px 220px ), black;}
 article {background:#fffb; padding:2em; margin:auto; max-width: 900px;}
-pre {background:#fff8;}
+pre {background:#fff8; line-height:1.4em}
 code:not(pre code) {background:#fff8; padding: .2em .5em; white-space: nowrap;}
 ul li code:not(pre code):first-child {font-weight: bold;}
 h1,h2,h3,h4 {margin-top: 2em}

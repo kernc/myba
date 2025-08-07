@@ -94,11 +94,12 @@ that **large binaries don't change often**.
     Apple Time Machine,
     Google One, Photos & Drive,
     Apple iCloud)
-    or software programs with **complex, unfamiliar CLI APIs or wide attack surfaces**
+    or software programs with **complex, unfamiliar CLI APIs or wider attack surfaces**
     ([Bacula](https://en.wikipedia.org/wiki/Bacula),
     [Borg Backup](https://borgbackup.readthedocs.io/en/stable/usage.html),
     [restic](https://restic.net),
-    [git-crypt](https://www.agwa.name/projects/git-crypt/)) ...
+    [git-crypt](https://www.agwa.name/projects/git-crypt/),
+    [git-remote-gcrypt](https://github.com/spwhitton/git-remote-gcrypt)) ...
 * Cloud-based serverless virii
 * **Protocol- and PaaS-agnostic** design
   (save to AWS, Backblaze B2, GitLab ...).
@@ -109,7 +110,7 @@ that **large binaries don't change often**.
 
 Installation
 ------------
-To install everything on a Debian/Ubuntu-based system, run:
+To install on a Debian/Ubuntu-based system, run:
 ```sh
 # Install dependencies
 # These should be preinstalled or available on most including cloud distros
@@ -262,15 +263,19 @@ with long and rigorous release / support cycles.
 
 </div></div></details>
 <details markdown="1" property="mainEntity" typeof="Question">
-<summary property="name"><b>How does myba differ</b> from other backup tools like Bacula, Borg, Duplicity, restic, luckyBackup and git-crypt?</summary>
+<summary property="name"><b>How does myba differ</b> from other backup tools?</summary>
 <div markdown="1" property="acceptedAnswer" typeof="Answer"><div markdown="1" property="text">
 
+Compared to backup tools like Bacula, Borg, Duplicity, restic, luckyBackup, git-crypt and git-remote-gcrypt,
 myba simply wraps raw git and is written in pure, standard **POSIX shell for maximum portability**
-and ease of use. It's got the exactly familiar git CLI API.
+and ease of use. It's got the exactly **familiar `git` CLI API**.
 
-myba does file-based (as opposed to block-based) differencing and encryption.
+Compared to most tools, myba does **file-based** (as opposed to block-based) **differencing and encryption**.
 
-Compared to git-crypt, <b>myba also encrypts the committed path/filenames</b> for maximum privacy.
+Compared to **`git-crypt`**, <b>myba also encrypts the committed path/filenames</b> for maximum privacy.
+
+Compared to **`git-remote-gcrypt`**, myba is simpler, has fewer dependencies,
+does text-content compression, and can use OpenSSL, whereas the former is tied to GPG.
 
 *[POSIX]: Portable Operating System Interface
 *[CLI]: Command Line Interface
