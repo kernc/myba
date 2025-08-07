@@ -16,9 +16,9 @@
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-JT9W3RXCJD"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-JT9W3RXCJD");</script>
 <style>
-html{line-height: 1.4em; font-family:sans-serif; background: repeating-linear-gradient(60deg, #F5F5F560 0 10px, #00640060 10px 80px, #9ACD3260 80px 120px, #556B2F60 120px 170px, #2F4F4F60 170px 190px, #F0E68C60 190px 200px, #6B8E2360 200px 220px ), repeating-linear-gradient(-60deg, #F5F5F560 0 10px, #00640060 10px 80px, #9ACD3260 80px 120px, #556B2F60 120px 170px, #2F4F4F60 170px 190px, #F0E68C60 190px 200px, #6B8E2360 200px 220px ), repeating-linear-gradient(180deg, #F5F5F560 0 10px, #00640060 10px 80px, #9ACD3260 80px 120px, #556B2F60 120px 170px, #2F4F4F60 170px 190px, #F0E68C60 190px 200px, #6B8E2360 200px 220px ), black;}
+html{line-height: 1.6em; font-family:sans-serif; background: repeating-linear-gradient(60deg, #F5F5F560 0 10px, #00640060 10px 80px, #9ACD3260 80px 120px, #556B2F60 120px 170px, #2F4F4F60 170px 190px, #F0E68C60 190px 200px, #6B8E2360 200px 220px ), repeating-linear-gradient(-60deg, #F5F5F560 0 10px, #00640060 10px 80px, #9ACD3260 80px 120px, #556B2F60 120px 170px, #2F4F4F60 170px 190px, #F0E68C60 190px 200px, #6B8E2360 200px 220px ), repeating-linear-gradient(180deg, #F5F5F560 0 10px, #00640060 10px 80px, #9ACD3260 80px 120px, #556B2F60 120px 170px, #2F4F4F60 170px 190px, #F0E68C60 190px 200px, #6B8E2360 200px 220px ), black;}
 article {background:#fffb; padding:2em; margin:auto; max-width: 900px;}
-pre {background:#fff8;}
+pre {background:#fff8; line-height:1.4em}
 code:not(pre code) {background:#fff8; padding: .2em .5em; white-space: nowrap;}
 ul li code:not(pre code):first-child {font-weight: bold;}
 h1,h2,h3,h4 {margin-top: 2em}
@@ -144,11 +144,12 @@ that <strong>large binaries don't change often</strong>.</p>
     Apple Time Machine,
     Google One, Photos &amp; Drive,
     Apple iCloud)
-    or software programs with <strong>complex, unfamiliar <abbr title="Command Line Interface">CLI</abbr> APIs or wide attack surfaces</strong>
+    or software programs with <strong>complex, unfamiliar <abbr title="Command Line Interface">CLI</abbr> APIs or wider attack surfaces</strong>
     (<a href="https://en.wikipedia.org/wiki/Bacula">Bacula</a>,
     <a href="https://borgbackup.readthedocs.io/en/stable/usage.html">Borg Backup</a>,
     <a href="https://restic.net">restic</a>,
-    <a href="https://www.agwa.name/projects/git-crypt/">git-crypt</a>) ...</li>
+    <a href="https://www.agwa.name/projects/git-crypt/">git-crypt</a>,
+    <a href="https://github.com/spwhitton/git-remote-gcrypt">git-remote-gcrypt</a>) ...</li>
 <li>Cloud-based serverless virii</li>
 <li><strong>Protocol- and PaaS-agnostic</strong> design
   (save to AWS, Backblaze B2, GitLab ...).
@@ -157,7 +158,7 @@ that <strong>large binaries don't change often</strong>.</p>
   <a href="https://rclone.org">rclone</a>) a git folder.</li>
 </ul>
 <h2 id="installation">Installation</h2>
-<p>To install everything on a Debian/Ubuntu-based system, run:</p>
+<p>To install on a Debian/Ubuntu-based system, run:</p>
 <pre><code class="language-sh"># Install dependencies
 # These should be preinstalled or available on most including cloud distros
 sudo apt install  coreutils gzip git git-lfs openssl gpg
@@ -290,13 +291,16 @@ with long and rigorous release / support cycles.</p>
 </div>
 </details>
 <details property="mainEntity" typeof="Question">
-<summary property="name"><b>How does myba differ</b> from other backup tools like Bacula, Borg, Duplicity, restic, luckyBackup and git-crypt?</summary>
+<summary property="name"><b>How does myba differ</b> from other backup tools?</summary>
 <div property="acceptedAnswer" typeof="Answer">
 <div property="text">
-<p>myba simply wraps raw git and is written in pure, standard <strong><abbr title="Portable Operating System Interface">POSIX</abbr> shell for maximum portability</strong>
-and ease of use. It's got the exactly familiar git <abbr title="Command Line Interface">CLI</abbr> <abbr title="Application Programming Interface">API</abbr>.</p>
-<p>myba does file-based (as opposed to block-based) differencing and encryption.</p>
-<p>Compared to git-crypt, <b>myba also encrypts the committed path/filenames</b> for maximum privacy.</p>
+<p>Compared to backup tools like Bacula, Borg, Duplicity, restic, luckyBackup, git-crypt and git-remote-gcrypt,
+myba simply wraps raw git and is written in pure, standard <strong><abbr title="Portable Operating System Interface">POSIX</abbr> shell for maximum portability</strong>
+and ease of use. It's got the exactly <strong>familiar <code>git</code> <abbr title="Command Line Interface">CLI</abbr> <abbr title="Application Programming Interface">API</abbr></strong>.</p>
+<p>Compared to most tools, myba does <strong>file-based</strong> (as opposed to block-based) <strong>differencing and encryption</strong>.</p>
+<p>Compared to <strong><code>git-crypt</code></strong>, <b>myba also encrypts the committed path/filenames</b> for maximum privacy.</p>
+<p>Compared to <strong><code>git-remote-gcrypt</code></strong>, myba is simpler, has fewer dependencies,
+does text-content compression, and can use OpenSSL, whereas the former is tied to GPG.</p>
 </div>
 </div>
 </details>
