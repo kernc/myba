@@ -102,8 +102,9 @@ that **large binaries don't change often**.
     [git-remote-gcrypt](https://github.com/spwhitton/git-remote-gcrypt)) ...
 * Cloud-based serverless virii
 * **Protocol- and PaaS-agnostic** design
-  (save to AWS, Backblaze B2, GitLab ...).
-  Simply add remote origins or sync (e.g.
+  (save to AWS S3 / Backblaze B2 with
+  [S3QL](https://github.com/s3ql/s3ql)).
+  Simply add remote origins (like GitLab) or sync anywhere (e.g.
   [rsync](https://en.wikipedia.org/wiki/Rsync),
   [rclone](https://rclone.org)) a git folder.
 
@@ -267,15 +268,20 @@ with long and rigorous release / support cycles.
 <div markdown="1" property="acceptedAnswer" typeof="Answer"><div markdown="1" property="text">
 
 Compared to backup tools like Bacula, Borg, Duplicity, restic, luckyBackup, git-crypt and git-remote-gcrypt,
-myba simply wraps raw git and is written in pure, standard **POSIX shell for maximum portability**
+`myba` simply wraps raw git and is written in pure, standard **POSIX shell for maximum portability**
 and ease of use. It's got the exactly **familiar `git` CLI API**.
 
-Compared to most tools, myba does **file-based** (as opposed to block-based) **differencing and encryption**.
+Compared to most tools, `myba` does **file-based (as opposed to fixed-size block-based) differencing and encryption**.
 
-Compared to **`git-crypt`**, <b>myba also encrypts the committed path/filenames</b> for maximum privacy.
+Compared to most tools, `myba` does on-the-fly compression of plain text data.
+
+Compared to **`git-crypt`**, <b markdown=1>`myba` also encrypts the committed path/filenames</b> for maximum privacy.
 
 Compared to **`git-remote-gcrypt`**, myba is simpler, has fewer dependencies,
-does text-content compression, and can use OpenSSL, whereas the former is tied to GPG.
+does text-content compression, and can use OpenSSL, whereas the former is tied with GPG.
+While `git-remote-gcrypt` only does public-key cryptography, `myba` supports
+[symmetric](https://en.wikipedia.org/wiki/Symmetric-key_algorithm)
+password-based encryption, so you can use a different password with every backup checkpoint.
 
 *[POSIX]: Portable Operating System Interface
 *[CLI]: Command Line Interface
