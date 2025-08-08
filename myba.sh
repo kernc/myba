@@ -62,7 +62,7 @@ mybabackup_dir='.mybabackup'
 usage () {
     echo "Usage: $0 <subcommand> [options]"
     echo "Subcommands:"
-    echo "  init                  Initialize repos in \$WORK_TREE (default: \$HOME)"
+    echo '  init                  Initialize repos in $WORK_TREE (default: $HOME)'
     echo "  add [OPTS] PATH...    Stage files for backup/version tracking"
     echo "  rm PATH...            Stage-remove files from future backups/version control"
     echo "  commit [OPTS]         Commit staged changes of tracked files as a snapshot"
@@ -77,10 +77,10 @@ usage () {
     echo "  status [OPTS]         Show git status of the plain repo"
     echo "  ls-files [OPTS]       Show current backup files"
     echo "  largest               List current backup files by file size, descending"
-    echo "  checkout PATH...      Sparse-checkout and decrypt files into \$WORK_TREE"
+    echo '  checkout PATH...      Sparse-checkout and decrypt files into $WORK_TREE'
     echo "  checkout COMMIT       Switch files to a commit of plain or encrypted repo"
     echo "  gc                    Garbage collect, remove synced encrypted packs"
-    echo "  pw                    Secure password input. Usage: PASSWORD=\"$(myba pw)\""
+    echo '  pw                    Secure password input. Usage: PASSWORD="$(myba pw)"'
     echo "  git CMD [OPTS]        Inspect/execute raw git commands inside plain repo"
     echo "  git_enc CMD [OPTS]    Inspect/execute raw git commands inside encrypted repo"
     echo
