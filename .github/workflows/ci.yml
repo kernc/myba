@@ -24,10 +24,8 @@ jobs:
       - run: time USE_GPG=1 ./smoke-test.sh
       - run: bash -c 'time ./smoke-test.sh'
       - run: zsh -c 'time ./smoke-test.sh'
-      - run: ksh -c 'time ./smoke-test.sh'  # XXX: Why this fails?
-        continue-on-error: true
+      - run: ksh -c 'time ./smoke-test.sh'
       - run: csh -c 'time ./smoke-test.sh'
-        continue-on-error: true  # XXX: Error: set: Variable name must begin with a letter.
 
 
   test-macos:
