@@ -152,8 +152,9 @@ that <strong>large binaries don't change often</strong>.</p>
     <a href="https://github.com/spwhitton/git-remote-gcrypt">git-remote-gcrypt</a>) ...</li>
 <li>Cloud-based serverless virii</li>
 <li><strong>Protocol- and PaaS-agnostic</strong> design
-  (save to AWS, Backblaze B2, GitLab ...).
-  Simply add remote origins or sync (e.g.
+  (save to AWS S3 / Backblaze B2 with
+  <a href="https://github.com/s3ql/s3ql">S3QL</a>).
+  Simply add remote origins (like GitLab) or sync anywhere (e.g.
   <a href="https://en.wikipedia.org/wiki/Rsync">rsync</a>,
   <a href="https://rclone.org">rclone</a>) a git folder.</li>
 </ul>
@@ -295,12 +296,16 @@ with long and rigorous release / support cycles.</p>
 <div property="acceptedAnswer" typeof="Answer">
 <div property="text">
 <p>Compared to backup tools like Bacula, Borg, Duplicity, restic, luckyBackup, git-crypt and git-remote-gcrypt,
-myba simply wraps raw git and is written in pure, standard <strong><abbr title="Portable Operating System Interface">POSIX</abbr> shell for maximum portability</strong>
+<code>myba</code> simply wraps raw git and is written in pure, standard <strong><abbr title="Portable Operating System Interface">POSIX</abbr> shell for maximum portability</strong>
 and ease of use. It's got the exactly <strong>familiar <code>git</code> <abbr title="Command Line Interface">CLI</abbr> <abbr title="Application Programming Interface">API</abbr></strong>.</p>
-<p>Compared to most tools, myba does <strong>file-based</strong> (as opposed to block-based) <strong>differencing and encryption</strong>.</p>
-<p>Compared to <strong><code>git-crypt</code></strong>, <b>myba also encrypts the committed path/filenames</b> for maximum privacy.</p>
+<p>Compared to most tools, <code>myba</code> does <strong>file-based (as opposed to fixed-size block-based) differencing and encryption</strong>.</p>
+<p>Compared to most tools, <code>myba</code> does on-the-fly compression of plain text data.</p>
+<p>Compared to <strong><code>git-crypt</code></strong>, <b markdown=1><code>myba</code> also encrypts the committed path/filenames</b> for maximum privacy.</p>
 <p>Compared to <strong><code>git-remote-gcrypt</code></strong>, myba is simpler, has fewer dependencies,
-does text-content compression, and can use OpenSSL, whereas the former is tied to GPG.</p>
+does text-content compression, and can use OpenSSL, whereas the former is tied with GPG.
+While <code>git-remote-gcrypt</code> only does public-key cryptography, <code>myba</code> supports
+<a href="https://en.wikipedia.org/wiki/Symmetric-key_algorithm">symmetric</a>
+password-based encryption, so you can use a different password with every backup checkpoint.</p>
 </div>
 </div>
 </details>
