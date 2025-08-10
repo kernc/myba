@@ -17,6 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: shellcheck -S warning *.sh
+      - run: sudo apt-get remove man-db
       - run: sudo apt-get install --no-install-recommends gzip git git-lfs openssl gpg
       - run: sudo apt-get install --no-install-recommends bash zsh ksh csh
       - run: time ./smoke-test.sh
@@ -47,6 +48,7 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+      - run: sudo apt-get remove man-db
       - run: sudo apt-get install aspell
       - run: .github/scripts/spellcheck.sh README.md
       - run: .github/scripts/spellcheck.sh README.full.md
