@@ -66,6 +66,9 @@ myba push
 export PAGER=
 myba log
 
+# Test to make https://github.com/kernc/myba/issues/1 easier to detect
+myba git_enc log || exit 15
+
 title 'Somewhere else, much, much later ...'
 
 WORK_TREE="$HOME/restore"  # From here on, $WORK_TREE overrides $HOME
