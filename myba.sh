@@ -261,6 +261,7 @@ cmd_init () {
     git_enc config fetch.parallel 4
     git_enc config advice.detachedHead false  # Subprocedures do detached-head checkouts
     git_enc config init.defaultBranch master
+    git_enc config core.commitGraph false
     # Set up default gitignore
     echo "$default_gitignore" > "$PLAIN_REPO/info/exclude"
 
