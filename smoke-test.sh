@@ -111,10 +111,10 @@ disk_usage
 max_size=4500  # Note, this appears to be CI-dependent
 case "$OSTYPE" in darwin*) max_size=$(( $max_size + 3000 )) ;; esac  # 🤷
 du -s -B 1K -t 500K "$HOME/foo" "$HOME/.myba" "$HOME/restore"
-size_on_disk="$(
+size_on_disk="$(($(
     du -s -B 1K -t 500K "$HOME/foo" "$HOME/.myba" "$HOME/restore" |
-    cut -f1 | paste -s -d + - | bc
-)"
+    cut -f1 | paste -s -d + -
+)))"
 test "$size_on_disk" -lt $max_size
 
 myba log
