@@ -22,7 +22,7 @@ export KDF_ITERS=100  # Much faster encryption
 
 # Prepare test
 # Isolate the smoke test from any WORK_TREE the user might have exported
-export WORK_TREE=
+unset WORK_TREE
 # $HOME is the default WORK_TREE dir
 HOME="$(mktemp -d -t myba-test-XXXXXXX)"
 export HOME
