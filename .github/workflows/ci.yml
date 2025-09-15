@@ -53,6 +53,7 @@ jobs:
       - run: pip install --user markdown
       - run: .github/scripts/build-website.sh
       - uses: peaceiris/actions-gh-pages@v4
+        if: github.event_name == 'push'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./output
