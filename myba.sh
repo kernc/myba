@@ -239,8 +239,8 @@ cmd_init () {
         "$ENC_REPO"/.git/hooks/*.sample
 
     # Configure
-    email="$USER@$(hostname 2>/dev/null || cat /etc/hostname)"
-    git_plain config user.name "$USER"
+    email="${USER-user}@$(hostname 2>/dev/null || cat /etc/hostname)"
+    git_plain config user.name "${USER-user}"
     git_plain config user.email "$email"
     git_plain config status.showUntrackedFiles no  # We don't care to see largely untracked $HOME  # XXX: remove this?
     git_plain config diff.renames "copies"  # Detect renames AND copies
@@ -249,7 +249,7 @@ cmd_init () {
     git_plain config advice.addIgnoredFile true  # Warn user to use `add -f` on gitignored file
     git_plain config advice.detachedHead false  # Subprocedures do detached-head checkouts
     git_plain config init.defaultBranch master
-    git_enc config user.name "$USER"
+    git_enc config user.name "${USER-user}"
     git_enc config user.email "$email"
     # All our files are strictly binary (encrypted)
     git_enc config core.bigFileThreshold 100
