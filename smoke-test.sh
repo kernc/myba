@@ -21,6 +21,8 @@ disk_usage () { du -t 10K -h "$HOME" | sort -h; }
 export KDF_ITERS=100  # Much faster encryption
 
 # Prepare test
+# Isolate the smoke test from any WORK_TREE the user might have exported
+unset WORK_TREE
 # $HOME is the default WORK_TREE dir
 HOME="$(mktemp -d -t myba-test-XXXXXXX)"
 export HOME
@@ -112,12 +114,12 @@ myba gc
 disk_usage
 # foo + .myba + restore + overhead (excludes: remote + remote2)
 max_size=4500  # Note, this appears to be CI-dependent
-case "$OSTYPE" in darwin*) max_size=$(( $max_size + 3000 )) ;; esac  # 🤷
+case "${OSTYPE-}" in darwin*) max_size=$(( $max_size + 3000 )) ;; esac  # 🤷
 du -s -B 1K -t 500K "$HOME/foo" "$HOME/.myba" "$HOME/restore"
-size_on_disk="$(
+size_on_disk="$(($(
     du -s -B 1K -t 500K "$HOME/foo" "$HOME/.myba" "$HOME/restore" |
-    cut -f1 | paste -s -d + - | bc
-)"
+    cut -f1 | paste -s -d + -
+)))"
 test "$size_on_disk" -lt $max_size
 
 myba log
