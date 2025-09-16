@@ -68,6 +68,9 @@ myba push
 export PAGER=
 myba log
 
+# Ensure git is still satisfied with the integrity of the encrypted repository after gc from `myba push`
+myba git_enc log || exit 15
+
 title 'Somewhere else, much, much later ...'
 
 WORK_TREE="$HOME/restore"  # From here on, $WORK_TREE overrides $HOME
