@@ -663,7 +663,7 @@ cmd_remote () {
 cmd_push () {
     if [ $# -eq 0 ]; then
         # With no args, push to all remotes
-        git_enc remote show -n |
+        git_enc remote show |
             while _read_vars _origin; do
                 # shellcheck disable=SC2154
                 git_enc push --verbose "$_origin" master
@@ -673,9 +673,15 @@ cmd_push () {
     fi
     git_enc fetch --refetch --all --verbose --no-write-fetch-head
 
-    # Remove redundant files including just-pushed packs
-    sleep .2  # Fix "fatal: gc is already running on machine"
-    cmd_gc
+    # If have some remotes and all of them are synced ...
+    if git_enc remote show | grep -q . &&
+            ! echo "$(git_enc ls-remote --heads 2>/dev/null)" |
+                cut -f1 | grep -vq "$(git_enc rev-parse HEAD)"; then
+        # Remove redundant files including just-pushed packs
+        sleep .2  # Fix "fatal: gc is already running on machine"
+        cmd_gc
+    else warn 'WARNING: Some remotes are not synced! Compare `myba git_enc rev-parse HEAD` to `myba git_enc ls-remote --heads`.'
+    fi
 }
 
 

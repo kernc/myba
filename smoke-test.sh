@@ -62,6 +62,10 @@ myba git status
 export PASSWORD=secret
 myba commit -m "message"
 
+# Test pushing before remotes are configured is a no-op (GH-4)
+myba push
+myba git_enc status
+
 myba remote add origin "$remote_git"
 myba remote add origin2 "$remote_git2"
 #myba push origin  # XXX: Fails on CI but wfm
