@@ -21,8 +21,9 @@ disk_usage () { du -t 10K -h "$HOME" | sort -h; }
 export KDF_ITERS=100  # Much faster encryption
 
 # Prepare test
-# Isolate the smoke test from any WORK_TREE the user might have exported
+# Isolate the smoke test from the user's exported environment
 unset WORK_TREE
+unset XDG_CONFIG_HOME  # Prevent using ~/.config/git/config for the test
 # $HOME is the default WORK_TREE dir
 HOME="$(mktemp -d -t myba-test-XXXXXXX)"
 export HOME
