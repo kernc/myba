@@ -2,11 +2,12 @@
 =====
 
 [![Build status](https://img.shields.io/github/actions/workflow/status/kernc/myba/ci.yml?branch=master&style=for-the-badge)](https://github.com/kernc/myba/actions)
+[![Coverage: 98%](https://img.shields.io/badge/Coverage-98%25-brightgreen?style=for-the-badge)](https://github.com/kernc/myba/actions)
 [![Language: shell / Bash](https://img.shields.io/badge/lang-Shell-peachpuff?style=for-the-badge)](https://github.com/kernc/myba)
 [![Source lines of code](https://img.shields.io/endpoint?url=https%3A%2F%2Fghloc.vercel.app%2Fapi%2Fkernc%2Fmyba%2Fbadge?filter=myba.sh%26format=human&style=for-the-badge&label=SLOC&color=skyblue)](https://ghloc.vercel.app/kernc/myba)
 [![Script size](https://img.shields.io/github/size/kernc/myba/myba.sh?style=for-the-badge&color=skyblue)](https://github.com/kernc/myba)
-[![Issues](https://img.shields.io/github/issues/kernc/myba?style=for-the-badge)](https://github.com/kernc/myba/issues)
-[![Sponsors](https://img.shields.io/github/sponsors/kernc?color=pink&style=for-the-badge)](https://github.com/sponsors/kernc)
+[![Issues](https://img.shields.io/github/issues/kernc/myba?style=for-the-badge&label=%F0%9F%AA%B2)](https://github.com/kernc/myba/issues)
+[![Sponsors](https://img.shields.io/github/sponsors/kernc?color=pink&style=for-the-badge&label=%e2%99%a5)](https://github.com/sponsors/kernc)
 
 [TOC]
 
@@ -25,12 +26,12 @@ Its only **dependencies are**:
 
 all of which you should find most popularly available.
 
-**Git does a great job of securely storing and tracking changes and backing up important documents.**
+**Git already does a great job of securely storing and tracking changes and backing up important documents.**
 It is popular,
 [feature-rich](https://git-man-page-generator.lokaltog.net/) and widely-deployed,
-but it doesn't on its own support encryption, which might be important if the backed-up data 
+but it doesn't on its own support encryption, which might be important if the backed-up data
 is going to be shared with untrusted (untrustworthy) third parties
-and their intermediary "data processors".
+and all their intermediary "data processors".
 One _could_ most simply set up an encryption-decryption process
 consisting of [**`clean` and `smudge` git filters** issued pre commits and post checkouts](https://git-scm.com/book/ms/v2/Customizing-Git-Git-Attributes#filters_a),
 respectively, but **git filters don't encrypt the tracked file paths / filenames**,
@@ -69,7 +70,7 @@ to all configured remotes
 (any `git remote`, such as a special folder or a cloud host),
 the **local encrypted blobs are deleted to save disk space**,
 relying on recently-stabilized
-[`git sparse-checkout`](https://git-scm.com/docs/git-sparse-checkout) and 
+[`git sparse-checkout`](https://git-scm.com/docs/git-sparse-checkout) and
 [partial `git clone --filter=blob:none`](https://git-scm.com/docs/partial-clone) features,
 all in all at a minimized and efficient space cost, best-suited to backing up
 text and configuration files, source code files, documents and pictures,
@@ -81,9 +82,7 @@ that **large binaries don't change often**.
 **Myba** is **Git + Shell**, preconfigured and wrapped as thinly as needed to provide
 **fully encrypted backups** that are really **easily replicated and synced**  to the cloud.
 
-<script async src="https://ssl.gstatic.com/trends_nrtr/4031_RC01/embed_loader.js"></script>
-<div id="trends"></div>
-<script>addEventListener("load", () => window.trends.embed.renderExploreWidgetTo(document.getElementById("trends"), "TIMESERIES", {"comparisonItem":[{"keyword":"/m/02mhh1","geo":"","time":"all"},{"keyword":"/m/05vqwg","geo":"","time":"all"},{"keyword":"/m/0ryppmg","geo":"","time":"all"},{"keyword":"myba","geo":"","time":"all"}],"category":0,"property":""}, {"exploreQuery":"date=all&q=%2Fm%2F02mhh1,%2Fm%2F05vqwg,%2Fm%2F0ryppmg,myba#TIMESERIES","guestPath":"https://trends.google.com:443/trends/embed/"}));</script>
+<iframe loading="lazy" style="display:block;width:100%;height:430px;border:1px solid silver" src="https://trends.google.com/trends/embed/explore/TIMESERIES?tz=0&req=%7B%22comparisonItem%22:[%7B%22keyword%22:%22/m/02mhh1%22,%22geo%22:%22%22,%22time%22:%22all%22},%7B%22keyword%22:%22/m/05vqwg%22,%22geo%22:%22%22,%22time%22:%22all%22},%7B%22keyword%22:%22/m/0ryppmg%22,%22geo%22:%22%22,%22time%22:%22all%22},%7B%22keyword%22:%22myba%22,%22geo%22:%22%22,%22time%22:%22all%22}],%22category%22:0,%22property%22:%22%22}"></iframe>
 
 
 ### Use-cases
@@ -92,7 +91,7 @@ that **large binaries don't change often**.
   * Replace or supplement existing **poor, complex, expensive, proprietary solutions**
     (like Veeam,
     Apple Time Machine,
-    Google One, Photos & Drive,
+    Google One,
     Apple iCloud)
     or software programs with **complex, unfamiliar CLI APIs or wider attack surfaces**
     ([Bacula](https://en.wikipedia.org/wiki/Bacula),

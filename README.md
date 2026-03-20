@@ -2,11 +2,12 @@
 =====
 
 [![Build status](https://img.shields.io/github/actions/workflow/status/kernc/myba/ci.yml?branch=master&style=for-the-badge)](https://github.com/kernc/myba/actions)
+[![Coverage: 98%](https://img.shields.io/badge/Coverage-98%25-brightgreen?style=for-the-badge)](https://github.com/kernc/myba/actions)
 [![Language: shell / Bash](https://img.shields.io/badge/lang-Shell-peachpuff?style=for-the-badge)](https://github.com/kernc/myba)
 [![Source lines of code](https://img.shields.io/endpoint?url=https://ghloc.vercel.app/api/kernc/myba/badge?filter=myba.sh$&style=for-the-badge&color=skyblue&label=SLOC)](https://github.com/kernc/myba)
 [![Script size](https://img.shields.io/github/size/kernc/myba/myba.sh?&&style=for-the-badge&color=skyblue)](https://github.com/kernc/myba)
-[![Issues](https://img.shields.io/github/issues/kernc/myba?style=for-the-badge)](https://github.com/kernc/myba/issues)
-[![Sponsors](https://img.shields.io/github/sponsors/kernc?color=pink&style=for-the-badge&label=%E2%99%A5)](https://github.com/sponsors/kernc)
+[![Issues](https://img.shields.io/github/issues/kernc/myba?style=for-the-badge&label=%F0%9F%AA%B2)](https://github.com/kernc/myba/issues)
+[![Sponsors](https://img.shields.io/github/sponsors/kernc?color=pink&style=for-the-badge&label=%e2%99%a5)](https://github.com/sponsors/kernc)
 
 **_Myba_** (pronounced: _mỹba_) **is an
 open-source, secure, distributed, version-controlled, encrypted
@@ -34,6 +35,7 @@ The script is considered _mostly_ feature-complete, but there remain
 bugs and design flaws to be discovered and ironed out, as well as any
 [TODOs and FIXMEs](https://github.com/search?q=repo%3Akernc%2Fmyba+%28todo+OR+fixme+OR+xxx%29&type=code)
 marked in the source.
+
 **All source code lines are open to discussion.**
 Especially appreciated are targets for simplification
 and value-added testing.
