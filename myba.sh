@@ -122,15 +122,13 @@ _read_vars () {
 cmd_pw () {
     stty -echo
     {
-        IFS= read -p "Enter encryption PASSWORD=: " -r PASSWORD
-        echo
+        IFS= read -p "Enter encryption PASSWORD=: " -r PASSWORD && echo >&2
         (
-            IFS= read -p "Repeat: " -r PASSWORD2
+            IFS= read -p "Repeat: " -r PASSWORD2 && echo >&2
             [ "$PASSWORD" = "$PASSWORD2" ] || { warn 'ERROR: Password mismatch!'; exit 1; }
         )
     } < /dev/tty
     stty echo
-    echo
     echo "$PASSWORD"
 }
 _ask_pw () {
