@@ -58,7 +58,7 @@ postamble='</article></main>
 <script>[...document.links].forEach(a => { if (a.hostname !== location.hostname) a.target = "_blank"; })</script>
 </body></html>'
 
-ext_config_file="$(dirname "$0")/markdown-ext-config.json"
+ext_config_file="${0%/*}/markdown-ext-config.json"
 {
     echo "$preamble"
     python -m markdown -v -o html -x extra -x toc -c "$ext_config_file" README.full.md

@@ -88,11 +88,11 @@ usage () {
     echo
     echo 'Env vars: WORK_TREE, PLAIN_REPO, PASSWORD, USE_GPG, VERBOSE, YES_OVERWRITE,'
     echo '          GIT_LFS_THRESH (in bytes)'
-    echo 'For a full list and info, see: https://kernc.github.io/myba/'
+    echo 'For a full list and info, see: https://kernc.github.io/myba/?utm_source=app'
     exit 1
 }
 
-warn () { echo "$(basename "$0" .sh): $*" >&2; }
+warn () { echo "${0##*/}: $*" >&2; }
 
 _tab="$(printf '\t')"
 
@@ -112,7 +112,7 @@ _git_enc_sparse_checkout_files () {
 }
 
 _is_binary_stream () { dd bs=8192 count=1 status=none | LC_ALL=C tr -dc '\000' | LC_ALL=C grep -qa .; }
-_mktemp () { mktemp -t "$(basename "$0" .sh)-XXXXXXX" "$@"; }
+_mktemp () { mktemp -t "${0##*/}-XXXXXXX" "$@"; }
 _file_size () { stat -c%s "$@" 2>/dev/null || stat -f%z "$@"; }
 _read_vars () {
     # https://unix.stackexchange.com/questions/418060/read-a-line-oriented-file-which-may-not-end-with-a-newline/418066#418066
@@ -172,7 +172,7 @@ _decrypt () { _pepper="$1"; shift; _with_pw_on_fd3 "$_pepper" $_decrypt_func "$@
 _encrypt_file () {
     _plain_path="$1"
     _enc_path="$2"
-    mkdir -p "$ENC_REPO/$(dirname "$_enc_path")"
+    mkdir -p "$ENC_REPO/${_enc_path%/*}"
     is_binary () { git_plain show "HEAD:$_plain_path" | _is_binary_stream; }
     compress_if_text () { if is_binary; then cat; else gzip -cv2; fi; }
     git_plain show "HEAD:$_plain_path" |
@@ -192,18 +192,19 @@ _decrypt_file () {
     fi
     decrypted_tmpfile="$(_mktemp)"
     _decrypt "$_plain_path" < "$ENC_REPO/$_enc_path" > "$decrypted_tmpfile"
-    mkdir -p "$(dirname "$WORK_TREE/$_plain_path")"
+    abs_path="$WORK_TREE/$_plain_path"
+    mkdir -p "${abs_path%/*}"
     if gzip -t "$decrypted_tmpfile" >/dev/null 2>&1; then
         gzip -dcv < "$decrypted_tmpfile"
     else
         cat "$decrypted_tmpfile"
-    fi > "$WORK_TREE/$_plain_path"
+    fi > "$abs_path"
     rm "$decrypted_tmpfile"
 }
 _decrypt_manifests () {
     status=0
     for file in "$ENC_REPO"/manifest/*; do
-        fname="$(basename "$file")"
+        fname="${file##*/}"
         _decrypt "" < "$file" | gzip -dc > "$PLAIN_REPO/manifest/$fname"
         if _is_binary_stream < "$PLAIN_REPO/manifest/$fname"; then
             warn "WARNING: Likely invalid decryption password for commit '$fname', or your manifest file contains binary paths."
@@ -567,8 +568,8 @@ _encrypt_commit_plain_head_files () {
     # If first commit, add self
     if ! git_enc rev-parse master 2>/dev/null; then
         _self="$(command -v "$0" 2>/dev/null || echo "$0")"
-        cp "$_self" "$ENC_REPO/$(basename "$_self")"
-        git_enc add -vf --sparse "$(basename "$_self")"
+        cp "$_self" "$ENC_REPO/${_self##*/}"
+        git_enc add -vf --sparse "${_self##*/}"
     fi
 
     # Stage new manifest

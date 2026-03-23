@@ -9,7 +9,7 @@ PS4="$(
 export PS4
 export LC_ALL=C
 
-_libdir="$(dirname "$0")/.."
+_libdir="${0%/*}/.."
 
 shell="$(ps -p $$ -o comm=)"
 case "$shell" in bash|-bash|dash|-dash|zsh|-zsh|sh|-sh) ;; *) shell= ;; esac
