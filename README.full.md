@@ -218,7 +218,7 @@ myba checkout ".dotfile" # Restore backed up files in a space-efficient manner
 myba pull  # Sync encrypted remote
 myba decrypt  # Restore plain commits (original files)
 ```
-See [_smoke-test.sh_](https://github.com/kernc/myba/blob/master/smoke-test.sh) file for a more full example & test case!
+See [_test_smoke.sh_](https://github.com/kernc/myba/blob/master/tests/test_smoke.sh) file for a more full example & test case!
 
 
 Contributing

@@ -20,12 +20,12 @@ jobs:
       - run: sudo apt-get remove man-db
       - run: sudo apt-get install --no-install-recommends gzip git git-lfs openssl gpg
       - run: sudo apt-get install --no-install-recommends bash zsh ksh csh
-      - run: time ./smoke-test.sh
-      - run: time USE_GPG=1 ./smoke-test.sh
-      - run: bash -c 'time ./smoke-test.sh'
-      - run: zsh -c 'time ./smoke-test.sh'
-      - run: ksh -c 'time ./smoke-test.sh'
-      - run: csh -c 'time ./smoke-test.sh'
+      - run: time tests/test_smoke.sh
+      - run: time USE_GPG=1 tests/test_smoke.sh
+      - run: bash -c 'time tests/test_smoke.sh'
+      - run: zsh -c 'time tests/test_smoke.sh'
+      - run: ksh -c 'time tests/test_smoke.sh'
+      - run: csh -c 'time tests/test_smoke.sh'
 
 
   test-macos:
@@ -35,7 +35,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: brew install coreutils
-      - run: ./smoke-test.sh
+      - run: tests/test_smoke.sh
 
 
   deploy-docs:

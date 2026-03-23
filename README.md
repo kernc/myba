@@ -26,7 +26,7 @@ all of which you should find most popularly available.
 
 ### **Learn more** about the project on [**`myba` backup project website**](https://kernc.github.io/myba/).
 
-See [_smoke-test.sh_](https://github.com/kernc/myba/blob/master/smoke-test.sh) for a covering example / test case!
+See [_test_smoke.sh_](https://github.com/kernc/myba/blob/master/tests/test_smoke.sh) for a covering example / test case!
 
 
 Contributing
