@@ -157,6 +157,7 @@ Subcommands:
   largest               List current backup files by file size, descending
   checkout PATH...      Sparse-checkout and decrypt files into $WORK_TREE
   checkout COMMIT       Switch files to a commit of plain or encrypted repo
+  switch [BRANCH]       Switch branch on both repos
   gc                    Garbage collect, remove synced encrypted packs
   pw [check]            Secure password input. Usage: PASSWORD="$(myba pw)"
   git CMD [OPTS]        Inspect/execute raw git commands inside plain repo
@@ -371,7 +372,12 @@ Afterwards, whenever you invoke `myba commit`,  any newly added or changed files
 in that directory are staged for that snapshot / commit.
 
 </div></div></details>
-
+<details markdown="1" property="mainEntity" typeof="Question">
+<summary property="name">How to manage multiple distinct backup "vaults"?</summary>
+<div markdown="1" property="acceptedAnswer" typeof="Answer"><div markdown="1" property="text">
+Simply reuse git branching with `myba switch [BRANCH]`.
+Used without arguments prints all the branches.
+</div></div></details>
 <details markdown="1" property="mainEntity" typeof="Question">
 <summary property="name"><b>Something failed</b>. How do I <b>debug, investigate, and recover</b>?</summary>
 <div markdown="1" property="acceptedAnswer" typeof="Answer"><div markdown="1" property="text">

@@ -17,8 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: shellcheck -S warning *.sh
-      - run: sudo apt-get remove man-db
-      - run: sudo apt-get install --no-install-recommends gzip git git-lfs openssl gpg
+      - run: sudo apt-get install --no-install-recommends man-db- gzip git git-lfs openssl gpg
       - run: sudo apt-get install --no-install-recommends bash zsh ksh csh
       - run: time tests/test_smoke.sh
       - run: time USE_GPG=1 tests/test_smoke.sh
@@ -26,6 +25,7 @@ jobs:
       - run: zsh -c 'time tests/test_smoke.sh'
       - run: ksh -c 'time tests/test_smoke.sh'
       - run: csh -c 'time tests/test_smoke.sh'
+      - run: time tests/test_switch.sh
 
 
   test-macos:

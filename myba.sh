@@ -79,6 +79,7 @@ usage () {
     echo "  largest               List current backup files by file size, descending"
     echo '  checkout PATH...      Sparse-checkout and decrypt files into $WORK_TREE'
     echo "  checkout COMMIT       Switch files to a commit of plain or encrypted repo"
+    echo "  switch [BRANCH]       Switch branch on both repos"
     echo "  gc                    Garbage collect, remove synced encrypted packs"
     echo '  pw [check]            Secure password input. Usage: PASSWORD="$(myba pw)"'
     echo "  git CMD [OPTS]        Inspect/execute raw git commands inside plain repo"
@@ -247,8 +248,8 @@ EOF
 cmd_init () {
     # Init both dirs repos
     mkdir -p "$PLAIN_REPO" "$ENC_REPO"
-    git -C "$PLAIN_REPO" init -b master --bare
-    git -C "$ENC_REPO"   init -b master
+    git -C "$PLAIN_REPO" init -b main --bare
+    git -C "$ENC_REPO"   init -b main
     mkdir -p "$PLAIN_REPO/manifest" \
             "$ENC_REPO/manifest"
     # Don't pollute du
@@ -265,7 +266,7 @@ cmd_init () {
     git_plain config core.excludesfile ""  # Don't look at $XDG_CONFIG_HOME/git/ignore
     git_plain config advice.addIgnoredFile true  # Warn user to use `add -f` on gitignored file
     git_plain config advice.detachedHead false  # Subprocedures do detached-head checkouts
-    git_plain config init.defaultBranch master
+    git_plain config init.defaultBranch main
     git_enc config user.name "${USER-user}"
     git_enc config user.email "$email"
     # All our files are strictly binary (encrypted)
@@ -277,7 +278,7 @@ cmd_init () {
     git_enc config push.followTags true
     git_enc config fetch.parallel 4
     git_enc config advice.detachedHead false  # Subprocedures do detached-head checkouts
-    git_enc config init.defaultBranch master
+    git_enc config init.defaultBranch main
     git_enc config core.commitGraph false  # File deletions performed by cmd_gc are not compatible with having a commit graph
     # Set up default gitignore
     echo "$default_gitignore" > "$PLAIN_REPO/info/exclude"
@@ -291,7 +292,7 @@ cmd_init () {
 
 cmd_clone () {
     mkdir -p "$ENC_REPO"
-    git clone --filter=blob:none --sparse -v "$1" "$ENC_REPO"
+    git clone --filter=blob:none --sparse -v -b main "$1" "$ENC_REPO"
     cmd_init
     _ask_pw
     _decrypt_manifests
@@ -333,8 +334,9 @@ cmd_decrypt () {
             WORK_TREE="$temp_dir" git_plain commit -m "Restore '$1' at $(date '+%Y-%m-%d %H:%M:%S%z')"
         fi
     else
-        quiet _trap_append "git_enc checkout --force master" INT HUP TERM EXIT
-        git_enc rev-list --reverse master |
+        cur_branch="$(git_plain branch --show-current)"
+        quiet _trap_append "git_enc checkout --force '$cur_branch'" INT HUP TERM EXIT
+        git_enc rev-list --reverse HEAD |
             while IFS= _read_vars _enc_commit; do
                 # shellcheck disable=SC2154
                 git_enc checkout --force "$_enc_commit"
@@ -382,9 +384,10 @@ cmd_reencrypt() {
     _rm_tmp "$temp_dir"
     WORK_TREE="$temp_dir"  # Don't switcheroo "live" config files!
 
-    quiet _trap_append "git_plain checkout --force master" INT HUP TERM EXIT
+    cur_branch="$(git_plain branch --show-current)"
+    quiet _trap_append "git_plain checkout --force '$cur_branch'" INT HUP TERM EXIT
     # Loop through plain commit hashes and checkout & cmd_commit
-    git_plain rev-list --reverse master |
+    git_plain rev-list --reverse HEAD |
         while _read_vars commit_hash; do
             # shellcheck disable=SC2154
             git_plain checkout "$commit_hash"
@@ -580,7 +583,7 @@ _encrypt_commit_plain_head_files () {
     }
 
     # If first commit, add self
-    if ! git_enc rev-parse master 2>/dev/null; then
+    if ! git_enc rev-parse HEAD 2>/dev/null; then
         _self="$(command -v "$0" 2>/dev/null || echo "$0")"
         cp "$_self" "$ENC_REPO/${_self##*/}"
         git_enc add -vf --sparse "${_self##*/}"
@@ -647,6 +650,40 @@ _checkout_file () {
 }
 
 
+cmd_switch () {
+    branch="${1-}"
+    [ "$branch" ] || {
+        export PAGER=
+        git_plain branch
+        [ "$(git_plain branch)" != "$(git_enc branch)" ] &&
+            echo 'Encrypted branches:' >&2 &&
+            git_enc branch >&2
+        return 0
+    }
+    if git_plain show-ref --verify --quiet "refs/heads/$branch"; then
+        # Switch branches and index but without touching anything in work tree!
+        cur_branch="$(git_plain branch --show-current)"
+        git_plain symbolic-ref -m "myba switch $cur_branch -> $branch" HEAD "refs/heads/$branch"
+        git_plain read-tree --reset "$branch"
+
+        true | _git_enc_sparse_checkout_files
+        git_enc checkout --force --quiet "$branch"
+
+        _ask_pw
+        _decrypt_manifests
+    elif git_enc show-ref --verify --quiet "refs/heads/$branch"; then
+        true | _git_enc_sparse_checkout_files
+        git_enc checkout --force "$branch"
+
+        cmd_decrypt
+    else
+        # New vault
+        git_plain checkout --orphan "$branch" && git_plain reset --quiet
+        git_enc checkout --orphan "$branch" --quiet && git_enc reset --quiet
+    fi
+}
+
+
 cmd_rm() {
     _is_error=
     for _path in "$@"; do
@@ -676,11 +713,11 @@ cmd_remote () {
 
 cmd_push () {
     if [ $# -eq 0 ]; then
-        # With no args, push to all remotes
+        # With no args, push current branch to all remotes
         git_enc remote show |
             while _read_vars _origin; do
                 # shellcheck disable=SC2154
-                git_enc push --verbose "$_origin" master
+                git_enc push --verbose "$_origin" HEAD
             done
     else
         git_enc push --verbose "$@"
@@ -857,6 +894,7 @@ case "$cmd" in
     ls-files) verbose cmd_lsfiles "$@" ;;
     largest) verbose cmd_largest "$@" ;;
     checkout) verbose cmd_checkout "$@" ;;
+    switch) verbose cmd_switch "$@" ;;
     gc) verbose cmd_gc "$@" ;;
     pw) verbose cmd_pw "$@" ;;
     git_enc) verbose git_enc "$@" ;;
