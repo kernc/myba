@@ -158,7 +158,7 @@ Subcommands:
   checkout PATH...      Sparse-checkout and decrypt files into $WORK_TREE
   checkout COMMIT       Switch files to a commit of plain or encrypted repo
   gc                    Garbage collect, remove synced encrypted packs
-  pw                    Secure password input. Usage: PASSWORD="$(myba pw)"
+  pw [check]            Secure password input. Usage: PASSWORD="$(myba pw)"
   git CMD [OPTS]        Inspect/execute raw git commands inside plain repo
   git_enc CMD [OPTS]    Inspect/execute raw git commands inside encrypted repo
 

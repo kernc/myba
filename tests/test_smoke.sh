@@ -62,6 +62,10 @@ myba git status
 export PASSWORD=secret
 myba commit -m "message"
 
+# Check correct and incorrect password
+myba pw check
+! PASSWORD=incorrect myba pw check
+
 # Test pushing before remotes are configured is a no-op (GH-4)
 myba push
 myba git_enc status

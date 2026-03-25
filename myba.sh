@@ -80,7 +80,7 @@ usage () {
     echo '  checkout PATH...      Sparse-checkout and decrypt files into $WORK_TREE'
     echo "  checkout COMMIT       Switch files to a commit of plain or encrypted repo"
     echo "  gc                    Garbage collect, remove synced encrypted packs"
-    echo '  pw                    Secure password input. Usage: PASSWORD="$(myba pw)"'
+    echo '  pw [check]            Secure password input. Usage: PASSWORD="$(myba pw)"'
     echo "  git CMD [OPTS]        Inspect/execute raw git commands inside plain repo"
     echo "  git_enc CMD [OPTS]    Inspect/execute raw git commands inside encrypted repo"
     echo
@@ -120,6 +120,7 @@ _read_vars () {
 }
 
 cmd_pw () {
+    if [ "${1-}" = 'check' ]; then _cmd_pw_check; return; fi
     stty -echo
     {
         IFS= read -p "Enter encryption PASSWORD=: " -r PASSWORD && echo >&2
@@ -130,6 +131,23 @@ cmd_pw () {
     } < /dev/tty
     stty echo
     echo "$PASSWORD"
+}
+_cmd_pw_check () {
+    _ask_pw
+    status=0
+    decrypted_tmpfile="$(_mktemp)"
+    _trap_append "rm -f \"$decrypted_tmpfile\""
+    for file in "$ENC_REPO"/manifest/*; do
+        if _decrypt "" < "$file" > "$decrypted_tmpfile"
+                gzip -dc < "$decrypted_tmpfile" 2>/dev/null | grep -q "$_tab"; then
+            echo "${file##*/}: OK"
+        else
+            echo "${file##*/}: FAIL"
+            status=1
+        fi
+    done
+    rm "$decrypted_tmpfile"
+    return $status
 }
 _ask_pw () {
     if [ -z "${PASSWORD+1}" ]; then
