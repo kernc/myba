@@ -61,29 +61,33 @@ mybabackup_dir='.mybabackup'
 
 usage () {
     echo "Usage: $0 <subcommand> [options]"
-    echo "Subcommands:"
+    echo 'Subcommands:'
     echo '  init                  Initialize repos in $WORK_TREE (default: $HOME)'
-    echo "  add [OPTS] PATH...    Stage files for backup/version tracking"
-    echo "  rm PATH...            Stage-remove files from future backups/version control"
-    echo "  commit [OPTS]         Commit staged changes of tracked files as a snapshot"
-    echo "  push [REMOTE]         Push encrypted repo to remote repo(s) (default: all)"
-    echo "  pull [REMOTE]         Pull encrypted commits from a promisor remote"
-    echo "  clone REPO_URL        Clone an encrypted repo and init from it"
-    echo "  remote CMD [OPTS]     Manage remotes of the encrypted repo"
-    echo "  decrypt [--squash]    Reconstruct plain repo commits from encrypted commits"
-    echo "  reencrypt             Reencrypt plain repo commits with a new password"
-    echo "  diff [OPTS]           Compare changes between plain repo revisions"
-    echo "  log [OPTS]            Show commit log of the plain repo"
-    echo "  status [OPTS]         Show git status of the plain repo"
-    echo "  ls-files [OPTS]       Show current backup files"
-    echo "  largest               List current backup files by file size, descending"
+    echo '  clone REPO_URL        Clone an encrypted repo and init from it'
+    echo '  remote CMD [OPTS]     Manage git remotes of the encrypted repo'
+    echo '  switch [BRANCH]       Switch orphan branches (vaults) on both repos'
+    echo
+    echo '  add [OPTS] PATH...    Stage files for backup / version tracking'
+    echo '  rm PATH...            Stage-remove files from future backups / versioning'
+    echo '  commit [OPTS]         Commit staged changes of tracked files as a snapshot'
     echo '  checkout PATH...      Sparse-checkout and decrypt files into $WORK_TREE'
-    echo "  checkout COMMIT       Switch files to a commit of plain or encrypted repo"
-    echo "  switch [BRANCH]       Switch branch on both repos"
-    echo "  gc                    Garbage collect, remove synced encrypted packs"
+    echo '  checkout COMMIT       Switch files to a commit of plain or encrypted repo'
+    echo
+    echo '  status [OPTS]         Show git status of the plain repo'
+    echo '  diff [OPTS]           Compare changes between plain repo revisions'
+    echo '  log [OPTS]            Show commit log of the plain repo'
+    echo '  ls-files [OPTS]       Show current backup files in the plain repo'
+    echo '  largest               List current backup files by file size, descending'
+    echo
+    echo '  push [REMOTE]         Push encrypted repo to remote repo(s) (default: all)'
+    echo '  pull [REMOTE]         Pull encrypted commits from a promisor remote'
+    echo '  decrypt [--squash]    Reconstruct plain repo commits from the encrypted'
+    echo '  reencrypt             Reencrypt plain repo commits with a new password'
+    echo '  gc                    Remove synced encrypted packs'
+    echo
     echo '  pw [check]            Secure password input. Usage: PASSWORD="$(myba pw)"'
-    echo "  git CMD [OPTS]        Inspect/execute raw git commands inside plain repo"
-    echo "  git_enc CMD [OPTS]    Inspect/execute raw git commands inside encrypted repo"
+    echo '  git CMD [OPTS]        Exec raw git commands inside local plain repo'
+    echo '  git_enc CMD [OPTS]    Exec raw git commands inside synced encrypted repo'
     echo
     echo 'PLAIN repo  <--encryption-->  ENCRYPTED repo  <--synced with-->  git REMOTE'
     echo

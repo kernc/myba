@@ -141,27 +141,31 @@ Most subcommands pass obtained arguments and options (`"$@"`) straight to matchi
 Usage: myba <subcommand> [options]
 Subcommands:
   init                  Initialize repos in $WORK_TREE (default: $HOME)
-  add [OPTS] PATH...    Stage files for backup/version tracking
-  rm PATH...            Stage-remove files from future backups/version control
-  commit [OPTS]         Commit staged changes of tracked files as a snapshot
-  push [REMOTE]         Push encrypted repo to remote repo(s) (default: all)
-  pull [REMOTE]         Pull encrypted commits from a promisor remote
   clone REPO_URL        Clone an encrypted repo and init from it
-  remote CMD [OPTS]     Manage remotes of the encrypted repo
-  decrypt [--squash]    Reconstruct plain repo commits from encrypted commits
-  reencrypt             Reencrypt plain repo commits with a new password
-  diff [OPTS]           Compare changes between plain repo revisions
-  log [OPTS]            Show commit log of the plain repo
-  status [OPTS]         Show git status of the plain repo
-  ls-files [OPTS]       Show current backup files
-  largest               List current backup files by file size, descending
+  remote CMD [OPTS]     Manage git remotes of the encrypted repo
+  switch [BRANCH]       Switch orphan branches (vaults) on both repos
+
+  add [OPTS] PATH...    Stage files for backup / version tracking
+  rm PATH...            Stage-remove files from future backups / versioning
+  commit [OPTS]         Commit staged changes of tracked files as a snapshot
   checkout PATH...      Sparse-checkout and decrypt files into $WORK_TREE
   checkout COMMIT       Switch files to a commit of plain or encrypted repo
-  switch [BRANCH]       Switch branch on both repos
-  gc                    Garbage collect, remove synced encrypted packs
+
+  status [OPTS]         Show git status of the plain repo
+  diff [OPTS]           Compare changes between plain repo revisions
+  log [OPTS]            Show commit log of the plain repo
+  ls-files [OPTS]       Show current backup files in the plain repo
+  largest               List current backup files by file size, descending
+
+  push [REMOTE]         Push encrypted repo to remote repo(s) (default: all)
+  pull [REMOTE]         Pull encrypted commits from a promisor remote
+  decrypt [--squash]    Reconstruct plain repo commits from the encrypted
+  reencrypt             Reencrypt plain repo commits with a new password
+  gc                    Remove synced encrypted packs
+
   pw [check]            Secure password input. Usage: PASSWORD="$(myba pw)"
-  git CMD [OPTS]        Inspect/execute raw git commands inside plain repo
-  git_enc CMD [OPTS]    Inspect/execute raw git commands inside encrypted repo
+  git CMD [OPTS]        Exec raw git commands inside local plain repo
+  git_enc CMD [OPTS]    Exec raw git commands inside synced encrypted repo
 
 PLAIN repo  <--encryption-->  ENCRYPTED repo  <--synced with-->  git REMOTE
 
@@ -178,7 +182,7 @@ The script also acknowledges a few **environment variables** which you can _set_
 * `WORK_TREE=` The root of the volume that contains important documents (such as dotfiles)
   to back up or restore to. If unspecified, `$HOME`.
 * `PLAIN_REPO=` The _internal_ directory where myba actually stores both its repositories.
-  Defaults to `$WORK_TREE/.myba` but can be overriden to somewhere out-of-tree ...
+  Defaults to `$WORK_TREE/.myba` but can be overriden to somewhere else including out-of-tree ...
 * `PASSWORD=` The password to use for encryption instead of asking / reading from stdin.
 * `USE_GPG=` Myba uses `openssl enc` by default, but if you prefer to use GPG even for
   symmetric encryption, set `USE_GPG=1`.
