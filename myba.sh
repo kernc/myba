@@ -455,7 +455,7 @@ _parallelize () {
         } 1>"$tmpdir/out" 2>"$tmpdir/err" &
         quiet _track_job
         # Keep pid-based references to stdout/stderr
-        while [ ! -f "$tmpdir/out" ] && [ ! -f "$tmpdir/err" ]; do sleep .01; done
+        while [ ! -f "$tmpdir/out" ] || [ ! -f "$tmpdir/err" ]; do sleep .01; done
         mv "$tmpdir/out" "$tmpdir/out.$!"
         mv "$tmpdir/err" "$tmpdir/err.$!"
     done
