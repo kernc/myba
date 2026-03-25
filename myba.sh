@@ -267,12 +267,18 @@ cmd_init () {
     git_plain config status.showUntrackedFiles no  # We don't care to see largely untracked $HOME  # XXX: remove this?
     git_plain config diff.renames "copies"  # Detect renames AND copies
     git_plain config diff.renameLimit 100000
+    git_plain config checkout.workers 8
+    git_plain config checkout.thresholdForParallelism 20
     git_plain config core.excludesfile ""  # Don't look at $XDG_CONFIG_HOME/git/ignore
     git_plain config advice.addIgnoredFile true  # Warn user to use `add -f` on gitignored file
     git_plain config advice.detachedHead false  # Subprocedures do detached-head checkouts
+    git_plain config advice.forceDeleteBranch false  # Avoid "error: the branch 'foo' is not fully merged"
     git_plain config init.defaultBranch main
     git_enc config user.name "${USER-user}"
     git_enc config user.email "$email"
+    git_enc config fetch.parallel 4
+    git_enc config checkout.workers 8
+    git_enc config checkout.thresholdForParallelism 20
     # All our files are strictly binary (encrypted)
     git_enc config core.bigFileThreshold 100
     git_enc config diff.renames "copies"
@@ -280,8 +286,8 @@ cmd_init () {
     git_enc config push.autoSetupRemote true
     git_enc config push.default current
     git_enc config push.followTags true
-    git_enc config fetch.parallel 4
     git_enc config advice.detachedHead false  # Subprocedures do detached-head checkouts
+    git_enc config advice.forceDeleteBranch false  # Avoid "error: the branch 'foo' is not fully merged"
     git_enc config init.defaultBranch main
     git_enc config core.commitGraph false  # File deletions performed by cmd_gc are not compatible with having a commit graph
     # Set up default gitignore
