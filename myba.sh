@@ -112,7 +112,8 @@ _git_enc_sparse_checkout_files () {
 }
 
 _is_binary_stream () { dd bs=8192 count=1 status=none | LC_ALL=C tr -dc '\000' | LC_ALL=C grep -qa .; }
-_mktemp () { mktemp -t "${0##*/}-XXXXXXX" "$@"; }
+_mktemp () { mktemp -t "${0##*/}-$$-XXXXXXX" "$@"; }
+_rm_tmp () { _trap_append "rm -rf \"$1\"" INT HUP TERM EXIT; }
 _file_size () { stat -c%s "$@" 2>/dev/null || stat -f%z "$@"; }
 _read_vars () {
     # https://unix.stackexchange.com/questions/418060/read-a-line-oriented-file-which-may-not-end-with-a-newline/418066#418066
@@ -136,7 +137,7 @@ _cmd_pw_check () {
     _ask_pw
     status=0
     decrypted_tmpfile="$(_mktemp)"
-    _trap_append "rm -f \"$decrypted_tmpfile\""
+    _rm_tmp "$decrypted_tmpfile"
     for file in "$ENC_REPO"/manifest/*; do
         if _decrypt "" < "$file" > "$decrypted_tmpfile"
                 gzip -dc < "$decrypted_tmpfile" 2>/dev/null | grep -q "$_tab"; then
@@ -146,7 +147,6 @@ _cmd_pw_check () {
             status=1
         fi
     done
-    rm "$decrypted_tmpfile"
     return $status
 }
 _ask_pw () {
@@ -209,6 +209,7 @@ _decrypt_file () {
         case "$_choice" in [Yy]*) ;; *) warn "Skipping '$WORK_TREE/$_plain_path'"; return 0 ;; esac
     fi
     decrypted_tmpfile="$(_mktemp)"
+    _rm_tmp "$decrypted_tmpfile"
     _decrypt "$_plain_path" < "$ENC_REPO/$_enc_path" > "$decrypted_tmpfile"
     abs_path="$WORK_TREE/$_plain_path"
     mkdir -p "${abs_path%/*}"
@@ -217,7 +218,6 @@ _decrypt_file () {
     else
         cat "$decrypted_tmpfile"
     fi > "$abs_path"
-    rm "$decrypted_tmpfile"
 }
 _decrypt_manifests () {
     status=0
@@ -311,8 +311,7 @@ cmd_decrypt () {
         git_plain gc --prune=now --aggressive
     fi
     temp_dir="$(_mktemp -d)"
-    # shellcheck disable=SC2064
-    trap "rm -rf \"$temp_dir\"" INT HUP TERM EXIT
+    _rm_tmp "$temp_dir"
 
     have_commitable_changes () { WORK_TREE="$temp_dir" git_plain diff --staged --quiet; }
     decrypt_one () { WORK_TREE="$temp_dir" YES_OVERWRITE=1 _decrypt_file "$1" "$2"; }
@@ -380,9 +379,7 @@ cmd_reencrypt() {
     mkdir -p "$ENC_REPO/manifest"
 
     temp_dir="$(_mktemp -d)"
-    # shellcheck disable=SC2064
-    quiet _trap_append "rm -rvf \"$temp_dir\"" INT HUP TERM EXIT
-
+    _rm_tmp "$temp_dir"
     WORK_TREE="$temp_dir"  # Don't switcheroo "live" config files!
 
     quiet _trap_append "git_plain checkout --force master" INT HUP TERM EXIT
@@ -433,9 +430,8 @@ _parallelize () {
     _func="$3"  # Func to pass args and values to
     shift 3
 
-    tmpdir="$PLAIN_REPO/parallelize.$$"
-    mkdir -p "$tmpdir"
-    quiet _trap_append "rm -rfv \"$tmpdir\"" INT HUP TERM EXIT
+    tmpdir="$(_mktemp -d)"
+    _rm_tmp "$tmpdir"
     # Init a FIFO semaphore
     fifo="$tmpdir/semaphore"
     mkfifo "$fifo"
@@ -621,7 +617,8 @@ cmd_checkout() {
     else
         # Otherwise, assume the arguments are paths to files/directories
         working_manifest="$PLAIN_REPO/checkout.$$"
-        _trap_append "rm -v \"$working_manifest\"" INT HUP TERM EXIT
+        working_manifest="$(_mktemp)"
+        _rm_tmp "$working_manifest"
         for file in "$@"; do
             grep -REIh "$_tab$file"'($|/)' "$PLAIN_REPO/manifest"
         done | sort -u > "$working_manifest"
