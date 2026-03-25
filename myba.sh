@@ -131,7 +131,7 @@ cmd_pw () {
         )
     } < /dev/tty
     stty echo
-    echo "$PASSWORD"
+    [ -t 1 ] || echo "$PASSWORD"
 }
 _cmd_pw_check () {
     _ask_pw
