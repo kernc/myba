@@ -140,7 +140,7 @@ Most subcommands pass obtained arguments and options (`"$@"`) straight to matchi
 ```text
 Usage: myba <subcommand> [options]
 Subcommands:
-  init                  Initialize repos in $WORK_TREE (default: $HOME)
+  init [OPTS]           Initialize repos in $WORK_TREE (default: $HOME)
   clone REPO_URL        Clone an encrypted repo and init from it
   remote CMD [OPTS]     Manage git remotes of the encrypted repo
   switch [BRANCH]       Switch orphan branches (vaults) on both repos

@@ -62,7 +62,7 @@ mybabackup_dir='.mybabackup'
 usage () {
     echo "Usage: $0 <subcommand> [options]"
     echo 'Subcommands:'
-    echo '  init                  Initialize repos in $WORK_TREE (default: $HOME)'
+    echo '  init [OPTS]           Initialize repos in $WORK_TREE (default: $HOME)'
     echo '  clone REPO_URL        Clone an encrypted repo and init from it'
     echo '  remote CMD [OPTS]     Manage git remotes of the encrypted repo'
     echo '  switch [BRANCH]       Switch orphan branches (vaults) on both repos'
@@ -252,12 +252,12 @@ EOF
 cmd_init () {
     # Init both dirs repos
     mkdir -p "$PLAIN_REPO" "$ENC_REPO"
-    git -C "$PLAIN_REPO" init -b main --bare
-    git -C "$ENC_REPO"   init -b main
+    git -C "$PLAIN_REPO" init --bare "$@"
+    git -C "$ENC_REPO"   init "$@"
     mkdir -p "$PLAIN_REPO/manifest" \
             "$ENC_REPO/manifest"
     # Don't pollute du
-    rm "$PLAIN_REPO"/hooks/*.sample \
+    rm -f "$PLAIN_REPO"/hooks/*.sample \
         "$ENC_REPO"/.git/hooks/*.sample
 
     # Configure
@@ -302,8 +302,14 @@ cmd_init () {
 
 cmd_clone () {
     mkdir -p "$ENC_REPO"
-    git clone --filter=blob:none --sparse -v -b main "$1" "$ENC_REPO"
-    cmd_init
+    git clone --filter=blob:none --sparse -v "$1" "$ENC_REPO"
+    branch="$(git_enc branch --remotes | grep -o '[[:alnum:]]*/[^ ]*' |
+              grep -v '/HEAD' | head -n1 | cut -d/ -f2)"
+    cmd_init -b "$branch"
+
+    true | _git_enc_sparse_checkout_files
+    git_enc checkout "$branch"
+
     _ask_pw
     _decrypt_manifests
 }
@@ -517,6 +523,7 @@ _commit_delete_enc_path () {
     git_enc rm -f --ignore-unmatch --sparse "$1"
 }
 
+
 _update_added_dirs () {
     # Update .mybabackup dirs
     backup_dirs="$(_git_plain_nonbare ls-files |
@@ -527,6 +534,7 @@ _update_added_dirs () {
         git_plain add -vf "$backup_dirs"
     fi
 }
+
 
 cmd_commit () {
     _update_added_dirs
@@ -888,7 +896,7 @@ cmd=
 if [ $# -gt 0 ]; then cmd="$1"; shift; fi
 
 case "$cmd" in
-    init) verbose cmd_init ;;
+    init) verbose cmd_init "$@" ;;
     add) verbose cmd_add "$@" ;;
     rm) verbose cmd_rm "$@" ;;
     commit) verbose cmd_commit "$@" ;;
