@@ -134,7 +134,7 @@ cmd_pw () {
             IFS= read -p "Repeat: " -r PASSWORD2 && echo >&2
             [ "$PASSWORD" = "$PASSWORD2" ] || { warn 'ERROR: Password mismatch!'; exit 1; }
         )
-    } < /dev/tty
+    } </dev/tty
     stty echo
     [ -t 1 ] || echo "$PASSWORD"
 }
@@ -144,8 +144,8 @@ _cmd_pw_check () {
     decrypted_tmpfile="$(_mktemp)"
     _rm_tmp "$decrypted_tmpfile"
     for file in "$ENC_REPO"/manifest/*; do
-        if _decrypt "" < "$file" > "$decrypted_tmpfile"
-                gzip -dc < "$decrypted_tmpfile" 2>/dev/null | grep -q "$_tab"; then
+        if _decrypt "" <"$file" >"$decrypted_tmpfile"
+                gzip -dc <"$decrypted_tmpfile" 2>/dev/null | grep -q "$_tab"; then
             echo "${file##*/}: OK"
         else
             echo "${file##*/}: FAIL"
@@ -156,7 +156,7 @@ _cmd_pw_check () {
 }
 _ask_pw () {
     if [ -z "${PASSWORD+1}" ]; then
-        cmd_pw > /dev/null
+        cmd_pw >/dev/null
     fi
 
     # Set up encryption via OpenSSL
@@ -200,9 +200,9 @@ _encrypt_file () {
     compress_if_text () { if is_binary; then cat; else gzip -cv2; fi; }
     git_plain show "HEAD:$_plain_path" |
         compress_if_text |
-        _encrypt "$_plain_path" > "$ENC_REPO/$_enc_path"
+        _encrypt "$_plain_path" >"$ENC_REPO/$_enc_path"
 }
-_bind_tty_fd7 () { sh -c ':>/dev/tty' 2>/dev/null && exec 7< /dev/tty || exec 7< /dev/null; }  # Fd 7 used in _decrypt_file
+_bind_tty_fd7 () { sh -c ':>/dev/tty' 2>/dev/null && exec 7</dev/tty || exec 7</dev/null; }  # Fd 7 used in _decrypt_file
 _decrypt_file () {
     _enc_path="$1"
     _plain_path="$2"
@@ -215,21 +215,21 @@ _decrypt_file () {
     fi
     decrypted_tmpfile="$(_mktemp)"
     _rm_tmp "$decrypted_tmpfile"
-    _decrypt "$_plain_path" < "$ENC_REPO/$_enc_path" > "$decrypted_tmpfile"
+    _decrypt "$_plain_path" <"$ENC_REPO/$_enc_path" >"$decrypted_tmpfile"
     abs_path="$WORK_TREE/$_plain_path"
     mkdir -p "${abs_path%/*}"
     if gzip -t "$decrypted_tmpfile" >/dev/null 2>&1; then
-        gzip -dcv < "$decrypted_tmpfile"
+        gzip -dcv <"$decrypted_tmpfile"
     else
         cat "$decrypted_tmpfile"
-    fi > "$abs_path"
+    fi >"$abs_path"
 }
 _decrypt_manifests () {
     status=0
     for file in "$ENC_REPO"/manifest/*; do
         fname="${file##*/}"
-        _decrypt "" < "$file" | gzip -dc > "$PLAIN_REPO/manifest/$fname"
-        if _is_binary_stream < "$PLAIN_REPO/manifest/$fname"; then
+        _decrypt "" <"$file" | gzip -dc >"$PLAIN_REPO/manifest/$fname"
+        if _is_binary_stream <"$PLAIN_REPO/manifest/$fname"; then
             warn "WARNING: Likely invalid decryption password for commit '$fname', or your manifest file contains binary paths."
             rm "$PLAIN_REPO/manifest/$fname"
             status=1
@@ -261,7 +261,7 @@ cmd_init () {
         "$ENC_REPO"/.git/hooks/*.sample
 
     # Configure
-    email="${USER-user}@$(hostname 2>/dev/null || cat /etc/hostname)"
+    email="${USER-user}@$(hostname 2>/dev/null || cat /etc/hostname 2>/dev/null || echo 'localhost')"
     git_plain config user.name "${USER-user}"
     git_plain config user.email "$email"
     git_plain config status.showUntrackedFiles no  # We don't care to see largely untracked $HOME  # XXX: remove this?
@@ -291,7 +291,7 @@ cmd_init () {
     git_enc config init.defaultBranch main
     git_enc config core.commitGraph false  # File deletions performed by cmd_gc are not compatible with having a commit graph
     # Set up default gitignore
-    echo "$default_gitignore" > "$PLAIN_REPO/info/exclude"
+    echo "$default_gitignore" >"$PLAIN_REPO/info/exclude"
 
     echo '* -text -diff' >"$ENC_REPO/.git/info/attributes"
     # Encrypted repo is a sparse-checkout
@@ -357,7 +357,7 @@ cmd_decrypt () {
                 # Decrypt and stage files from this commit into temp_dir
                 plain_commit="$(git_enc show --name-only --pretty=format: "$_enc_commit" -- "manifest/" |
                                 cut -d/ -f2)"
-                _parallelize 0 2 decrypt_one < "$PLAIN_REPO/manifest/$plain_commit"
+                _parallelize 0 2 decrypt_one <"$PLAIN_REPO/manifest/$plain_commit"
                 # shellcheck disable=SC2046
                 git_add_files $(cut -f2 "$PLAIN_REPO/manifest/$plain_commit")
 
@@ -409,11 +409,11 @@ cmd_reencrypt() {
 #            # Maybe it failed `decrypt` for some commits
 #            if [ -f "$PLAIN_REPO/$manifest_path" ]; then
 #                # Decrypt current manifest with old password
-#                _decrypt "" < "$ENC_REPO/$manifest" | gzip -dc > "$PLAIN_REPO/$manifest_path".tmp
+#                _decrypt "" <"$ENC_REPO/$manifest" | gzip -dc >"$PLAIN_REPO/$manifest_path".tmp
 #                # Temporarily switch to new password and reencrypt
 #                old_pw=$PASSWORD
 #                PASSWORD="$NPW"
-#                gzip -c2 "$PLAIN_REPO/$m".tmp | _encrypt "" > "$ENC_REPO/$m".new
+#                gzip -c2 "$PLAIN_REPO/$m".tmp | _encrypt "" >"$ENC_REPO/$m".new
 #                mv "$ENC_REPO/$m".new "$ENC_REPO/$m"
 #                PASSWORD=$old_pw
 #                rm "$PLAIN_REPO/$m".tmp
@@ -547,7 +547,7 @@ _encrypt_commit_plain_head_files () {
     # Do git stuff here and now, single process, avoiding errors like:
     #     fatal: Unable to create .../_encrypted/.git/index.lock': File exists
     manifest_path="manifest/$(git_plain rev-parse HEAD)"
-    : > "$PLAIN_REPO/$manifest_path"
+    : >"$PLAIN_REPO/$manifest_path"
     git_plain show --name-status --pretty=format: HEAD | {
         files_to_add=
         _add_file () { files_to_add="$files_to_add $_enc_path"; }
@@ -574,7 +574,7 @@ _encrypt_commit_plain_head_files () {
                     git_enc add -vf --sparse '.gitattributes'
                 fi
                 quiet _add_file
-                echo "$_enc_path$_tab$_path" >> "$PLAIN_REPO/$manifest_path"
+                echo "$_enc_path$_tab$_path" >>"$PLAIN_REPO/$manifest_path"
             fi
         done
         if [ "$files_to_add" ]; then
@@ -602,7 +602,7 @@ _encrypt_commit_plain_head_files () {
     # Stage new manifest
     if [ "$(_file_size "$PLAIN_REPO/$manifest_path")" -gt 0 ]; then
         gzip -c2 "$PLAIN_REPO/$manifest_path" |
-            _encrypt "" > "$ENC_REPO/$manifest_path"
+            _encrypt "" >"$ENC_REPO/$manifest_path"
         git_enc add -vf --sparse "$manifest_path"
     else
         rm "$PLAIN_REPO/$manifest_path"
@@ -634,7 +634,7 @@ cmd_checkout() {
         _rm_tmp "$working_manifest"
         for file in "$@"; do
             grep -REIh "$_tab$file"'($|/)' "$PLAIN_REPO/manifest"
-        done | sort -u > "$working_manifest"
+        done | sort -u >"$working_manifest"
 
         {
             echo 'manifest/'
@@ -644,7 +644,7 @@ cmd_checkout() {
 
         _ask_pw
         _bind_tty_fd7
-        _parallelize 0 2 _checkout_file < "$working_manifest"
+        _parallelize 0 2 _checkout_file <"$working_manifest"
     fi
 }
 
