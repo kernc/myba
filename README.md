@@ -20,9 +20,13 @@ Its only **dependencies are**:
 * a running **shell** / standard **POSIX environment** (sh, bash, zsh, dash, ... WSL?),
 * **gzip**
 * **git** (and Git LFS for files sized >40 MB),
-* either **OpenSSL** (AES256-CTR) or **GPG** (AES256-CFB) for encryption,
+* either **OpenSSL** (AES256-CTR, no HMAC) or **GPG** (AES256-CFB, fully AEAD\*) for encryption,
 
-all of which you should find most popularly available.
+all of which one can find most popularly available.
+
+<sub>∗ In CTR mode, plaintext contents of encrypted files with (accidental or malicious)
+bit flips are still recoverable, whereas in the AEAD mode they are not.
+See [anecdote](https://github.com/openssl/openssl/issues/12220#issuecomment-1237509811).</sub>
 
 ### **Learn more** about the project on [**`myba` backup project website**](https://kernc.github.io/myba/).
 

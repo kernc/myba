@@ -184,7 +184,7 @@ _gpg_common () {
     gpg --compress-level 0 \
         --passphrase-fd 3 --pinentry-mode loopback --batch \
         --no-tty --no-greeting --no-autostart --no-random-seed-file --no-keyring \
-        --cipher-algo AES256 --digest-algo SHA512 \
+        --cipher-algo AES256 --digest-algo SHA512 --force-aead \
         --s2k-cipher-algo AES256 --s2k-digest-algo SHA512 --s2k-mode 3 --s2k-count "$_kdf_iters" \
         "$@"
 }
