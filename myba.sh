@@ -91,8 +91,8 @@ usage () {
     echo
     echo 'PLAIN repo  <--encryption-->  ENCRYPTED repo  <--synced with-->  git REMOTE'
     echo
-    echo 'Env vars: WORK_TREE, PLAIN_REPO, PASSWORD, USE_GPG, VERBOSE, YES_OVERWRITE,'
-    echo '          GIT_LFS_THRESH (in bytes)'
+    echo 'Env vars: WORK_TREE, PLAIN_REPO, PASSWORD | SECURITY_TOKEN, USE_GPG, VERBOSE,'
+    echo '          YES_OVERWRITE, GIT_LFS_THRESH (in bytes)'
     echo 'For a full list and info, see: https://kernc.github.io/myba/?utm_source=app'
     exit 1
 }
@@ -156,7 +156,13 @@ _cmd_pw_check () {
 }
 _ask_pw () {
     if [ -z "${PASSWORD+1}" ]; then
-        cmd_pw >/dev/null
+        if [ "${SECURITY_TOKEN:-}" ]; then
+            PASSWORD="$(
+                echo 'myba generated password' |
+                openssl dgst -engine pkcs11 -keyform engine -sha256 -binary \
+                    -sign "pkcs11:object=$SECURITY_TOKEN;type=private" 2>/dev/null |
+                base64)"
+        else cmd_pw >/dev/null; fi
     fi
 
     # Set up encryption via OpenSSL

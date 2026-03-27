@@ -188,7 +188,16 @@ The script also acknowledges a few **environment variables** which you can _set_
 * `PLAIN_REPO=` The _internal_ directory where myba actually stores both its repositories.
   Defaults to `$WORK_TREE/.myba` but can be overriden to somewhere else including out-of-tree ...
 * `PASSWORD=` The password to use for encryption instead of asking / reading from stdin.
-* `USE_GPG=` Myba uses `openssl enc` by default, but if you prefer to use GPG even for
+* `SECURITY_TOKEN=` If set, the password will be derived from a PKCS#11 hardware security token
+  **_URL_ matching this string**. List available token object URL strings with:
+  ```shell
+  p11tool --list-token-urls | grep 'type=private'
+  ```
+  Runtime dependencies to use:
+  ```shell
+  sudo apt install openssl libengine-pkcs11-openssl
+  ```
+* `USE_GPG=` Myba uses `openssl enc` by default. If you prefer to use GPG for
   symmetric encryption, set `USE_GPG=1`.
 * `N_JOBS=` The number of parallel encryption/decryption processes at commit/checkout time.
   By default: 8.
@@ -301,7 +310,7 @@ password-based encryption, so you can use a different password with every backup
 <div markdown="1" property="acceptedAnswer" typeof="Answer"><div markdown="1" property="text">
 
 Git doesn't on its own track file owner and permission changes (other than the executable bit).
-Files commited by any user are **restorable by any user with the right password**.
+Files commited by any user are **restorable by any user with the right key/password**.
 In order to restore files with specific file permission bits set, **defer to
 [umask](https://pubs.opengroup.org/onlinepubs/9799919799/utilities/umask.html)**,
 e.g.:
