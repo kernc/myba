@@ -108,12 +108,15 @@ git_enc () { git -C "$ENC_REPO" "$@"; }
 _debug_git () { GIT_TRACE_PACK_ACCESS=1 GIT_TRACE=1 "$@"; }
 
 _git_enc_sparse_checkout_files () {
-    # sparse-checkout cone requires dirs
     # TODO: debug why upon decrypt receiving the whole
-    sed -E 's,[^/]+$,,' |
-        sort -u |
-        _debug_git git_enc sparse-checkout set --stdin;
+    {
+        echo 'manifest/'
+        echo 'd/'
+        # stdin is assumed ls-files, sparse-checkout cone requires dirs
+        sed -E 's,[^/]+$,,'
+    } | sort -u | _debug_git git_enc sparse-checkout set --stdin
     git_enc sparse-checkout list
+    git_enc sparse-checkout reapply
 }
 
 _is_binary_stream () { dd bs=8192 count=1 status=none | LC_ALL=C tr -dc '\000' | LC_ALL=C grep -qa .; }
@@ -301,8 +304,7 @@ cmd_init () {
 
     echo '* -text -diff' >"$ENC_REPO/.git/info/attributes"
     # Encrypted repo is a sparse-checkout
-    git_enc sparse-checkout set "manifest"
-    git_enc sparse-checkout reapply
+    true | _git_enc_sparse_checkout_files
 }
 
 
@@ -364,7 +366,6 @@ cmd_decrypt () {
                 git_enc checkout --force "$_enc_commit"
                 git_enc show --name-only --pretty=format: "$_enc_commit" |
                     _git_enc_sparse_checkout_files
-                git_enc sparse-checkout reapply
 
                 # Decrypt and stage files from this commit into temp_dir
                 plain_commit="$(git_enc show --name-only --pretty=format: "$_enc_commit" -- "manifest/" |
@@ -636,8 +637,7 @@ cmd_checkout() {
     if git_plain rev-parse --verify "$1^{commit}" >/dev/null 2>&1; then
         git_plain checkout "$@"
     elif git_enc rev-parse --verify "$1^{commit}" >/dev/null 2>&1; then
-        git_enc sparse-checkout set "manifest"
-        git_enc sparse-checkout reapply
+        true | _git_enc_sparse_checkout_files
         git_enc checkout "$@"
         _ask_pw
         _decrypt_manifests
@@ -650,11 +650,8 @@ cmd_checkout() {
             grep -REIh "$_tab$file"'($|/)' "$PLAIN_REPO/manifest"
         done | sort -u >"$working_manifest"
 
-        {
-            echo 'manifest/'
-            cut -f1 "$working_manifest"
-        } | _git_enc_sparse_checkout_files
-        git_enc sparse-checkout reapply
+        cut -f1 "$working_manifest" |
+            _git_enc_sparse_checkout_files
 
         _ask_pw
         _bind_tty_fd7
@@ -762,8 +759,7 @@ cmd_push () {
 
 cmd_gc () {
     # Reduce disk usage by removing encrypted repo's blobs
-    git_enc sparse-checkout set "manifest"
-    git_enc sparse-checkout reapply
+    true | _git_enc_sparse_checkout_files
 
     # Outright rm packs for which promisor nodes exist
     for file in "$ENC_REPO/.git/objects/pack"/pack-*.pack; do
