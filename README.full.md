@@ -159,7 +159,7 @@ Subcommands:
   diff [OPTS]           Compare changes between plain repo revisions
   log [OPTS]            Show commit log of the plain repo
   ls-files [OPTS]       Show current backup files in the plain repo
-  largest               List current backup files by file size, descending
+  largest [OPTS]        List (ls-tree) backup files by file size, descending
 
   push [REMOTE]         Push encrypted repo to remote repo(s) (default: all)
   pull [REMOTE]         Pull encrypted commits from a promisor remote

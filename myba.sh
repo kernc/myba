@@ -77,7 +77,7 @@ usage () {
     echo '  diff [OPTS]           Compare changes between plain repo revisions'
     echo '  log [OPTS]            Show commit log of the plain repo'
     echo '  ls-files [OPTS]       Show current backup files in the plain repo'
-    echo '  largest               List current backup files by file size, descending'
+    echo '  largest [OPTS]        List (ls-tree) backup files by file size, descending'
     echo
     echo '  push [REMOTE]         Push encrypted repo to remote repo(s) (default: all)'
     echo '  pull [REMOTE]         Pull encrypted commits from a promisor remote'
@@ -788,8 +788,10 @@ cmd_add () {
 
 
 cmd_largest () {
-    git_plain ls-tree --full-tree -r -t --full-name --format='%(objectsize:padded)%x09%(path)' HEAD |
-        sort -r -n "$@" |
+    ref="${1-HEAD}"
+    [ $# -eq 0 ] || shift
+    git_plain ls-tree --full-tree -r -t --full-name --format='%(objectsize:padded)%x09%(path)' "$ref" |
+        sort -r -n |
         grep -v '^ *-' |
         { numfmt --to=iec-i --suffix=B || gnumfmt --to=iec-i --suffix=B; }
 }
