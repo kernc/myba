@@ -30,8 +30,8 @@ all of which one can find most popularly available.
 bit flips are still recoverable, whereas in the AEAD mode they are not.
 See [anecdote](https://github.com/openssl/openssl/issues/12220#issuecomment-1237509811).</sub>
 
-**Git already does a great job of securely storing and tracking changes and backing up _very important_ documents.**
-It is popular,
+**Git already does a great job of securely storing, tracking changes and backing up _very important_ documents.**
+It is [popular](https://stackoverflow.blog/2023/01/09/beyond-git-the-other-version-control-systems-developers-use/),
 [feature-rich](https://git-man-page-generator.lokaltog.net/) and widely-deployed,
 but it doesn't on its own support encryption, which might be important if the backed-up data
 is going to be shared with untrusted (untrustworthy) third parties
@@ -41,17 +41,32 @@ consisting of [**`clean` and `smudge` git filters** issued pre commits and post 
 respectively, but **git filters don't encrypt the tracked file paths / filenames**,
 whereas one might have a want for that, otherwise almost what's the point? 😶
 
+
 Features
 --------
 * **Version-controlled (git-based) backup** of plaintext documents as well as large binary files.
-* Automatic **text compression** for reduced space use.
-* Currently using industry-standard
-  [quantum-safe](https://crypto.stackexchange.com/questions/6712/is-aes-256-a-post-quantum-secure-cipher-or-not)
-  **_strong_ AES256 encryption** of files and paths,
-* **Familiar git workflow**: add (stage), commit, push, clone, pull, checkout ...
+* Automatic **text file compression** for reduced space use.
+* Using industry-standard and
+  **[quantum-safe](https://crypto.stackexchange.com/questions/6712/is-aes-256-a-post-quantum-secure-cipher-or-not)
+  AES256 encryption** of files and paths\*,
+* **Familiar git workflow**: add, commit, push, clone, pull, checkout, switch, ...
 * **Selective (sparse) checkout** of backup files for restoration, efficient size-on-disk overhead.
 * **Sync to multiple clouds** for nearly free by (ab)using popular git hosts.
 * **Or sync anywhere simply** by cloning or checking-out a directory ...
+
+> [!Caution]
+> Even after cracking with the Grover's algorithm, AES 256 is considered quantum-resistant.  
+> Whereas [the following is said about elliptic curves](https://arstechnica.com/security/2026/03/new-quantum-computing-advances-heighten-threat-to-elliptic-curve-cryptosystems/),
+> fyi:
+>
+> > <sub>_They went on to show this approach could allow a quantum computer to break
+> > 256-bit elliptic-curve cryptography (ECC) in 10 days while using 100 times
+> > less overhead than previously estimated. In a second paper,
+> > Google researchers demonstrated how to break ECC-securing blockchains
+> > for bitcoin and other cryptocurrencies in less than nine minutes while
+> > achieving a 20-fold resource reduction._</sub>
+>
+> It's lucky they were Google researchers and not some crackheads.
 
 
 How it works
@@ -92,12 +107,12 @@ that **large binaries don't change often**.
 ### Use-cases
 
 * **Zero-knowledge cloud sync and storage**
-  * Replace or supplement existing **poor, complex, expensive, proprietary solutions**
+  * Replace existing **poor, complex, expensive, proprietary backup solutions**
     (like Veeam,
     Apple Time Machine,
     Google One,
     Apple iCloud)
-    or software programs with **complex, unfamiliar CLI APIs or wider attack surfaces**
+    or software programs with **complex, unfamiliar CLI APIs and/or wider attack surfaces**
     ([Bacula](https://en.wikipedia.org/wiki/Bacula),
     [Borg Backup](https://borgbackup.readthedocs.io/en/stable/usage.html),
     [restic](https://restic.net),
@@ -108,8 +123,8 @@ that **large binaries don't change often**.
   (save to AWS S3 / Backblaze B2 with
   [S3QL](https://github.com/s3ql/s3ql)).
   Simply add remote origins (like GitLab) or sync anywhere (e.g.
-  [rsync](https://en.wikipedia.org/wiki/Rsync),
-  [rclone](https://rclone.org)) a git folder.
+  [rsync](https://en.wikipedia.org/wiki/Rsync);
+  [rclone](https://rclone.org) to Google Drive) a git folder.
 
 
 Installation
@@ -218,14 +233,16 @@ export WORK_TREE="$HOME"
 
 myba init
 myba add Documents Photos Etc .dotfile
-PASSWORD="$(myba pw)"  # Secure read from the controlling terminal
-export PASSWORD
-myba commit -m "my precious"
+
+export PASSWORD="$(myba pw)"  # Secure read from the controlling terminal
+myba commit -m "my documents"
+
 myba remote add origin "/media/usb/backup/path"
 myba remote add github "git@github.com:user/my-backup.git"
-VERBOSE=1 myba push  # Push to ALL configured remotes & free up disk space
+VERBOSE=1 myba push  # Push to ALL configured remotes
 
-# Somewhere else, post apocalypse, yet avoiding catastrophe ...
+
+# Somewhere else, post apocalypse, avoiding complete catastrophe ...
 
 export WORK_TREE="$HOME"
 export PASSWORD=...
@@ -269,6 +286,7 @@ the inherently core features of git and thus myba allow you to:
 * track file modification info and changes made,
 * securely store copies of files of each commited snapshot,
 * efficiently compress non-binary files,
+* sync stored objects between remote repositories,
 * [apply custom script filters](https://git-scm.com/book/ms/v2/Customizing-Git-Git-Attributes) to files
   based on file extension / glob string match,
 * execute [custom script hooks](https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks)
@@ -278,6 +296,8 @@ the inherently core features of git and thus myba allow you to:
 is a stable and reliable tool used by millions
 of people and organizations worldwide**,
 with long and rigorous release / support cycles.
+
+Therefore, git and wrappers like myba sound like an excellent choice for backing up files.
 
 </div></div></details>
 <details markdown="1" property="mainEntity" typeof="Question">
@@ -294,11 +314,12 @@ Compared to most tools, `myba` does on-the-fly compression of plain text data.
 
 Compared to **`git-crypt`**, <b markdown=1>`myba` also encrypts the committed path/filenames</b> for maximum privacy.
 
-Compared to **`git-remote-gcrypt`**, myba is simpler, has fewer dependencies,
+Compared to **`git-remote-gcrypt`**, myba is simple shell, has fewer dependencies and no build steps,
 does text-content compression, and can use OpenSSL, whereas the former is tied with GPG.
 While `git-remote-gcrypt` only does public-key cryptography, `myba` supports
 [symmetric](https://en.wikipedia.org/wiki/Symmetric-key_algorithm)
-password-based encryption, so you can use a different password with every backup checkpoint.
+password-based and even secure hardware-token-based encryption,
+and you can use different passwords for different backup checkpoints (commits).
 
 *[POSIX]: Portable Operating System Interface
 *[CLI]: Command Line Interface
@@ -336,7 +357,8 @@ of databases (i.e. large binaries) that change often,
 unless both repos are also regularly squashed, pruned and <abbr title="garbage collected">gc'd</abbr>.
 
 However, while git repositories bloat when commiting such large binary and media files,
-**_myba_ only ever uses sparse-checkout**, keeping overhead disk space use to a minimum.
+**_myba_ only ever uses sparse-checkout** and aggressively garbage-collects,
+keeping overhead disk space use to a minimum.
 
 </div></div></details>
 <details markdown="1" property="mainEntity" typeof="Question">
@@ -406,6 +428,8 @@ and `myba git_enc` (run in `$PLAIN_REPO/_encrypted`) subcommands to
 discover what state you're in (e.g. `myba git status`).
 Then use something like `myba git reset HEAD^ ; myba git_enc reset HEAD`
 (or similar, as appropriate) to reach an acceptable state.
+
+Don't forget to use environment variable `VERBOSE=1 myba ...` to get extra output.
 
 **If it looks like a bug, please report it.**
 Otherwise git should let you know what the problem is.

@@ -28,7 +28,7 @@ all of which one can find most popularly available.
 bit flips are still recoverable, whereas in the AEAD mode they are not.
 See [anecdote](https://github.com/openssl/openssl/issues/12220#issuecomment-1237509811).</sub>
 
-### **Learn more** about the project on [**`myba` backup project website**](https://kernc.github.io/myba/).
+### **Learn more** about the project on this [**backup tool project website**](https://kernc.github.io/myba/).
 
 See [_test_smoke.sh_](https://github.com/kernc/myba/blob/master/tests/test_smoke.sh) for a covering example / test case!
 
