@@ -121,8 +121,8 @@ myba push
 disk_usage
 myba gc
 disk_usage
-# foo + .myba + restore + overhead (excludes: remote + remote2)
-max_size=4500  # Note, this appears to be CI-dependent
+# foo + .myba + _encrypted + restore + overhead (excludes: remote + remote2)
+max_size=5500  # Note, this appears to be CI-dependent
 case "${OSTYPE-}" in darwin*) max_size=$(( $max_size + 3000 )) ;; esac  # 🤷
 du -s -B 1K -t 500K "$HOME/foo" "$HOME/.myba" "$HOME/restore"
 size_on_disk="$(($(

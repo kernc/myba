@@ -298,7 +298,9 @@ cmd_init () {
     git_enc config advice.detachedHead false  # Subprocedures do detached-head checkouts
     git_enc config advice.forceDeleteBranch false  # Avoid "error: the branch 'foo' is not fully merged"
     git_enc config init.defaultBranch main
-    git_enc config core.commitGraph false  # File deletions performed by cmd_gc are not compatible with having a commit graph
+    # File deletions performed by cmd_gc are not compatible with having a commit graph
+    git_enc config core.commitGraph false
+    git_enc config gc.writeCommitGraph false
     # Set up default gitignore
     echo "$default_gitignore" >"$PLAIN_REPO/info/exclude"
 
@@ -743,14 +745,14 @@ cmd_push () {
     else
         git_enc push --verbose "$@"
     fi
-    git_enc fetch --refetch --all --verbose --no-write-fetch-head
+    git_enc fetch --refetch --all --verbose
 
     # If have some remotes and all of them are synced ...
     if git_enc remote show | grep -q . &&
             ! echo "$(git_enc ls-remote --heads 2>/dev/null)" |
                 cut -f1 | grep -vq "$(git_enc rev-parse HEAD)"; then
         # Remove redundant files including just-pushed packs
-        sleep .2  # Fix "fatal: gc is already running on machine"
+        sleep .5  # Fix "fatal: gc is already running on machine"
         cmd_gc
     else warn 'WARNING: Some remotes are not synced! Compare `myba git_enc rev-parse HEAD` to `myba git_enc ls-remote --heads`.'
     fi
@@ -761,12 +763,14 @@ cmd_gc () {
     # Reduce disk usage by removing encrypted repo's blobs
     true | _git_enc_sparse_checkout_files
 
-    # Outright rm packs for which promisor nodes exist
-    for file in "$ENC_REPO/.git/objects/pack"/pack-*.pack; do
-        touch "${file%.pack}.promisor"
-        rm -f "${file%.pack}.pack" \
-            "${file%.pack}.idx"
+    # Rm packs for which promisor nodes exist
+    for file in "$ENC_REPO/.git/objects/pack"/pack-*.promisor; do
+        rm -f "${file%.promisor}.pack" \
+            "${file%.promisor}.idx"
     done
+
+    git_plain gc --aggressive --prune=now
+    git_enc gc --aggressive --prune=now
 }
 
 
