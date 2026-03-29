@@ -119,7 +119,9 @@ _git_enc_sparse_checkout_files () {
     git_enc sparse-checkout reapply
 }
 
-_is_binary_stream () { dd bs=8192 count=1 status=none | LC_ALL=C tr -dc '\000' | LC_ALL=C grep -qa .; }
+_is_binary_stream () { head -c 8192 | LC_ALL=C tr -dc '\000' | LC_ALL=C grep -qa .; }
+_gzip_strip_header () { tail -c +11; }
+_gzip_add_header () { printf '\037\213\010\000\000\000\000\000\000\003'; cat; }
 _mktemp () { mktemp -t "${0##*/}-$$-XXXXXXX" "$@"; }
 _rm_tmp () { _trap_append "rm -rf \"$1\"" INT HUP TERM EXIT; }
 _file_size () { stat -c%s "$@" 2>/dev/null || stat -f%z "$@"; }
@@ -147,7 +149,7 @@ _cmd_pw_check () {
     decrypted_tmpfile="$(_mktemp)"
     _rm_tmp "$decrypted_tmpfile"
     for file in "$ENC_REPO"/manifest/*; do
-        if _decrypt "" <"$file" >"$decrypted_tmpfile"
+        if _decrypt "" <"$file" | _gzip_add_header >"$decrypted_tmpfile"
                 gzip -dc <"$decrypted_tmpfile" 2>/dev/null | grep -q "$_tab"; then
             echo "${file##*/}: OK"
         else
@@ -206,7 +208,7 @@ _encrypt_file () {
     _enc_path="$2"
     mkdir -p "$ENC_REPO/${_enc_path%/*}"
     is_binary () { git_plain show "HEAD:$_plain_path" | _is_binary_stream; }
-    compress_if_text () { if is_binary; then cat; else gzip -cv2; fi; }
+    compress_if_text () { if is_binary; then cat; else gzip -nc2 | _gzip_strip_header; fi; }
     git_plain show "HEAD:$_plain_path" |
         compress_if_text |
         _encrypt "$_plain_path" >"$ENC_REPO/$_enc_path"
@@ -223,12 +225,14 @@ _decrypt_file () {
         case "$_choice" in [Yy]*) ;; *) warn "Skipping '$WORK_TREE/$_plain_path'"; return 0 ;; esac
     fi
     decrypted_tmpfile="$(_mktemp)"
+    decrypted_tmpfile_plain="$(_mktemp)"
     _rm_tmp "$decrypted_tmpfile"
+    _rm_tmp "$decrypted_tmpfile_plain"
     _decrypt "$_plain_path" <"$ENC_REPO/$_enc_path" >"$decrypted_tmpfile"
     abs_path="$WORK_TREE/$_plain_path"
     mkdir -p "${abs_path%/*}"
-    if gzip -t "$decrypted_tmpfile" >/dev/null 2>&1; then
-        gzip -dcv <"$decrypted_tmpfile"
+    if _gzip_add_header <"$decrypted_tmpfile" | gzip -dc >"$decrypted_tmpfile_plain" 2>/dev/null; then
+        cat "$decrypted_tmpfile_plain"
     else
         cat "$decrypted_tmpfile"
     fi >"$abs_path"
@@ -237,7 +241,7 @@ _decrypt_manifests () {
     status=0
     for file in "$ENC_REPO"/manifest/*; do
         fname="${file##*/}"
-        _decrypt "" <"$file" | gzip -dc >"$PLAIN_REPO/manifest/$fname"
+        _decrypt "" <"$file" | _gzip_add_header | gzip -dc >"$PLAIN_REPO/manifest/$fname"
         if _is_binary_stream <"$PLAIN_REPO/manifest/$fname"; then
             warn "WARNING: Likely invalid decryption password for commit '$fname', or your manifest file contains binary paths."
             rm "$PLAIN_REPO/manifest/$fname"
@@ -378,7 +382,7 @@ cmd_decrypt () {
 
                 # Commit the changes to the plain repo
                 _msg="$(git_enc show -s --format='%B' "$_enc_commit" |
-                        base64 -d | _decrypt "" | gzip -dc)"
+                        base64 -d | _decrypt "" | _gzip_add_header | gzip -dc)"
                 _date="$(git_enc show -s --format='%ai' "$_enc_commit")"
                 _author="$(git_enc show -s --format='%an <%ae>' "$_enc_commit")"
                 if ! have_commitable_changes; then
@@ -428,7 +432,7 @@ cmd_reencrypt() {
 #                # Temporarily switch to new password and reencrypt
 #                old_pw=$PASSWORD
 #                PASSWORD="$NPW"
-#                gzip -c2 "$PLAIN_REPO/$m".tmp | _encrypt "" >"$ENC_REPO/$m".new
+#                gzip -nc2 "$PLAIN_REPO/$m".tmp | _encrypt "" >"$ENC_REPO/$m".new
 #                mv "$ENC_REPO/$m".new "$ENC_REPO/$m"
 #                PASSWORD=$old_pw
 #                rm "$PLAIN_REPO/$m".tmp
@@ -618,7 +622,8 @@ _encrypt_commit_plain_head_files () {
 
     # Stage new manifest
     if [ "$(_file_size "$PLAIN_REPO/$manifest_path")" -gt 0 ]; then
-        gzip -c2 "$PLAIN_REPO/$manifest_path" |
+        gzip -nc2 "$PLAIN_REPO/$manifest_path" |
+            _gzip_strip_header |
             _encrypt "" >"$ENC_REPO/$manifest_path"
         git_enc add -vf --sparse "$manifest_path"
     else
@@ -629,7 +634,7 @@ _encrypt_commit_plain_head_files () {
     git_enc status --short
     git_enc commit -m "$(
         git_plain show --format='%B' --name-status |
-            gzip -c9 | _encrypt "" | { base64 -w 0 || base64; })"
+            gzip -nc8 | _gzip_strip_header | _encrypt "" | { base64 -w 0 || base64; })"
 }
 
 
