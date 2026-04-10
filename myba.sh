@@ -832,7 +832,12 @@ quiet () {
 }
 
 
-default_gitignore='
+default_gitignore="
+# Ignore self and similar
+${PLAIN_REPO##*/}
+.myba
+
+"'
 # Compiled source
 build/
 _build/
