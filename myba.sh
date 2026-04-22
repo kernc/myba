@@ -550,12 +550,14 @@ _update_added_dirs () {
 
 
 cmd_commit () {
+    # Ask for pw first. This way, the user can cancel and nothing happens
+    _ask_pw
+
     _update_added_dirs
 
     # Commit to plain repo
     git_plain commit --verbose "$@" --message "myba backup $(date '+%Y-%m-%d %H:%M:%S')"
 
-    _ask_pw
     _encrypt_commit_plain_head_files
 }
 
