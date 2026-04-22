@@ -58,6 +58,7 @@ GIT_LFS_THRESH="${GIT_LFS_THRESH:-$((40 * 1024 * 1024))}"  # 50 MB limit on GitH
 ############################################################################################
 
 mybabackup_dir='.mybabackup'
+myba_gitconfig='.myba.git_config'
 
 usage () {
     echo "Usage: $0 <subcommand> [options]"
@@ -539,13 +540,13 @@ _commit_delete_enc_path () {
 
 _update_added_dirs () {
     # Update .mybabackup dirs
-    backup_dirs="$(_git_plain_nonbare ls-files |
-                  grep "/${mybabackup_dir}[\"']?\$" |
-                  sed -E "s,/$mybabackup_dir([\"']?)\$,\1," |
-                  sort -u)"
+    backup_dirs="$(_git_plain_nonbare ls-files "$mybabackup_dir")"
     if [ "$backup_dirs" ]; then
-        git_plain add -vf "$backup_dirs"
+        git_plain add -vf $backup_dirs
     fi
+    # Update tracked .git/config equivalents. Just update, no stage
+    _git_plain_nonbare ls-files "$myba_gitconfig" |
+        while read -r d; do _copy_add_gitconfig "$d"; done
 }
 
 
@@ -780,17 +781,38 @@ cmd_gc () {
     git_enc gc --aggressive --prune=now
 }
 
+_git_plain_add_force () {
+    # Plumbing command `update-index --add` does not complain or skip nested repo files
+    git_plain update-index --add --verbose "$@"
+}
+
+_copy_add_gitconfig () {
+    d="$1" do_add="${2-}"
+    if cp -v "$d/.git/config" "$d/$myba_gitconfig"; then
+        [ ! "$do_add" ] || _git_plain_add_force "$d/$myba_gitconfig"
+    fi
+}
 
 cmd_add () {
-    git_plain add -v "$@"
-
-    # Mark directories as recursively tracked
     for dir in "$@"; do
         if [ -d "$dir" ]; then
+            # Mark directories as recursively tracked
             touch "$dir/$mybabackup_dir"
-            git_plain add -vf "$dir/$mybabackup_dir"
+            _git_plain_add_force "$dir/$mybabackup_dir"
+
+            # Once any dirs that are git repos (contain .git dir) have had added
+            # files by `update-index --add`, simple `git add` should work for the
+            # nested files afterwards
+            git_plain add -v "$dir"
+
+            # Since nested repo .git dirs are skipped, let's add at least
+            # .git/config files that define remotes etc.
+            find "$dir" -type d -name '.git' |
+                while read d; do _copy_add_gitconfig "${d%/*}" do_add; done
         fi
     done
+
+    _git_plain_add_force "$@"
 }
 
 
@@ -857,8 +879,11 @@ _build/
 *.out
 
 # Other VCS
-.git/
-!.git/config
+.bzr/
+.hg/
+.ipynb_checkpoints/
+.osc/
+.svn/
 
 # Ignore Python
 .venv/
@@ -908,6 +933,7 @@ logs
 # OS
 .DS_Store
 Thumbs.db
+*.dpkg-*
 '
 
 
