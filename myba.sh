@@ -329,7 +329,6 @@ cmd_clone () {
     _decrypt_manifests
 }
 
-
 cmd_decrypt () {
     # Convert the encrypted commit messages back to plain repo commits
     if [ "$(_git_plain_nonbare ls-files)" ]; then
@@ -819,10 +818,11 @@ cmd_add () {
 cmd_largest () {
     ref="${1-HEAD}"
     [ $# -eq 0 ] || shift
+    if command -v gnumfmt >/dev/null 2>&1; then numfmt () { gnumfmt; }; fi  # On macOS
     git_plain ls-tree --full-tree -r -t --full-name --format='%(objectsize:padded)%x09%(path)' "$ref" |
         sort -r -n |
         grep -v '^ *-' |
-        { numfmt --to=iec-i --suffix=B || gnumfmt --to=iec-i --suffix=B; }
+        numfmt --to=iec-i --suffix=B
 }
 
 
