@@ -37,7 +37,7 @@ but it doesn't on its own support encryption, which might be important if the ba
 is going to be shared with untrusted (untrustworthy) third parties
 and all their intermediary "data processors".
 One _could_ most simply set up an encryption-decryption process
-consisting of [**`clean` and `smudge` git filters** issued pre commits and post checkouts](https://git-scm.com/book/ms/v2/Customizing-Git-Git-Attributes#filters_a),
+consisting of [**`clean` and `smudge` git filters** issued pre commits and post checkouts](https://git-scm.com/book/en/v2/Customizing-Git-Git-Attributes#filters_a),
 respectively, but **git filters don't encrypt the tracked file paths / filenames**,
 whereas one might have a want for that, otherwise almost what's the point? 😶
 
@@ -287,7 +287,7 @@ the inherently core features of git and thus myba allow you to:
 * securely store copies of files of each commited snapshot,
 * efficiently compress non-binary files,
 * sync stored objects between remote repositories,
-* [apply custom script filters](https://git-scm.com/book/ms/v2/Customizing-Git-Git-Attributes) to files
+* [apply custom script filters](https://git-scm.com/book/en/v2/Customizing-Git-Git-Attributes) to files
   based on file extension / glob string match,
 * execute [custom script hooks](https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks)
   at various stages of program lifecycle.
@@ -373,7 +373,7 @@ Additionally by inheritance, **myba
 for any directories that contain them.
 You can tweak various other git settings (like
 [config](https://git-scm.com/docs/git-config),
-[filters](https://git-scm.com/book/ms/v2/Customizing-Git-Git-Attributes#filters_a),
+[filters](https://git-scm.com/book/en/v2/Customizing-Git-Git-Attributes#filters_a),
 [hooks](https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks))
 by modifying respective files in `$PLAIN_REPO` and (encrypted repo) `$PLAIN_REPO/_encrypted/.git`.
 
