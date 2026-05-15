@@ -58,7 +58,6 @@ GIT_LFS_THRESH="${GIT_LFS_THRESH:-$((40 * 1024 * 1024))}"  # 50 MB limit on GitH
 ############################################################################################
 
 mybabackup_dir='.mybabackup'
-myba_gitconfig='.myba.git_config'
 
 usage () {
     echo "Usage: $0 <subcommand> [options]"
@@ -543,9 +542,6 @@ _update_added_dirs () {
     if [ "$backup_dirs" ]; then
         git_plain add -vf $backup_dirs
     fi
-    # Update tracked .git/config equivalents. Just update, no stage
-    _git_plain_nonbare ls-files "$myba_gitconfig" |
-        while read -r d; do _copy_add_gitconfig "$d"; done
 }
 
 
@@ -785,13 +781,6 @@ _git_plain_add_force () {
     git_plain update-index --add --verbose "$@"
 }
 
-_copy_add_gitconfig () {
-    d="$1" do_add="${2-}"
-    if cp -v "$d/.git/config" "$d/$myba_gitconfig"; then
-        [ ! "$do_add" ] || _git_plain_add_force "$d/$myba_gitconfig"
-    fi
-}
-
 cmd_add () {
     for dir in "$@"; do
         if [ -d "$dir" ]; then
@@ -807,11 +796,12 @@ cmd_add () {
             find "$dir" -type d -name '.git' |
                 while read d; do
                     warn "WARNING: Skipping .git dir: \"$d\". If you wish to include it in the backup, you have to copy/rename it before adding. This can be done e.g. in a git hook. You can also use the post-commit hook shipped with ${0##*/}."
+                    _git_plain_add_force "${d%/*}"/*
                 done
         fi
     done
 
-    _git_plain_add_force "$@"
+    git_plain add -v "$@"
 }
 
 
