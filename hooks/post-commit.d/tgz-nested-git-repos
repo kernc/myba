@@ -1,0 +1,81 @@
+#!/bin/sh
+set -eu
+
+# Reproducible/deterministic tar.gz archives
+gzip () { command gzip -n "$@"; }
+! man tar | grep -Fq -- '--sort' ||
+    tar () { command tar --sort=name "$@"; }
+
+# Prevent recursion
+git show --no-patch --format=oneline | grep -vFq "${0##*/}" || exit 0
+
+git_vars="$(env | grep -Eo '^GIT_[^=]+')"
+need_commit=
+
+# List dirs that are git repos
+repo_dirs="$(mktemp "myba.${0##*/}.$$.XXXXXXX")"
+git show --name-only -z --pretty=format: --diff-filter=ACM |
+    xargs -0r dirname |
+    sort -u |
+    while IFS= read -r d; do
+        if [ -d "$d/.git" ] || [ -L "$d/.git" ]; then echo "$d"; fi
+    done >"$repo_dirs"
+
+# For each dir ...
+while IFS= read -r d; do
+    (
+        cd "$d"
+        echo "$0: Adding created archive \"$d/.git.tgz\"" >&2
+        # Work on a .git dir copy
+        unset $git_vars
+        export GIT_DIR="$(mktemp -d ./.myba.XXXXXXX)/.git"
+        trap "rm -rf '${GIT_DIR%.git}' || true" EXIT HUP INT TERM
+        cp -ra .git "$GIT_DIR"
+        # Clean/minimize .git dir
+        git gc --prune=now --no-cruft --quiet
+        find "$GIT_DIR" -type d -empty -delete
+        ( cd "$GIT_DIR"; rm -fr rr-cache lfs hooks/*.sample rebase-* logs *.lock; )
+        for f in "$GIT_DIR"/objects/pack/pack-*.promisor; do
+            [ -e "$f" ] || continue
+            rm -f "${f%.promisor}.pack" "${f%.promisor}.idx"
+        done
+        # Compress into .git.tar.gz archive
+        ( cd "$GIT_DIR/.."; tar -cf - .git | gzip -n9 > ../.git.tgz; )
+    )
+    # Add the archive to the top-level git, current commit
+    [ ! "$(git ls-files -- "$d/.git.tgz")" ] ||
+        # Revert assume-unchanged from later in this hook
+        git update-index --no-assume-unchanged "$d/.git.tgz"
+    git add -v "$d/.git.tgz"
+    need_commit=1
+
+    # XXX: Editing commit message does not belong here nor does it work!
+    # Edit .git/COMMIT_EDITMSG
+    # Assertion
+#        scissors='# ------------------------ >8 ------------------------'
+#        test "$scissors" = "$(man git-commit | grep -o "$scissors")"
+#        {
+#        echo "\
+## Please enter the commit message for your changes. Lines starting
+## with '#' will be ignored, and an empty message aborts the commit.
+##"
+#        git status --branch | sed 's/^/# /'
+#        echo "#
+#$scissors
+## Do not modify or remove the line above.
+## Everything below it will be ignored."
+#        git diff --cached
+#        } > .git/COMMIT_EDITMSG
+done <"$repo_dirs"
+rm -f "$repo_dirs"
+
+[ ! "$need_commit" ] || {
+    git commit -m "${0##*/}"
+
+    # Avoid "error: cannot rebase: You have unstaged changes." after rm below
+    git show --name-only -z --pretty=format: --diff-filter=ACM |
+        xargs -0r git update-index --assume-unchanged --
+    # Remove generated and commited archives from disk
+    git show --name-only -z --pretty=format: --diff-filter=ACM |
+        xargs -0r rm -f --
+}

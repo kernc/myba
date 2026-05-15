@@ -1,0 +1,11 @@
+#!/bin/sh
+
+for hook in "$0.d/"*; do
+    [ -e "$hook" ] || continue
+    env $hook
+    res=$?
+    [ $res = 0 ] || {
+        echo "ERROR: $hook: Non-zero exit status. Aborting commit ..." >&2
+        exit $res
+    }
+done

@@ -804,10 +804,10 @@ cmd_add () {
             # nested files afterwards
             git_plain add -v "$dir"
 
-            # Since nested repo .git dirs are skipped, let's add at least
-            # .git/config files that define remotes etc.
             find "$dir" -type d -name '.git' |
-                while read d; do _copy_add_gitconfig "${d%/*}" do_add; done
+                while read d; do
+                    warn "WARNING: Skipping .git dir: \"$d\". If you wish to include it in the backup, you have to copy/rename it before adding. This can be done e.g. in a git hook. You can also use the post-commit hook shipped with ${0##*/}."
+                done
         fi
     done
 

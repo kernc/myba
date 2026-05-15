@@ -379,7 +379,7 @@ by modifying respective files in `$PLAIN_REPO` and (encrypted repo) `$PLAIN_REPO
 
 </div></div></details>
 <details markdown="1" property="mainEntity" typeof="Question">
-<summary property="name">Use custom <b>pre-commit hook scripts</b> to conditionally backup some "data" at commit time ...</summary>
+<summary id="hooks" property="name">Use custom <b>pre-commit hook scripts</b> to conditionally backup some "data" at commit time ...</summary>
 <div markdown="1" property="acceptedAnswer" typeof="Answer"><div markdown="1" property="text">
 
 You can use [git hooks] to "attach" own scripts to the backup process,
@@ -399,6 +399,20 @@ if git diff --cached --name-only | grep -q '^Music/'; then
     git add "$wt/my_list.txt"  # Will be committed
 fi
 ```
+
+</div></div></details>
+<details markdown="1" property="mainEntity" typeof="Question">
+<summary property="name">How to backup <b>nested git repositories</b> (<i>.git</i> dirs)?</summary>
+<div markdown="1" property="acceptedAnswer" typeof="Answer"><div markdown="1" property="text">
+
+By design, Git cannot track nested git repositories (specifically, directories named _.git_)
+other than by reference (as [git-submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules)).
+
+If you want to backup full git repos as `$REPO_DIR/.git.tgz` compressed tar archives,
+you can use the
+[post-commit hook](#hooks)
+[`tgz-nested-git-repos`](https://github.com/kernc/myba/blob/master/hooks)
+supplied by the distribution.
 
 </div></div></details>
 <details markdown="1" property="mainEntity" typeof="Question">
