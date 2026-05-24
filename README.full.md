@@ -47,17 +47,21 @@ Features
 * **Version-controlled (git-based) backup** of plaintext documents as well as large binary files.
 * Automatic **text file compression** for reduced space use.
 * Using industry-standard and
-  **[quantum-safe](https://crypto.stackexchange.com/questions/6712/is-aes-256-a-post-quantum-secure-cipher-or-not)
-  AES256 encryption** of files and paths\*,
+  **[quantum-safe](https://crypto.stackexchange.com/questions/6712/is-aes-256-a-post-quantum-secure-cipher-or-not)\*
+  AES256 encryption** of _files and paths_, cryptographically safe for the foreseeable- future,
 * **Familiar git workflow**: add, commit, push, clone, pull, checkout, switch, ...
 * **Selective (sparse) checkout** of backup files for restoration, efficient size-on-disk overhead.
 * **Sync to multiple clouds** for nearly free by (ab)using popular git hosts.
 * **Or sync anywhere simply** by cloning or checking-out a directory ...
 
+> [!Important]
+> The encryption imlementation is, in fact, so sound and secure that even the
+> author herself publishes their [private dotfiles here](https://github.com/kernc/dotfiles).
+
 > [!Caution]
 > Even after cracking with the Grover's algorithm, AES 256 is considered quantum-resistant.  
 > Whereas [the following is said about elliptic curves](https://arstechnica.com/security/2026/03/new-quantum-computing-advances-heighten-threat-to-elliptic-curve-cryptosystems/),
-> fyi:
+> FYI:
 >
 > > <sub>_They went on to show this approach could allow a quantum computer to break
 > > 256-bit elliptic-curve cryptography (ECC) in 10 days while using 100 times
@@ -66,7 +70,7 @@ Features
 > > for bitcoin and other cryptocurrencies in less than nine minutes while
 > > achieving a 20-fold resource reduction._</sub>
 >
-> It's lucky they were Google researchers and not some crackheads.
+> Lucky they were Google researchers and not just some crackheads, right?
 
 
 How it works
@@ -97,6 +101,22 @@ including all kinds of large binary files
 (as much as you can afford to sync to your cloud storage),
 **all under the assumptions that text files compress well** and
 that **large binaries don't change often**.
+
+```mermaid
+flowchart LR
+    User((User))
+    Remote[Cloud provider]
+
+    subgraph LD[Local disk]
+        direction LR
+        Plain[plaintext repo]
+        Encrypted[encrypted repo]
+        Plain <-->|encryption| Encrypted
+    end
+
+    User -->|commit files| Plain
+    Encrypted -->|git push| Remote
+```
 
 **Myba** is **Git + Shell**, preconfigured and wrapped as thinly as needed to provide
 **fully encrypted backups** that are really **easily replicated and synced**  to the cloud.
@@ -176,8 +196,8 @@ Subcommands:
   ls-files [OPTS]       Show current backup files in the plain repo
   largest [OPTS]        List (ls-tree) backup files by file size, descending
 
-  push [REMOTE]         Push encrypted repo to remote repo(s) (default: all)
-  pull [REMOTE]         Pull encrypted commits from a promisor remote
+  push [OPTS]           Push encrypted repo to remote repo(s) (default: all)
+  pull [OPTS]           Pull encrypted commits from a promisor remote
   decrypt [--squash]    Reconstruct plain repo commits from the encrypted
   reencrypt             Reencrypt plain repo commits with a new password
   gc                    Remove synced encrypted packs
@@ -216,6 +236,7 @@ The script also acknowledges a few **environment variables** which you can _set_
   symmetric encryption, set `USE_GPG=1`.
 * `N_JOBS=` The number of parallel encryption/decryption processes at commit/checkout time.
   By default: 8.
+* `USER=`, `EMAIL=` If set at `myba init` stage, overrides details of the committing user.
 * `KDF_ITERS=` A sufficient number of iterations is used for the encryption key derivation
   function. To specify your own value and avoid rainbow table attacks on myba itself,
   you can customize this value. If you don't know, just leave it.
@@ -358,6 +379,7 @@ unless both repos are also regularly squashed, pruned and <abbr title="garbage c
 
 However, while git repositories bloat when commiting such large binary and media files,
 **_myba_ only ever uses sparse-checkout** and aggressively garbage-collects,
+so it should scale even to humungously-sized mono-repos where only a few stored files are needed at a time,
 keeping overhead disk space use to a minimum.
 
 </div></div></details>
@@ -428,8 +450,15 @@ in that directory are staged for that snapshot / commit.
 <details markdown="1" property="mainEntity" typeof="Question">
 <summary property="name">How to manage multiple distinct backup "vaults"?</summary>
 <div markdown="1" property="acceptedAnswer" typeof="Answer"><div markdown="1" property="text">
-Simply reuse git branching with `myba switch [BRANCH]`.
-Used without arguments prints all the branches.
+You can reuse git branching with `myba switch [BRANCH]`.
+Used without arguments prints all local branches.
+Note that `myba push` without arguments syncs local state with _all_ configured remotes.
+If you want to sync different backup branches (values) with
+different remotes differently, use explicit `push` arguments
+(i.e. `myba push origin branch:remote_ref`), or
+export [`PLAIN_REPO=` environment variable](#environment-variables)
+before myba invocation to use a completely different underlying git repo (pair)
+that has a different set of remotes configured.
 </div></div></details>
 <details markdown="1" property="mainEntity" typeof="Question">
 <summary property="name"><b>Something failed</b>. How do I <b>debug, investigate, and recover</b>?</summary>
@@ -443,7 +472,7 @@ discover what state you're in (e.g. `myba git status`).
 Then use something like `myba git reset HEAD^ ; myba git_enc reset HEAD`
 (or similar, as appropriate) to reach an acceptable state.
 
-Don't forget to use environment variable `VERBOSE=1 myba ...` to get extra output.
+Use [environment variable `VERBOSE=1 myba ...`](#environment-variables) for extra line-by-line tracing on stderr.
 
 **If it looks like a bug, please report it.**
 Otherwise git should let you know what the problem is.

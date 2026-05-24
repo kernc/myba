@@ -79,8 +79,8 @@ usage () {
     echo '  ls-files [OPTS]       Show current backup files in the plain repo'
     echo '  largest [OPTS]        List (ls-tree) backup files by file size, descending'
     echo
-    echo '  push [REMOTE]         Push encrypted repo to remote repo(s) (default: all)'
-    echo '  pull [REMOTE]         Pull encrypted commits from a promisor remote'
+    echo '  push [OPTS]           Push encrypted repo to remote repo(s) (default: all)'
+    echo '  pull [OPTS]           Pull encrypted commits from a promisor remote'
     echo '  decrypt [--squash]    Reconstruct plain repo commits from the encrypted'
     echo '  reencrypt             Reencrypt plain repo commits with a new password'
     echo '  gc                    Remove synced encrypted packs'
