@@ -115,7 +115,6 @@ _git_enc_sparse_checkout_files () {
         # stdin is assumed ls-files, sparse-checkout cone requires dirs
         sed -E 's,[^/]+$,,'
     } | sort -u | _debug_git git_enc sparse-checkout set --stdin
-    git_enc sparse-checkout list
     git_enc sparse-checkout reapply
 }
 

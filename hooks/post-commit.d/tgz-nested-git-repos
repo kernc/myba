@@ -49,23 +49,6 @@ while IFS= read -r d; do
     git add -v "$d/.git.tgz"
     need_commit=1
 
-    # XXX: Editing commit message does not belong here nor does it work!
-    # Edit .git/COMMIT_EDITMSG
-    # Assertion
-#        scissors='# ------------------------ >8 ------------------------'
-#        test "$scissors" = "$(man git-commit | grep -o "$scissors")"
-#        {
-#        echo "\
-## Please enter the commit message for your changes. Lines starting
-## with '#' will be ignored, and an empty message aborts the commit.
-##"
-#        git status --branch | sed 's/^/# /'
-#        echo "#
-#$scissors
-## Do not modify or remove the line above.
-## Everything below it will be ignored."
-#        git diff --cached
-#        } > .git/COMMIT_EDITMSG
 done <"$repo_dirs"
 rm -f "$repo_dirs"
 
