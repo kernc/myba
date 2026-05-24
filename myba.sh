@@ -296,8 +296,8 @@ cmd_init () {
     git_enc config core.bigFileThreshold 100
     git_enc config diff.renames "copies"
     git_enc config diff.renameLimit 100000
-    git_enc config push.autoSetupRemote false
-    git_enc config push.default upstream
+    git_enc config push.autoSetupRemote true
+    git_enc config push.default current
     git_enc config push.followTags true
     git_enc config advice.detachedHead false  # Subprocedures do detached-head checkouts
     git_enc config advice.forceDeleteBranch false  # Avoid "error: the branch 'foo' is not fully merged"
@@ -734,17 +734,13 @@ cmd_remote () {
 
 cmd_push () {
     if [ $# -eq 0 ]; then
-        # With no args, push all branches to their upstream remotes
-        warn 'INFO: With no args, pushing all branches to all upstream tracking remotes.'
-        did_push=
-        while read -r ref remote upstream_ref; do
-            [ "$remote" ] || continue
-            git_enc push --verbose "$remote" "$ref:$upstream_ref"
-            did_push=1
-        done <<END
-$(git_enc for-each-ref --format='%(refname:short) %(upstream:remotename) %(upstream:lstrip=3)' refs/heads)
-END
-        [ "$did_push" ] || warn 'WARNING: No tracking upstream branches configured. When pushing for the first time, use explicit: `myba push REMOTE_NAME LOCAL_REF:REMOTE_REF`'
+        # With no args, push current branch to all remotes
+        warn 'INFO: With no args, pushing current branch to all configured remotes!'
+        git_enc remote show |
+            while _read_vars _origin; do
+                # shellcheck disable=SC2154
+                git_enc push --verbose "$_origin" HEAD
+            done
     else
         git_enc push --verbose "$@"
     fi

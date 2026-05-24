@@ -72,7 +72,7 @@ myba git_enc status
 
 myba remote add origin "$remote_git"
 myba remote add origin2 "$remote_git2"
-#myba push origin  # XXX: Fails on CI but wfm
+myba push origin HEAD
 myba push
 export PAGER=
 myba log
