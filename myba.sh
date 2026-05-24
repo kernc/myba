@@ -822,17 +822,15 @@ cmd_log () {
         --date=short --name-status "$@"
 }
 
-verbose () {
-    # xtrace prompt for sh, bash, zsh
+toggle_verbose () {
+    # xtrace prompt for sh, bash, zsh. Sets $xtrace with previous xtrace state
     PS4="$(
         if [ "${LINENO:-}" ] && [ "${BASH_VERSION:-}" ]; then lineno=':$LINENO>'; fi
         printf "\033[34;40;1m+%s${lineno:-}\033[0m " "$0"
     )"
     export PS4
-    case "${VERBOSE:-}" in
-    '') "$@"; ;;
-    *) set -x; "$@"; set +x; ;;
-    esac
+    case $- in *x*) xtrace=-x ;; *) xtrace=+x ;; esac
+    case "${VERBOSE:-}" in '') ;; *) set -x ;; esac
 }
 quiet () {
     case $- in *x*) set +x; xtrace_on=1 ;; *) xtrace_on= ;; esac
@@ -926,36 +924,40 @@ Thumbs.db
 cmd=
 if [ $# -gt 0 ]; then cmd="$1"; shift; fi
 
+toggle_verbose
+
 case "$cmd" in
-    init) verbose cmd_init "$@" ;;
-    add) verbose cmd_add "$@" ;;
-    rm) verbose cmd_rm "$@" ;;
-    commit) verbose cmd_commit "$@" ;;
-    remote) verbose cmd_remote "$@" ;;
-    push) verbose cmd_push "$@" ;;
-    pull) verbose cmd_pull "$@" ;;
-    clone) verbose cmd_clone "$@" ;;
-    decrypt) verbose cmd_decrypt "$@" ;;
-    reencrypt) verbose cmd_reencrypt "$@" ;;
-    diff) verbose cmd_diff "$@" ;;
-    log) verbose cmd_log "$@" ;;
-    status) verbose cmd_status "$@" ;;
-    ls-files) verbose cmd_lsfiles "$@" ;;
-    largest) verbose cmd_largest "$@" ;;
-    checkout) verbose cmd_checkout "$@" ;;
-    switch) verbose cmd_switch "$@" ;;
-    gc) verbose cmd_gc "$@" ;;
-    pw) verbose cmd_pw "$@" ;;
-    git_enc) verbose git_enc "$@" ;;
+    init) cmd_init "$@" ;;
+    add) cmd_add "$@" ;;
+    rm) cmd_rm "$@" ;;
+    commit) cmd_commit "$@" ;;
+    remote) cmd_remote "$@" ;;
+    push) cmd_push "$@" ;;
+    pull) cmd_pull "$@" ;;
+    clone) cmd_clone "$@" ;;
+    decrypt) cmd_decrypt "$@" ;;
+    reencrypt) cmd_reencrypt "$@" ;;
+    diff) cmd_diff "$@" ;;
+    log) cmd_log "$@" ;;
+    status) cmd_status "$@" ;;
+    ls-files) cmd_lsfiles "$@" ;;
+    largest) cmd_largest "$@" ;;
+    checkout) cmd_checkout "$@" ;;
+    switch) cmd_switch "$@" ;;
+    gc) cmd_gc "$@" ;;
+    pw) cmd_pw "$@" ;;
+    git_enc) git_enc "$@" ;;
     git)
         # Handle buggy ls-files in bare plain repo
         # https://stackoverflow.com/questions/25906192/git-ls-files-in-bare-repository
         if [ "${1:-}" = "ls-files" ]; then
             shift
-            verbose _git_plain_nonbare ls-files "$@"
+            _git_plain_nonbare ls-files "$@"
         else
-            verbose git_plain "$@"
+            git_plain "$@"
         fi
         ;;
     *) usage ;;
 esac
+
+set $xtrace
