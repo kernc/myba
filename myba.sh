@@ -314,12 +314,10 @@ cmd_init () {
 cmd_clone () {
     mkdir -p "$ENC_REPO"
     git clone --filter=blob:none --sparse -v "$1" "$ENC_REPO"
-    branch="$(git_enc branch --remotes | grep -o '[[:alnum:]]*/[^ ]*' |
-              grep -v '/HEAD' | head -n1 | cut -d/ -f2)"
-    cmd_init -b "$branch"
+
+    cmd_init
 
     true | _git_enc_sparse_checkout_files
-    git_enc checkout "$branch"
 
     _ask_pw
     _decrypt_manifests
