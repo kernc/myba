@@ -746,7 +746,7 @@ cmd_push () {
 
     # If have some remotes and all of them are synced ...
     if git_enc remote show | grep -q . &&
-            ! echo "$(git_enc ls-remote --heads 2>/dev/null)" |
+            ! echo "$(git_enc ls-remote --heads . 2>/dev/null)" |
                 cut -f1 | grep -vq "$(git_enc rev-parse HEAD)"; then
         # Remove redundant files including just-pushed packs
         true | _git_enc_sparse_checkout_files
