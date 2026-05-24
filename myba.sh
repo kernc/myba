@@ -302,9 +302,6 @@ cmd_init () {
     git_enc config advice.detachedHead false  # Subprocedures do detached-head checkouts
     git_enc config advice.forceDeleteBranch false  # Avoid "error: the branch 'foo' is not fully merged"
     git_enc config init.defaultBranch main
-    # File deletions performed by cmd_gc are not compatible with having a commit graph
-    git_enc config core.commitGraph false
-    git_enc config gc.writeCommitGraph false
     # Set up default gitignore
     echo "$default_gitignore" >"$PLAIN_REPO/info/exclude"
 
@@ -390,7 +387,7 @@ cmd_decrypt () {
             done
     fi
 
-    cmd_gc
+    true | _git_enc_sparse_checkout_files
 }
 
 
@@ -759,8 +756,7 @@ END
             ! echo "$(git_enc ls-remote --heads 2>/dev/null)" |
                 cut -f1 | grep -vq "$(git_enc rev-parse HEAD)"; then
         # Remove redundant files including just-pushed packs
-        sleep .5  # Fix "fatal: gc is already running on machine"
-        cmd_gc
+        true | _git_enc_sparse_checkout_files
     else warn 'WARNING: Some remotes are not synced! Compare `myba git_enc rev-parse HEAD` to `myba git_enc ls-remote --branches .` (mind the dot).'
     fi
 }
@@ -770,14 +766,15 @@ cmd_gc () {
     # Reduce disk usage by removing encrypted repo's blobs
     true | _git_enc_sparse_checkout_files
 
-    # Rm packs for which promisor nodes exist
+    git_plain gc "$@"
+    git_enc gc "$@"
+
+    # Rm packs for which promisor nodes exist. Subsequent fetches
+    # redownload missing packs.
     for file in "$ENC_REPO/.git/objects/pack"/pack-*.promisor; do
         rm -f "${file%.promisor}.pack" \
             "${file%.promisor}.idx"
     done
-
-    git_plain gc --aggressive --prune=now
-    git_enc gc --aggressive --prune=now
 }
 
 _git_plain_add_force () {
