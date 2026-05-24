@@ -274,7 +274,7 @@ cmd_init () {
         "$ENC_REPO"/.git/hooks/*.sample
 
     # Configure
-    email="${USER-user}@$(hostname 2>/dev/null || cat /etc/hostname 2>/dev/null || echo 'localhost')"
+    email="${EMAIL-${USER-user}@$(hostname 2>/dev/null || cat /etc/hostname 2>/dev/null || echo 'localhost')}"
     git_plain config user.name "${USER-user}"
     git_plain config user.email "$email"
     git_plain config status.showUntrackedFiles no  # We don't care to see largely untracked $HOME  # XXX: remove this?
