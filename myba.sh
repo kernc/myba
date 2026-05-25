@@ -532,9 +532,11 @@ _commit_delete_enc_path () {
 
 _update_added_dirs () {
     # Update .mybabackup dirs
-    backup_dirs="$(_git_plain_nonbare ls-files "$mybabackup_dir")"
+    backup_dirs="$(_git_plain_nonbare ls-files "*/$mybabackup_dir" |
+                   sed -E "s,/.mybabackup([\"']?)\$,\1,")"
     if [ "$backup_dirs" ]; then
-        git_plain add -vf $backup_dirs
+        echo "$backup_dirs" |
+            git_plain add -v --pathspec-from-file=-
     fi
 }
 
