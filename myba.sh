@@ -732,13 +732,14 @@ cmd_remote () {
 
 
 cmd_push () {
-    if [ $# -eq 0 ]; then
+    has_args= ; for arg; do case "$arg" in -*) ;; *) has_args=1; break ;; esac; done
+    if [ ! "$has_args" ]; then
         # With no args, push current branch to all remotes
         warn 'INFO: With no args, pushing current branch to all configured remotes!'
         git_enc remote show |
             while _read_vars _origin; do
                 # shellcheck disable=SC2154
-                git_enc push --verbose "$_origin" HEAD
+                git_enc push --verbose "$@" -- "$_origin" HEAD
             done
     else
         git_enc push --verbose "$@"
