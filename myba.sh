@@ -724,7 +724,7 @@ cmd_rm() {
 
 cmd_remote () {
     git_enc remote "$@";
-    if [ $# -eq 2 ] && [ "$1" = 'add' ]; then
+    if [ $# -ge 2 ] && [ "$1" = 'add' ]; then
         # Ideally, this would reside in cmd_init, but then
         # `git remote add` complains 'error: remote origin already exists'
         git_enc config "remote.$2.promisor" true
