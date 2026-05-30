@@ -342,6 +342,7 @@ cmd_decrypt () {
     git_add_files () { WORK_TREE="$temp_dir" git_plain add -vf "$@"; }  # -f to ignore .gitignore
 
     _ask_pw
+    _decrypt_manifests
     _bind_tty_fd7
     if [ "${1:-}" = "--squash" ]; then
         git_enc sparse-checkout disable
