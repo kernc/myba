@@ -844,7 +844,7 @@ cmd_log () {
 toggle_verbose () {
     # xtrace prompt for sh, bash, zsh. Sets $xtrace with previous xtrace state
     PS4="$(
-        if [ "${LINENO:-}" ] && [ "${BASH_VERSION:-}" ]; then lineno=':$LINENO>'; fi
+        if [ "${LINENO:-}" ] && [ "${BASH_VERSION:-}" ]; then lineno=':$LINENO ($?)>'; fi
         printf "\033[34;40;1m+%s${lineno:-}\033[0m " "$0"
     )"
     export PS4
