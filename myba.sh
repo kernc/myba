@@ -647,9 +647,19 @@ cmd_checkout() {
         working_manifest="$PLAIN_REPO/checkout.$$"
         working_manifest="$(_mktemp)"
         _rm_tmp "$working_manifest"
-        for file in "$@"; do
-            grep -REIh "$_tab$file"'($|/)' "$PLAIN_REPO/manifest"
-        done | sort -u >"$working_manifest"
+        printf '%s\n' "$@" |
+            sed -E 's|\.|\\.|g;
+                    s/\?/./g;
+                    s,\*\*,__GLOBSTAR__,g;
+                    s,\*,[^/]*?,g;
+                    s/__GLOBSTAR__/.*?/g;
+                    s/^/\t/g;
+                    s,$,($|/),g' |  # glob expr to RE
+            grep -REI -f - "$PLAIN_REPO/manifest" |
+            sort -u >"$working_manifest"
+
+        [ "$(wc -l <"$working_manifest")" -gt 1 ] ||
+            warn "WARNING: No paths match glob expression(s): $*."'Try `myba decrypt && myba git ls-files`?'
 
         cut -f1 "$working_manifest" |
             _git_enc_sparse_checkout_files
@@ -667,7 +677,7 @@ _checkout_file () {
     if [ -f "$ENC_REPO/$_enc_path" ]; then
         _decrypt_file "$_enc_path" "$_plain_path"
     else
-        echo "INFO: File '$_plain_path' committed but since removed."
+        echo "INFO: File '$_plain_path' committed but removed in a later commit"
     fi
 }
 
