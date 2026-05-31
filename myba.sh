@@ -122,7 +122,7 @@ _is_binary_stream () { head -c 8192 | LC_ALL=C tr -dc '\000' | LC_ALL=C grep -qa
 _gzip_strip_header () { tail -c +11; }
 _gzip_add_header () { printf '\037\213\010\000\000\000\000\000\000\003'; cat; }
 _mktemp () { mktemp -t "${0##*/}-$$-XXXXXXX" "$@"; }
-_rm_tmp () { _trap_append "rm -rf \"$1\"" INT HUP TERM EXIT; }
+_rm_tmp () { quiet _trap_append "rm -rf \"$1\"" INT HUP TERM EXIT; }
 _file_size () { stat -c%s "$@" 2>/dev/null || stat -f%z "$@"; }
 _read_vars () {
     # https://unix.stackexchange.com/questions/418060/read-a-line-oriented-file-which-may-not-end-with-a-newline/418066#418066
@@ -350,8 +350,7 @@ cmd_decrypt () {
         cur_branch="$(git_plain branch --show-current)"
         quiet _trap_append "git_enc checkout --force '$cur_branch'" INT HUP TERM EXIT
         git_enc rev-list --reverse HEAD |
-            while IFS= _read_vars _enc_commit; do
-                # shellcheck disable=SC2154
+            while read _enc_commit; do
                 git_enc checkout --force "$_enc_commit"
                 git_enc show --name-only --pretty=format: "$_enc_commit" |
                     _git_enc_sparse_checkout_files
@@ -399,8 +398,7 @@ cmd_reencrypt() {
     quiet _trap_append "git_plain checkout --force '$cur_branch'" INT HUP TERM EXIT
     # Loop through plain commit hashes and checkout & cmd_commit
     git_plain rev-list --reverse HEAD |
-        while _read_vars commit_hash; do
-            # shellcheck disable=SC2154
+        while read commit_hash; do
             git_plain checkout "$commit_hash"
             _encrypt_commit_plain_head_files
 
@@ -747,9 +745,8 @@ cmd_push () {
         # With no args, push current branch to all remotes
         warn 'INFO: With no args, pushing current branch to all configured remotes!'
         git_enc remote show |
-            while _read_vars _origin; do
-                # shellcheck disable=SC2154
-                git_enc push --verbose "$@" -- "$_origin" HEAD
+            while read remote; do
+                git_enc push --verbose "$@" -- "$remote" HEAD
             done
     else
         git_enc push --verbose "$@"
