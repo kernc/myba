@@ -212,17 +212,8 @@ _encrypt_file () {
         compress_if_text |
         _encrypt "$_plain_path" >"$ENC_REPO/$_enc_path"
 }
-_bind_tty_fd7 () { sh -c ':>/dev/tty' 2>/dev/null && exec 7</dev/tty || exec 7</dev/null; }  # Fd 7 used in _decrypt_file
 _decrypt_file () {
-    _enc_path="$1"
-    _plain_path="$2"
-    # Check if the plain file already exists
-    [ ! -d "/proc/$$" ] || [ -e "/proc/$$/fd/7" ]  # Assert fd-7 is available
-    if [ -f "$WORK_TREE/$_plain_path" ] && [ -z "${YES_OVERWRITE:-}" ]; then
-        warn "WARNING: File '$WORK_TREE/$_plain_path' exists. Overwrite? [y/N]"
-        read _choice <&7
-        case "$_choice" in [Yy]*) ;; *) warn "Skipping '$WORK_TREE/$_plain_path'"; return 0 ;; esac
-    fi
+    _enc_path="$1" _plain_path="$2"
     decrypted_tmpfile="$(_mktemp)"
     decrypted_tmpfile_plain="$(_mktemp)"
     _rm_tmp "$decrypted_tmpfile"
@@ -338,12 +329,11 @@ cmd_decrypt () {
     _rm_tmp "$temp_dir"
 
     have_commitable_changes () { WORK_TREE="$temp_dir" git_plain diff --staged --quiet; }
-    decrypt_one () { WORK_TREE="$temp_dir" YES_OVERWRITE=1 _decrypt_file "$1" "$2"; }
+    decrypt_one () { WORK_TREE="$temp_dir" _decrypt_file "$1" "$2"; }
     git_add_files () { WORK_TREE="$temp_dir" git_plain add -vf "$@"; }  # -f to ignore .gitignore
 
     _ask_pw
     _decrypt_manifests
-    _bind_tty_fd7
     if [ "${1:-}" = "--squash" ]; then
         git_enc sparse-checkout disable
         # Files available as of the current ref  and for which password exists
@@ -648,6 +638,7 @@ cmd_checkout() {
         working_manifest="$PLAIN_REPO/checkout.$$"
         working_manifest="$(_mktemp)"
         _rm_tmp "$working_manifest"
+
         printf '%s\n' "$@" |
             sed -E 's|\.|\\.|g;
                     s/\?/./g;
@@ -656,8 +647,26 @@ cmd_checkout() {
                     s/__GLOBSTAR__/.*?/g;
                     s/^/\t/g;
                     s,$,($|/),g' |  # glob expr to RE
-            grep -REI -f - "$PLAIN_REPO/manifest" |
-            sort -u >"$working_manifest"
+            grep -REI --no-filename -f - "$PLAIN_REPO/manifest" |
+            sort -u |
+            # Filter list of files (prompting user) here, before parallelization
+            while IFS="$_tab" _read_vars _enc_path _plain_path; do
+                if [ ! -f "$ENC_REPO/$_enc_path" ]; then
+                    warn "INFO: File '$_plain_path' committed but removed in a later commit"
+                    continue
+                fi
+                # Check if the plain file already exists
+                if [ -f "$WORK_TREE/$_plain_path" ] && [ ! "${YES_OVERWRITE:-}" ]; then
+                    warn "WARNING: File '$WORK_TREE/$_plain_path' already exists. Overwrite? [y/N]"
+                    read _choice </dev/tty
+                    case "$_choice" in
+                        [Yy]*) printf '%s\t%s\n' "$_enc_path" "$_plain_path";;
+                        *) warn "INFO: Skipping '$WORK_TREE/$_plain_path'";;
+                    esac
+                else
+                    printf '%s\t%s\n' "$_enc_path" "$_plain_path"
+                fi
+            done >"$working_manifest"
 
         [ "$(wc -l <"$working_manifest")" -gt 1 ] ||
             warn "WARNING: No paths match glob expression(s): $*."'Try `myba decrypt && myba git ls-files`?'
@@ -666,19 +675,7 @@ cmd_checkout() {
             _git_enc_sparse_checkout_files
 
         _ask_pw
-        _bind_tty_fd7
-        _parallelize 0 2 _checkout_file <"$working_manifest"
-    fi
-}
-
-
-_checkout_file () {
-    _enc_path="$1"
-    _plain_path="$2"
-    if [ -f "$ENC_REPO/$_enc_path" ]; then
-        _decrypt_file "$_enc_path" "$_plain_path"
-    else
-        echo "INFO: File '$_plain_path' committed but removed in a later commit"
+        _parallelize 0 2 _decrypt_file <"$working_manifest"
     fi
 }
 
