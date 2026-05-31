@@ -330,20 +330,19 @@ cmd_decrypt () {
 
     have_commitable_changes () { WORK_TREE="$temp_dir" git_plain diff --staged --quiet; }
     decrypt_one () { WORK_TREE="$temp_dir" _decrypt_file "$1" "$2"; }
-    git_add_files () { WORK_TREE="$temp_dir" git_plain add -vf "$@"; }  # -f to ignore .gitignore
+    git_add_files_from_stdin () { WORK_TREE="$temp_dir" git_plain add -vf --pathspec-from-file -; }  # -f to ignore .gitignore
 
     _ask_pw
     _decrypt_manifests
     if [ "${1:-}" = "--squash" ]; then
         git_enc sparse-checkout disable
-        # Files available as of the current ref  and for which password exists
+        # Files available as of the current ref and for which password exists
         available_files="$(git_enc ls-files |
                            grep -RFhf- "$PLAIN_REPO/manifest" |
                            sort -u -k2)"
-        echo "$available_files" |
-            _parallelize 0 2 decrypt_one
-        # shellcheck disable=SC2046
-        git_add_files $(echo "$available_files" | cut -f2)
+        echo "$available_files" | _parallelize 0 2 decrypt_one
+        echo "$available_files" | cut -f2 | git_add_files_from_stdin
+
         if ! have_commitable_changes; then
             WORK_TREE="$temp_dir" git_plain commit -m "Restore '$1' at $(date '+%Y-%m-%d %H:%M:%S%z')"
         fi
@@ -361,8 +360,7 @@ cmd_decrypt () {
                 plain_commit="$(git_enc show --name-only --pretty=format: "$_enc_commit" -- "manifest/" |
                                 cut -d/ -f2)"
                 _parallelize 0 2 decrypt_one <"$PLAIN_REPO/manifest/$plain_commit"
-                # shellcheck disable=SC2046
-                git_add_files $(cut -f2 "$PLAIN_REPO/manifest/$plain_commit")
+                cut -f2 "$PLAIN_REPO/manifest/$plain_commit" | git_add_files_from_stdin
 
                 # Commit the changes to the plain repo
                 _msg="$(git_enc show -s --format='%B' "$_enc_commit" |
@@ -384,10 +382,9 @@ cmd_reencrypt() {
 
     # Remove, but not squash, current encrypted files
     git_enc sparse-checkout disable
-    enc_files="$(git_enc ls-files | grep -v "^${0##*/}$" || true)"
+    enc_files="$(git_enc ls-files | grep -v "^${0##*/}$")"
     if [ "$enc_files" ]; then
-        # shellcheck disable=SC2046
-        git_enc rm $enc_files
+        echo "$enc_files" | git_enc rm --pathspec-from-file -
         git_enc commit -m 'reencrypt'
     fi
 
