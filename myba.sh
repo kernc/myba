@@ -368,7 +368,8 @@ cmd_decrypt () {
                 _date="$(git_enc show -s --format='%ai' "$_enc_commit")"
                 _author="$(git_enc show -s --format='%an <%ae>' "$_enc_commit")"
                 if ! have_commitable_changes; then
-                    WORK_TREE="$temp_dir" git_plain commit --no-gpg-sign -m "$_msg" --date "$_date" --author "$_author"
+                    echo "$_msg" |
+                        WORK_TREE="$temp_dir" git_plain commit --no-gpg-sign --file=- --date "$_date" --author "$_author"
                 fi
             done
     fi
@@ -553,7 +554,8 @@ _encrypt_commit_plain_head_files () {
     : >"$PLAIN_REPO/$manifest_path"
     git_plain show --name-status --pretty=format: HEAD | {
         files_to_add=
-        _add_file () { files_to_add="$files_to_add $_enc_path"; }
+        _add_file () { [ "$files_to_add" ] && files_to_add="$files_to_add
+$_enc_path" || files_to_add="$_enc_path"; }
         while IFS="$_tab" _read_vars _status _path; do
             _status="$(echo "$_status" | cut -c1)"
             # Handle statuses
@@ -589,7 +591,8 @@ _encrypt_commit_plain_head_files () {
             quiet _trap_append _restore_removed_remotes INT HUP TERM EXIT
             for remote in $(git_enc remote); do git_enc remote rm $remote; done
 
-            git_enc add -vf --sparse -- $files_to_add
+            echo "$files_to_add" |
+                git_enc add -vf --sparse --pathspec-from-file -
 
             _restore_removed_remotes
         fi
