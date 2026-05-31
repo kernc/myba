@@ -309,6 +309,11 @@ cmd_clone () {
 
     true | _git_enc_sparse_checkout_files
 
+    # XXX: Without this quick pull after clone, decrypt sometimes doesn't work
+    branch="$(git_enc for-each-ref --format='%(refname:short)' refs/remotes/origin | tail -n1)"
+    branch="${branch#origin/}"
+    git_enc pull origin "$branch"
+
     _ask_pw
     _decrypt_manifests
 }
