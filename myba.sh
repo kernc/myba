@@ -370,10 +370,16 @@ cmd_decrypt () {
                     cut -f2 "$PLAIN_REPO/manifest/$plain_commit" | git_add_files_from_stdin
                 else
                     # Delete-only commit
-                    git_enc show --name-only --pretty=format: "$_enc_commit" |
-                        grep -RIFf- --no-filename "$PLAIN_REPO/manifest/" |
-                        cut -f2 |
-                        git_rm_files_from_stdin
+                    commit_files="$(git_enc show --name-only --pretty=format: "$_enc_commit" |
+                                    grep -RIFf- --no-filename "$PLAIN_REPO/manifest/" |
+                                    cut -f2)"
+                    if [ "$commit_files" ]; then
+                        echo "$commit_files" | git_rm_files_from_stdin
+                    else
+                        # "Update myba.sh" commit
+                        git_enc show --name-only --pretty=format: "$_enc_commit" | grep -qF "${0##*/}"  # Assertion
+                        continue
+                    fi
                 fi
 
                 # Commit the changes to the plain repo
@@ -558,6 +564,13 @@ cmd_commit () {
 
 # shellcheck disable=SC2031
 _encrypt_commit_plain_head_files () {
+    # Add/commit latest copy of self
+    _self="$(command -v "$0" 2>/dev/null || echo "$0")"
+    cp "$_self" "$ENC_REPO/${_self##*/}"
+    git_enc add -vf --sparse "${_self##*/}"
+    git_enc diff --quiet --staged ||
+        git_enc commit -m "Update ${_self##*/}"
+
     # Encrypt and stage encrypted files
     git_plain show --name-status --pretty=format: HEAD |
         _parallelize 0 2 _commit_encrypt_one
@@ -610,13 +623,6 @@ $_enc_path" || files_to_add="$_enc_path"; }
             _restore_removed_remotes
         fi
     }
-
-    # If first commit, add self
-    if ! git_enc rev-parse HEAD 2>/dev/null; then
-        _self="$(command -v "$0" 2>/dev/null || echo "$0")"
-        cp "$_self" "$ENC_REPO/${_self##*/}"
-        git_enc add -vf --sparse "${_self##*/}"
-    fi
 
     # Stage new manifest
     if [ "$(_file_size "$PLAIN_REPO/$manifest_path")" -gt 0 ]; then
