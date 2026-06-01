@@ -736,6 +736,7 @@ cmd_rm() {
             continue
         fi
         git_plain rm --cached "$_path"  # Leave worktree copy alone
+        warn "WARNING: Untracking path '$_path', but original file was NOT removed. Use \`rm \"$_path\"\` to remove."
 
         # NOTE: The rest (encrypted repo) is handled in cmd_commit
     done
