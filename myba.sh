@@ -132,6 +132,7 @@ _read_vars () {
 cmd_pw () {
     if [ "${1-}" = 'check' ]; then _cmd_pw_check; return; fi
     stty -echo
+    quiet _trap_append 'stty echo' INT HUP TERM EXIT
     {
         IFS= read -p "Enter encryption PASSWORD=: " -r PASSWORD && echo >&2
         (
