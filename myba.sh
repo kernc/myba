@@ -526,7 +526,7 @@ _commit_encrypt_one () (
 
 _commit_delete_enc_path () {
     git_enc lfs untrack "$1" &&
-        git_enc add -vf --sparse '.gitattributes' ||
+        git_enc add -vf --sparse '.gitattributes' 2>/dev/null ||
         true  # Passthrough ok if Git LFS is not used
     git_enc rm -f --ignore-unmatch --sparse "$1"
 }
@@ -601,7 +601,7 @@ $_enc_path" || files_to_add="$_enc_path"; }
             _cfg="$ENC_REPO/.git/config"
             cp "$_cfg" "$_cfg.$$"
             _restore_removed_remotes () { mv "$_cfg.$$" "$_cfg" || true; }
-            quiet _trap_append _restore_removed_remotes INT HUP TERM EXIT
+            quiet _trap_append '_restore_removed_remotes 2>/dev/null' INT HUP TERM EXIT
             for remote in $(git_enc remote); do git_enc remote rm $remote; done
 
             echo "$files_to_add" |
