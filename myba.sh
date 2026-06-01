@@ -352,7 +352,7 @@ cmd_decrypt () {
             WORK_TREE="$temp_dir" git_plain commit -m "Restore '$1' at $(date '+%Y-%m-%d %H:%M:%S%z')"
         fi
     else
-        cur_branch="$(git_plain branch --show-current)"
+        cur_branch="$(git_enc branch --show-current)"
         quiet _trap_append "git_enc checkout --force '$cur_branch'" INT HUP TERM EXIT
         git_enc rev-list --reverse HEAD |
             while read _enc_commit; do
