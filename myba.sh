@@ -336,6 +336,7 @@ cmd_decrypt () {
     have_commitable_changes () { WORK_TREE="$temp_dir" git_plain diff --staged --quiet; }
     decrypt_one () { WORK_TREE="$temp_dir" _decrypt_file "$1" "$2"; }
     git_add_files_from_stdin () { WORK_TREE="$temp_dir" git_plain add -vf --pathspec-from-file -; }  # -f to ignore .gitignore
+    git_rm_files_from_stdin () { WORK_TREE="$temp_dir" git_plain rm --cached --pathspec-from-file -; }
 
     _ask_pw
     _decrypt_manifests
@@ -343,7 +344,7 @@ cmd_decrypt () {
         git_enc sparse-checkout disable
         # Files available as of the current ref and for which password exists
         available_files="$(git_enc ls-files |
-                           grep -RFhf- "$PLAIN_REPO/manifest" |
+                           grep -RIFf- --no-filename "$PLAIN_REPO/manifest" |
                            sort -u -k2)"
         echo "$available_files" | _parallelize 0 2 decrypt_one
         echo "$available_files" | cut -f2 | git_add_files_from_stdin
@@ -363,8 +364,17 @@ cmd_decrypt () {
                 # Decrypt and stage files from this commit into temp_dir
                 plain_commit="$(git_enc show --name-only --pretty=format: "$_enc_commit" -- "manifest/" |
                                 cut -d/ -f2)"
-                _parallelize 0 2 decrypt_one <"$PLAIN_REPO/manifest/$plain_commit"
-                cut -f2 "$PLAIN_REPO/manifest/$plain_commit" | git_add_files_from_stdin
+                # Can be empty in delete-only commits
+                if [ "$plain_commit" ]; then
+                    _parallelize 0 2 decrypt_one <"$PLAIN_REPO/manifest/$plain_commit"
+                    cut -f2 "$PLAIN_REPO/manifest/$plain_commit" | git_add_files_from_stdin
+                else
+                    # Delete-only commit
+                    git_enc show --name-only --pretty=format: "$_enc_commit" |
+                        grep -RIFf- --no-filename "$PLAIN_REPO/manifest/" |
+                        cut -f2 |
+                        git_rm_files_from_stdin
+                fi
 
                 # Commit the changes to the plain repo
                 _msg="$(git_enc show -s --format='%B' "$_enc_commit" |
