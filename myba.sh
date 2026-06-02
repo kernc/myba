@@ -499,13 +499,18 @@ _parallelize () {
         mv "$tmpdir/err" "$tmpdir/err.$!"
     done
     # Wait on all spawned jobs; transferring their exit status to ours
-    status=0
+    status=0 _status=0
     for pid in $pids; do
-        if ! wait "$pid"; then status=1; fi
+        wait "$pid" || _status="$?"
+        [ "$_status" -eq 0 ] || [ "$status" -ne 0 ] || status="$_status"
+        # Color output relative to exit status
+        COLOR_RESET="\033[39;0m" COLOR_RED="\033[31;1m" COLOR_YELLOW="\033[33;1m"
+        [ "$_status" -eq 0 ] || { printf '%s' "$COLOR_YELLOW"; printf '%s' "$COLOR_RED" >&2; }
         cat "$tmpdir/out.$pid"
         cat "$tmpdir/err.$pid" >&2
+        [ "$_status" -eq 0 ] || { printf '%s' "$COLOR_RESET"; printf '%s' "$COLOR_RESET" >&2; }
     done
-    if [ $status -ne 0 ]; then exit 1; fi
+    [ $status -eq 0 ] || exit $status
 }
 
 
