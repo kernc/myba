@@ -472,27 +472,27 @@ _parallelize () {
     tmpdir="$(_mktemp -d)"
     _rm_tmp "$tmpdir"
     # Init a FIFO semaphore
-    fifo="$tmpdir/semaphore"
-    mkfifo "$fifo"
-    exec 3<>"$fifo"
+    semaphore="$tmpdir/semaphore"
+    mkfifo "$semaphore"
+    exec 3<>"$semaphore"
     printf "%${n_threads}s" | tr " " "\n" >&3  # n_threads tokens
 
     pids=
-    _track_job () { pids="$pids $!"; }
+    _track_job () { pids="$pids $1"; }
+    quiet _trap_append 'kill $pids 2>/dev/null; wait; exit 130' INT TERM
     # Read n_vars variables per line, splitting by TAB
-    while eval "IFS='$_tab' read -r $(seq -s' ' -f 'var%.0f' "$n_vars")" || [ "$var1" ]; do
+    vars="$(seq -s' ' -f 'var%.0f' "$n_vars")"
+    while IFS="$_tab" read -r ${vars?}; do
         read -r _ <&3  # Acquire semaphore or block
         # Call function with args and variables in background
         {
-            # shellcheck disable=SC2016,SC2294
-            eval $_func "$@" $(seq -s' ' -f '"$var%.0f"' "$n_vars")
-            # Release semaphore
-            # XXX: For some reason doesn't work with fd3 (not inherited)?
-            exec 4>"$fifo"
-            echo >&4
-            exec 4>&-
+            status=0
+            # shellcheck disable=SC2294
+            eval "$_func" "$@" $(seq -s' ' -f '"$var%.0f"' "$n_vars") || status=$?
+            echo >"$semaphore"
+            exit $status
         } 1>"$tmpdir/out" 2>"$tmpdir/err" &
-        quiet _track_job
+        quiet _track_job $!
         # Keep pid-based references to stdout/stderr
         while [ ! -f "$tmpdir/out" ] || [ ! -f "$tmpdir/err" ]; do sleep .01; done
         mv "$tmpdir/out" "$tmpdir/out.$!"
