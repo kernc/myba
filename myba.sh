@@ -562,7 +562,7 @@ cmd_commit () {
     _update_added_dirs
 
     # Commit to plain repo
-    git_plain commit --verbose "$@" --message "myba backup $(date '+%Y-%m-%d %H:%M:%S')"
+    git_plain commit --verbose "$@" --message "${0##*/} backup $(date '+%Y-%m-%d %H:%M:%S')"
 
     _encrypt_commit_plain_head_files
 }
@@ -694,7 +694,7 @@ cmd_checkout() {
             done >"$working_manifest"
 
         [ "$(wc -l <"$working_manifest")" -gt 1 ] ||
-            warn "WARNING: No paths match glob expression(s): $*."'Try `myba decrypt && myba git ls-files`?'
+            warn "WARNING: No paths match glob expression(s): $*. Try \`${0##*/} decrypt && ${0##*/} git ls-files\`?"
 
         cut -f1 "$working_manifest" |
             _git_enc_sparse_checkout_files
@@ -718,7 +718,7 @@ cmd_switch () {
     if git_plain show-ref --verify --quiet "refs/heads/$branch"; then
         # Switch branches and index but without touching anything in work tree!
         cur_branch="$(git_plain branch --show-current)"
-        git_plain symbolic-ref -m "myba switch $cur_branch -> $branch" HEAD "refs/heads/$branch"
+        git_plain symbolic-ref -m "${0##*/} switch $cur_branch -> $branch" HEAD "refs/heads/$branch"
         git_plain read-tree --reset "$branch"
 
         true | _git_enc_sparse_checkout_files
@@ -792,7 +792,7 @@ cmd_push () {
                 done; then
         # Remove redundant files including just-pushed packs
         true | _git_enc_sparse_checkout_files
-    else warn 'WARNING: Some remotes are not synced! Compare `myba git_enc rev-parse HEAD` to `myba git_enc ls-remote --branches .` (mind the dot).'
+    else warn "WARNING: Some remotes are not synced! Compare \`${0##*/} git_enc rev-parse HEAD\` to \`${0##*/} git_enc ls-remote --branches .\` (mind the dot)."
     fi
 }
 
@@ -883,7 +883,7 @@ quiet () {
 default_gitignore="
 # Ignore self and similar
 ${PLAIN_REPO##*/}
-.myba
+.myba*
 
 "'
 # Compiled source
