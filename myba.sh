@@ -355,6 +355,10 @@ cmd_decrypt () {
         fi
     else
         cur_branch="$(git_enc branch --show-current)"
+        if [ ! "$cur_branch" ]; then
+            warn "ERROR: git_enc is not on a branch! Inspect \`${0##*/} git_enc branch\`."
+            exit 1
+        fi
         quiet _trap_append "git_enc checkout --force '$cur_branch'" INT HUP TERM EXIT
         git_enc rev-list --reverse HEAD |
             while read _enc_commit; do
