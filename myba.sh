@@ -384,10 +384,11 @@ cmd_decrypt () {
                 fi
 
                 # Commit the changes to the plain repo
-                _msg="$(git_enc show -s --format='%B' "$_enc_commit" |
-                        base64 -d | _decrypt "" | _gzip_add_header | gzip -dc)"
-                _date="$(git_enc show -s --format='%ai' "$_enc_commit")"
-                _author="$(git_enc show -s --format='%an <%ae>' "$_enc_commit")"
+                _msg="$(git_enc show --no-patch --format='%B' "$_enc_commit" |
+                        base64 -d | _decrypt "" | _gzip_add_header | gzip -dc |
+                        perl -p0e 's/\n\n(?:[ACDMRT][0-9]*\t[^\n]*\n?)+\z//')"  # Strip file list
+                _date="$(git_enc show --no-patch --format='%ai' "$_enc_commit")"
+                _author="$(git_enc show --no-patch --format='%an <%ae>' "$_enc_commit")"
                 if ! have_commitable_changes; then
                     echo "$_msg" |
                         WORK_TREE="$temp_dir" git_plain commit --no-gpg-sign --file=- --date "$_date" --author "$_author"
