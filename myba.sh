@@ -43,8 +43,6 @@
 # See usage AND CODE for details.
 #
 
-# shellcheck disable=SC2086,SC2162,SC3045
-
 set -eu
 
 # Configuration via env vars
@@ -134,9 +132,11 @@ cmd_pw () {
     stty -echo
     quiet _trap_append 'stty echo' INT HUP TERM EXIT
     {
-        IFS= read -p "Enter encryption PASSWORD=: " -r PASSWORD && echo >&2
+        printf 'Enter encryption PASSWORD: ' >&2
+        IFS= read -r PASSWORD && echo >&2
         (
-            IFS= read -p "Repeat: " -r PASSWORD2 && echo >&2
+            printf 'Repeat: ' >&2
+            IFS= read -r PASSWORD2 && echo >&2
             [ "$PASSWORD" = "$PASSWORD2" ] || { warn 'ERROR: Password mismatch!'; exit 1; }
         )
     } </dev/tty
@@ -464,7 +464,7 @@ _trap_append() {
 
 _parallelize () {
     n_threads="${N_JOBS:-$1}"  # Number of threads to keep consuming stdin
-    [ $n_threads -gt 0 ] || n_threads="$(getconf _NPROCESSORS_ONLN || getconf NPROCESSORS_ONLN)"
+    [ "$n_threads" -gt 0 ] || n_threads="$(getconf _NPROCESSORS_ONLN || getconf NPROCESSORS_ONLN)"
     n_vars="$2"  # Number of TAB-separated values per stdin line
     _func="$3"  # Func to pass args and values to
     shift 3
