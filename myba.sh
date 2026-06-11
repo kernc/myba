@@ -832,9 +832,14 @@ cmd_gc () {
     done
 }
 
+
 _git_plain_add_force () {
     # Plumbing command `update-index --add` does not complain or skip nested repo files
     git_plain update-index --add --verbose "$@"
+}
+
+_apply_gitignore_filter () {
+    git_plain check-ignore --no-index --stdin --non-matching --verbose | grep '^::' | cut -f2
 }
 
 cmd_add () {
@@ -844,16 +849,24 @@ cmd_add () {
             touch "$dir/$mybabackup_dir"
             _git_plain_add_force "$dir/$mybabackup_dir"
 
+            # Of nested git repos (dirs containing .git dirs),
+            # force-add a single (any) file before later recursive `git_plain add`
+            # to avoid skipping nested-repo files
+            find "$dir" -type d -name '.git' |
+                _apply_gitignore_filter |
+                while read d; do
+                    warn "WARNING: Skipping .git dir: \"$d\". If you wish to include it in the backup, you have to copy/rename it before adding. This can be done e.g. in a git hook. You can also use the post-commit hook shipped with ${0##*/}."
+                    _git_plain_add_force "$(
+                        find "${d%/*}" -type f |
+                        grep -v '/.git/' |
+                        _apply_gitignore_filter |
+                        head -n1)"
+                done
+
             # Once any dirs that are git repos (contain .git dir) have had added
             # files by `update-index --add`, simple `git add` should work for the
             # nested files afterwards
             git_plain add -v "$dir"
-
-            find "$dir" -type d -name '.git' |
-                while read d; do
-                    warn "WARNING: Skipping .git dir: \"$d\". If you wish to include it in the backup, you have to copy/rename it before adding. This can be done e.g. in a git hook. You can also use the post-commit hook shipped with ${0##*/}."
-                    _git_plain_add_force "${d%/*}"/*
-                done
         fi
     done
 
