@@ -903,7 +903,7 @@ quiet () {
 default_gitignore="
 # Ignore self and similar
 ${PLAIN_REPO##*/}
-.myba*
+.myba*/
 
 "'
 # Compiled source
@@ -930,37 +930,36 @@ _build/
 .svn/
 
 # Ignore Python
-.venv/
+.venv*/
 venv/
 python*/site-packages/
 *.py[cod]
 __pycache__/
 .eggs/
 *.egg/
+cache/
+.cache/
 *.egg-info
-dist/*.tar.gz
-dist/*.zip
-dist/*.whl
+dist/
 
 # Ignore JS
 node_modules/
 .npm/
-.eslintcache
+.*cache/
 .yarn/
 .grunt/
 
 # Docs
 htmlcov/
 .tox/
-.coverage/
-.coverage.*/
+.coverage*
 coverage.xml
 .hypothesis/
-.mypy_cache/
+.*_cache/
 
 # IDEs and editors
-.idea/*
-.vscode/*
+.idea/
+.vscode/
 
 # Temporary & logs
 *.cache
@@ -971,6 +970,8 @@ tmp/
 *.pid
 *.lock
 *~
+~*
+.~*
 logs
 *.log
 
@@ -978,6 +979,7 @@ logs
 .DS_Store
 Thumbs.db
 *.dpkg-*
+.sandbox*/
 '
 
 
