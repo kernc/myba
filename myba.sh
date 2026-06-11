@@ -79,8 +79,8 @@ usage () {
     echo
     echo '  push [OPTS]           Push encrypted repo to remote repo(s) (default: all)'
     echo '  pull [OPTS]           Pull encrypted commits from a promisor remote'
-    echo '  decrypt [--squash]    Reconstruct plain repo commits from the encrypted'
-    echo '  reencrypt             Reencrypt plain repo commits with a new password'
+    echo '  decrypt [--squash | FROM_REV]    Reconstruct plain repo from the encrypted'
+    echo '  reencrypt [FROM_REV]  Reencrypt plain repo commits with a new password'
     echo '  gc                    Remove synced encrypted packs'
     echo
     echo '  pw [check]            Secure password input. Usage: PASSWORD="$(myba pw)"'
@@ -360,7 +360,9 @@ cmd_decrypt () {
             exit 1
         fi
         quiet _trap_append "git_enc checkout --force '$cur_branch'" INT HUP TERM EXIT
-        git_enc rev-list --reverse HEAD |
+        rev=HEAD; if _is_enc_commit "${1:-}"; then rev="$1^.."; fi
+        if _is_plain_commit "${1:-}"; then warn 'ERROR: Parameter FROM_REV should be a commit of the *encrypted* repo!'; exit 1; fi
+        git_enc rev-list --reverse "$rev" |
             while read _enc_commit; do
                 git_enc checkout --force "$_enc_commit"
                 git_enc show --name-only --pretty=format: "$_enc_commit" |
@@ -407,12 +409,23 @@ cmd_decrypt () {
 cmd_reencrypt() {
     _ask_pw
 
+    rev=HEAD; if _is_plain_commit "${1:-}"; then rev="$1^.."; fi
+    if _is_enc_commit "${1:-}"; then warn 'ERROR: Parameter FROM_REV should be a commit of the *plain* repo!'; exit 1; fi
+
     # Remove, but not squash, current encrypted files
-    git_enc sparse-checkout disable
-    enc_files="$(git_enc ls-files | grep -v "^${0##*/}$")"
-    if [ "$enc_files" ]; then
-        echo "$enc_files" | git_enc rm --pathspec-from-file -
-        git_enc commit -m 'reencrypt'
+    if [ "$rev" = "HEAD" ]; then
+        git_enc sparse-checkout disable
+        enc_files="$(git_enc ls-files | grep -v "^${0##*/}$")"
+        if [ "$enc_files" ]; then
+            warn "WARNING: Prefix an additional commit removing all existing repo contents to mark the beginning of this reencryption? [y/N]"
+            read _choice
+            case "$_choice" in
+                [Yy]*)
+                    echo "$enc_files" | git_enc rm --pathspec-from-file -
+                    git_enc commit -m 'reencrypt'
+                    ;;
+            esac
+        fi
     fi
 
     mkdir -p "$ENC_REPO/manifest"
@@ -424,7 +437,7 @@ cmd_reencrypt() {
     cur_branch="$(git_plain branch --show-current)"
     quiet _trap_append "git_plain checkout --force '$cur_branch'" INT HUP TERM EXIT
     # Loop through plain commit hashes and checkout & cmd_commit
-    git_plain rev-list --reverse HEAD |
+    git_plain rev-list --reverse "$rev" |
         while read commit_hash; do
             git_plain checkout "$commit_hash"
             _encrypt_commit_plain_head_files
@@ -652,13 +665,15 @@ $_enc_path" || files_to_add="$_enc_path"; }
             gzip -nc8 | _gzip_strip_header | _encrypt "" | { base64 -w 0 || base64; })"
 }
 
+_is_plain_commit () { git_plain rev-parse --verify "$1^{commit}" >/dev/null 2>&1; }
+_is_enc_commit () { git_enc rev-parse --verify "$1^{commit}" >/dev/null 2>&1; }
 
 cmd_checkout() {
     if [ $# -eq 0 ]; then warn "Usage: ${0##*/} checkout (COMMIT | FILE...)"; exit 1; fi
     # If a commit hash is provided, checkout that commit in either repo
-    if git_plain rev-parse --verify "$1^{commit}" >/dev/null 2>&1; then
+    if _is_plain_commit "$1"; then
         git_plain checkout "$@"
-    elif git_enc rev-parse --verify "$1^{commit}" >/dev/null 2>&1; then
+    elif _is_enc_commit "$1"; then
         true | _git_enc_sparse_checkout_files
         git_enc checkout "$@"
         _ask_pw

@@ -173,7 +173,7 @@ especially Windows/WSL!
 
 Usage
 -----
-You run the script with arguments according to the usage printout below.
+You run the script with arguments according to the single-page usage printout below.
 Myba heavily relies on `git` and thus **its command-line usage largely follows that of git convention**.
 Most subcommands pass obtained arguments and options (`"$@"`) straight to matching `git` subcommands!
 ```text
@@ -198,8 +198,8 @@ Subcommands:
 
   push [OPTS]           Push encrypted repo to remote repo(s) (default: all)
   pull [OPTS]           Pull encrypted commits from a promisor remote
-  decrypt [--squash]    Reconstruct plain repo commits from the encrypted
-  reencrypt             Reencrypt plain repo commits with a new password
+  decrypt [--squash | FROM_REV]    Reconstruct plain repo from the encrypted
+  reencrypt [FROM_REV]  Reencrypt plain repo commits with a new password
   gc                    Remove synced encrypted packs
 
   pw [check]            Secure password input. Usage: PASSWORD="$(myba pw)"
@@ -208,8 +208,8 @@ Subcommands:
 
 PLAIN repo  <--encryption-->  ENCRYPTED repo  <--synced with-->  git REMOTE
 
-Env vars: WORK_TREE, PLAIN_REPO, PASSWORD, USE_GPG, VERBOSE, YES_OVERWRITE,
-          GIT_LFS_THRESH (in bytes)
+Env vars: WORK_TREE, PLAIN_REPO, PASSWORD | SECURITY_TOKEN, USE_GPG, VERBOSE,
+          YES_OVERWRITE, GIT_LFS_THRESH (in bytes)
 ```
 
 
