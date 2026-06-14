@@ -1,6 +1,11 @@
 AES
 CTR
 CFB
+AEAD
+HMAC
+ECC
+LD
+PKCS
 APIs
 Backblaze
 Bacula
@@ -103,3 +108,13 @@ Reencrypt
 txt
 pw
 gcrypt
+cryptographically
+humongously
+dirs
+iframe
+libengine
+pkcs
+px
+stderr
+subgraph
+urls

@@ -55,7 +55,7 @@ Features
 * **Or sync anywhere simply** by cloning or checking-out a directory ...
 
 > [!Important]
-> The encryption imlementation is, in fact, so sound and secure that even the
+> The encryption implementation is, in fact, so sound and secure that even the
 > author herself publishes their [private dotfiles here](https://github.com/kernc/dotfiles).
 
 > [!Caution]
@@ -379,7 +379,7 @@ unless both repos are also regularly squashed, pruned and <abbr title="garbage c
 
 However, while git repositories bloat when commiting such large binary and media files,
 **_myba_ only ever uses sparse-checkout** and aggressively garbage-collects,
-so it should scale even to humungously-sized mono-repos where only a few stored files are needed at a time,
+so it should scale even to humongously-sized mono-repos where only a few stored files are needed at a time,
 keeping overhead disk space use to a minimum.
 
 </div></div></details>
