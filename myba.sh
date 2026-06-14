@@ -103,7 +103,7 @@ git_plain () { git --work-tree="$WORK_TREE" --git-dir="$PLAIN_REPO" "$@"; }
 _git_plain_nonbare () { git -C "$PLAIN_REPO" "$@"; }
 git_enc () { git -C "$ENC_REPO" "$@"; }
 
-_debug_git () { GIT_TRACE_PACK_ACCESS=1 GIT_TRACE=1 "$@"; }
+_git_trace () { GIT_TRANSFER_TRACE=1 GIT_TRACE_PACK_ACCESS=1 GIT_TRACE=1 "$@"; }
 
 _git_enc_sparse_checkout_files () {
     # TODO: debug why upon decrypt receiving the whole
@@ -112,7 +112,7 @@ _git_enc_sparse_checkout_files () {
         echo 'd/'
         # stdin is assumed ls-files, sparse-checkout cone requires dirs
         sed -E 's,[^/]+$,,'
-    } | sort -u | _debug_git git_enc sparse-checkout set --stdin
+    } | sort -u | git_enc sparse-checkout set --stdin
     git_enc sparse-checkout reapply
 }
 
@@ -675,7 +675,7 @@ cmd_checkout() {
         git_plain checkout "$@"
     elif _is_enc_commit "$1"; then
         true | _git_enc_sparse_checkout_files
-        git_enc checkout "$@"
+        _git_trace git_enc checkout "$@"
         _ask_pw
         _decrypt_manifests
     else
@@ -717,7 +717,7 @@ cmd_checkout() {
             warn "WARNING: No paths match glob expression(s): $*. Try \`${0##*/} decrypt && ${0##*/} git ls-files\`?"
 
         cut -f1 "$working_manifest" |
-            _git_enc_sparse_checkout_files
+            _git_trace _git_enc_sparse_checkout_files
 
         _ask_pw
         _parallelize 0 2 _decrypt_file <"$working_manifest"
