@@ -48,11 +48,12 @@ details[open] summary {border:2px solid black;}
 
 <h1 id="myba-git-based-backup-with-encryption"><img src="icon.svg" width="64" alt/>  Myba — git-based backup with encryption</h1>
 <p><a href="https://github.com/kernc/myba/actions"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/kernc/myba/ci.yml?branch=master&amp;style=for-the-badge"></a>
+<a href="https://github.com/kernc/myba/actions"><img alt="Coverage: 98%" src="https://img.shields.io/badge/Coverage-98%25-brightgreen?style=for-the-badge"></a>
 <a href="https://github.com/kernc/myba"><img alt="Language: shell / Bash" src="https://img.shields.io/badge/lang-Shell-peachpuff?style=for-the-badge"></a>
 <a href="https://ghloc.vercel.app/kernc/myba"><img alt="Source lines of code" src="https://img.shields.io/endpoint?url=https%3A%2F%2Fghloc.vercel.app%2Fapi%2Fkernc%2Fmyba%2Fbadge?filter=myba.sh%26format=human&amp;style=for-the-badge&amp;label=SLOC&amp;color=skyblue"></a>
 <a href="https://github.com/kernc/myba"><img alt="Script size" src="https://img.shields.io/github/size/kernc/myba/myba.sh?style=for-the-badge&amp;color=skyblue"></a>
-<a href="https://github.com/kernc/myba/issues"><img alt="Issues" src="https://img.shields.io/github/issues/kernc/myba?style=for-the-badge"></a>
-<a href="https://github.com/sponsors/kernc"><img alt="Sponsors" src="https://img.shields.io/github/sponsors/kernc?color=pink&amp;style=for-the-badge"></a></p>
+<a href="https://github.com/kernc/myba/issues"><img alt="Issues" src="https://img.shields.io/github/issues/kernc/myba?style=for-the-badge&amp;label=%F0%9F%AA%B2"></a>
+<a href="https://github.com/sponsors/kernc"><img alt="Sponsors" src="https://img.shields.io/github/sponsors/kernc?color=pink&amp;style=for-the-badge&amp;label=%e2%99%a5"></a></p>
 <div class="toc">
 <ul>
 <li><a href="#features">Features</a></li>
@@ -81,31 +82,52 @@ Its only <strong>dependencies are</strong>:</p>
 <li>a running <strong>shell</strong> / standard <strong><abbr title="Portable Operating System Interface">POSIX</abbr> environment</strong> (sh, bash, zsh, dash, ... WSL?),</li>
 <li><strong>gzip</strong></li>
 <li><strong>git</strong> (and Git LFS for files sized &gt;40 MB),</li>
-<li>either <strong>OpenSSL</strong> (AES256-CTR) or <strong>GPG</strong> (AES256-CFB) for encryption,</li>
+<li>either <strong>OpenSSL</strong> (AES256-CTR, no HMAC) or <strong>GPG</strong> (AES256-CFB, fully AEAD*) for encryption,</li>
 </ul>
-<p>all of which you should find most popularly available.</p>
-<p><strong>Git does a great job of securely storing and tracking changes and backing up important documents.</strong>
-It is popular,
+<p>all of which one can find most popularly available.</p>
+<p><sub>∗ In CTR mode, plaintext contents of encrypted files with (accidental or malicious)
+bit flips are still recoverable, whereas in the AEAD mode they are not.
+See <a href="https://github.com/openssl/openssl/issues/12220#issuecomment-1237509811">anecdote</a>.</sub></p>
+<p><strong>Git already does a great job of securely storing, tracking changes and backing up <em>very important</em> documents.</strong>
+It is <a href="https://stackoverflow.blog/2023/01/09/beyond-git-the-other-version-control-systems-developers-use/">popular</a>,
 <a href="https://git-man-page-generator.lokaltog.net/">feature-rich</a> and widely-deployed,
-but it doesn't on its own support encryption, which might be important if the backed-up data 
+but it doesn't on its own support encryption, which might be important if the backed-up data
 is going to be shared with untrusted (untrustworthy) third parties
-and their intermediary "data processors".
+and all their intermediary "data processors".
 One <em>could</em> most simply set up an encryption-decryption process
-consisting of <a href="https://git-scm.com/book/ms/v2/Customizing-Git-Git-Attributes#filters_a"><strong><code>clean</code> and <code>smudge</code> git filters</strong> issued pre commits and post checkouts</a>,
+consisting of <a href="https://git-scm.com/book/en/v2/Customizing-Git-Git-Attributes#filters_a"><strong><code>clean</code> and <code>smudge</code> git filters</strong> issued pre commits and post checkouts</a>,
 respectively, but <strong>git filters don't encrypt the tracked file paths / filenames</strong>,
 whereas one might have a want for that, otherwise almost what's the point? 😶</p>
 <h2 id="features">Features</h2>
 <ul>
 <li><strong>Version-controlled (git-based) backup</strong> of plaintext documents as well as large binary files.</li>
-<li>Automatic <strong>text compression</strong> for reduced space use.</li>
-<li>Currently using industry-standard
-  <a href="https://crypto.stackexchange.com/questions/6712/is-aes-256-a-post-quantum-secure-cipher-or-not">quantum-safe</a>
-  <strong><em>strong</em> AES256 encryption</strong> of files and paths,</li>
-<li><strong>Familiar git workflow</strong>: add (stage), commit, push, clone, pull, checkout ...</li>
+<li>Automatic <strong>text file compression</strong> for reduced space use.</li>
+<li>Using industry-standard and
+  <strong><a href="https://crypto.stackexchange.com/questions/6712/is-aes-256-a-post-quantum-secure-cipher-or-not">quantum-safe</a>*
+  AES256 encryption</strong> of <em>files and paths</em>, cryptographically safe for the foreseeable- future,</li>
+<li><strong>Familiar git workflow</strong>: add, commit, push, clone, pull, checkout, switch, ...</li>
 <li><strong>Selective (sparse) checkout</strong> of backup files for restoration, efficient size-on-disk overhead.</li>
 <li><strong>Sync to multiple clouds</strong> for nearly free by (ab)using popular git hosts.</li>
 <li><strong>Or sync anywhere simply</strong> by cloning or checking-out a directory ...</li>
 </ul>
+<blockquote>
+<p>[!Important]
+The encryption implementation is, in fact, so sound and secure that even the
+author herself publishes their <a href="https://github.com/kernc/dotfiles">private dotfiles here</a>.</p>
+<p>[!Caution]
+Even after cracking with the Grover's algorithm, AES 256 is considered quantum-resistant.<br>
+Whereas <a href="https://arstechnica.com/security/2026/03/new-quantum-computing-advances-heighten-threat-to-elliptic-curve-cryptosystems/">the following is said about elliptic curves</a>,
+FYI:</p>
+<blockquote>
+<p><sub><em>They went on to show this approach could allow a quantum computer to break
+256-bit elliptic-curve cryptography (ECC) in 10 days while using 100 times
+less overhead than previously estimated. In a second paper,
+Google researchers demonstrated how to break ECC-securing blockchains
+for bitcoin and other cryptocurrencies in less than nine minutes while
+achieving a 20-fold resource reduction.</em></sub></p>
+</blockquote>
+<p>Lucky they were Google researchers and not just some crackheads, right?</p>
+</blockquote>
 <h2 id="how-it-works">How it works</h2>
 <p>Myba relies on a <strong>two-repo solution</strong>. On any <em>client</em>, <strong>two repositories</strong> are created.
 <strong>One plaintext</strong> <a href="https://git-scm.com/book/en/v2/Git-on-the-Server-Getting-Git-on-a-Server"><code>--bare</code></a> repo,
@@ -122,7 +144,7 @@ to all configured remotes
 (any <code>git remote</code>, such as a special folder or a cloud host),
 the <strong>local encrypted blobs are deleted to save disk space</strong>,
 relying on recently-stabilized
-<a href="https://git-scm.com/docs/git-sparse-checkout"><code>git sparse-checkout</code></a> and 
+<a href="https://git-scm.com/docs/git-sparse-checkout"><code>git sparse-checkout</code></a> and
 <a href="https://git-scm.com/docs/partial-clone">partial <code>git clone --filter=blob:none</code></a> features,
 all in all at a minimized and efficient space cost, best-suited to backing up
 text and configuration files, source code files, documents and pictures,
@@ -130,21 +152,33 @@ including all kinds of large binary files
 (as much as you can afford to sync to your cloud storage),
 <strong>all under the assumptions that text files compress well</strong> and
 that <strong>large binaries don't change often</strong>.</p>
+<pre><code class="language-mermaid">flowchart LR
+    User((User))
+    Remote[Cloud provider]
+
+    subgraph LD[Local disk]
+        direction LR
+        Plain[plaintext repo]
+        Encrypted[encrypted repo]
+        Plain &lt;--&gt;|encryption| Encrypted
+    end
+
+    User --&gt;|commit files| Plain
+    Encrypted --&gt;|git push| Remote
+</code></pre>
 <p><strong>Myba</strong> is <strong>Git + Shell</strong>, preconfigured and wrapped as thinly as needed to provide
 <strong>fully encrypted backups</strong> that are really <strong>easily replicated and synced</strong>  to the cloud.</p>
-<script async src="https://ssl.gstatic.com/trends_nrtr/4031_RC01/embed_loader.js"></script>
-<div id="trends"></div>
-<script>addEventListener("load", () => window.trends.embed.renderExploreWidgetTo(document.getElementById("trends"), "TIMESERIES", {"comparisonItem":[{"keyword":"/m/02mhh1","geo":"","time":"all"},{"keyword":"/m/05vqwg","geo":"","time":"all"},{"keyword":"/m/0ryppmg","geo":"","time":"all"},{"keyword":"myba","geo":"","time":"all"}],"category":0,"property":""}, {"exploreQuery":"date=all&q=%2Fm%2F02mhh1,%2Fm%2F05vqwg,%2Fm%2F0ryppmg,myba#TIMESERIES","guestPath":"https://trends.google.com:443/trends/embed/"}));</script>
+<iframe loading="lazy" style="display:block;width:100%;height:430px;border:1px solid silver" src="https://trends.google.com/trends/embed/explore/TIMESERIES?tz=0&req=%7B%22comparisonItem%22:[%7B%22keyword%22:%22/m/02mhh1%22,%22geo%22:%22%22,%22time%22:%22all%22},%7B%22keyword%22:%22/m/05vqwg%22,%22geo%22:%22%22,%22time%22:%22all%22},%7B%22keyword%22:%22/m/0ryppmg%22,%22geo%22:%22%22,%22time%22:%22all%22},%7B%22keyword%22:%22myba%22,%22geo%22:%22%22,%22time%22:%22all%22}],%22category%22:0,%22property%22:%22%22}"></iframe>
 
 <h3 id="use-cases">Use-cases</h3>
 <ul>
 <li><strong>Zero-knowledge cloud sync and storage</strong></li>
-<li>Replace or supplement existing <strong>poor, complex, expensive, proprietary solutions</strong>
+<li>Replace existing <strong>poor, complex, expensive, proprietary backup solutions</strong>
     (like Veeam,
     Apple Time Machine,
-    Google One, Photos &amp; Drive,
+    Google One,
     Apple iCloud)
-    or software programs with <strong>complex, unfamiliar <abbr title="Command Line Interface">CLI</abbr> APIs or wider attack surfaces</strong>
+    or software programs with <strong>complex, unfamiliar <abbr title="Command Line Interface">CLI</abbr> APIs and/or wider attack surfaces</strong>
     (<a href="https://en.wikipedia.org/wiki/Bacula">Bacula</a>,
     <a href="https://borgbackup.readthedocs.io/en/stable/usage.html">Borg Backup</a>,
     <a href="https://restic.net">restic</a>,
@@ -155,8 +189,8 @@ that <strong>large binaries don't change often</strong>.</p>
   (save to AWS S3 / Backblaze B2 with
   <a href="https://github.com/s3ql/s3ql">S3QL</a>).
   Simply add remote origins (like GitLab) or sync anywhere (e.g.
-  <a href="https://en.wikipedia.org/wiki/Rsync">rsync</a>,
-  <a href="https://rclone.org">rclone</a>) a git folder.</li>
+  <a href="https://en.wikipedia.org/wiki/Rsync">rsync</a>;
+  <a href="https://rclone.org">rclone</a> to Google Drive) a git folder.</li>
 </ul>
 <h2 id="installation">Installation</h2>
 <p>To install on a Debian/Ubuntu-based system, run:</p>
@@ -177,37 +211,42 @@ Hopefully you will find most dependencies already satisfied.</p>
 <p>Please report back if you find or manage to get this working under everything but the above configuration,
 especially Windows/WSL!</p>
 <h2 id="usage">Usage</h2>
-<p>You run the script with arguments according to the usage printout below.
+<p>You run the script with arguments according to the single-page usage printout below.
 Myba heavily relies on <code>git</code> and thus <strong>its command-line usage largely follows that of git convention</strong>.
 Most subcommands pass obtained arguments and options (<code>"$@"</code>) straight to matching <code>git</code> subcommands!</p>
 <pre><code class="language-text">Usage: myba &lt;subcommand&gt; [options]
 Subcommands:
-  init                  Initialize repos in $WORK_TREE (default: $HOME)
-  add [OPTS] PATH...    Stage files for backup/version tracking
-  rm PATH...            Stage-remove files from future backups/version control
-  commit [OPTS]         Commit staged changes of tracked files as a snapshot
-  push [REMOTE]         Push encrypted repo to remote repo(s) (default: all)
-  pull [REMOTE]         Pull encrypted commits from a promisor remote
+  init [OPTS]           Initialize repos in $WORK_TREE (default: $HOME)
   clone REPO_URL        Clone an encrypted repo and init from it
-  remote CMD [OPTS]     Manage remotes of the encrypted repo
-  decrypt [--squash]    Reconstruct plain repo commits from encrypted commits
-  reencrypt             Reencrypt plain repo commits with a new password
-  diff [OPTS]           Compare changes between plain repo revisions
-  log [OPTS]            Show commit log of the plain repo
-  status [OPTS]         Show git status of the plain repo
-  ls-files [OPTS]       Show current backup files
-  largest               List current backup files by file size, descending
+  remote CMD [OPTS]     Manage git remotes of the encrypted repo
+  switch [BRANCH]       Switch orphan branches (vaults) on both repos
+
+  add [OPTS] PATH...    Stage files for backup / version tracking
+  rm PATH...            Stage-remove files from future backups / versioning
+  commit [OPTS]         Commit staged changes of tracked files as a snapshot
   checkout PATH...      Sparse-checkout and decrypt files into $WORK_TREE
   checkout COMMIT       Switch files to a commit of plain or encrypted repo
-  gc                    Garbage collect, remove synced encrypted packs
-  pw                    Secure password input. Usage: PASSWORD=&quot;$(myba pw)&quot;
-  git CMD [OPTS]        Inspect/execute raw git commands inside plain repo
-  git_enc CMD [OPTS]    Inspect/execute raw git commands inside encrypted repo
+
+  status [OPTS]         Show git status of the plain repo
+  diff [OPTS]           Compare changes between plain repo revisions
+  log [OPTS]            Show commit log of the plain repo
+  ls-files [OPTS]       Show current backup files in the plain repo
+  largest [OPTS]        List (ls-tree) backup files by file size, descending
+
+  push [OPTS]           Push encrypted repo to remote repo(s) (default: all)
+  pull [OPTS]           Pull encrypted commits from a promisor remote
+  decrypt [--squash | FROM_REV]    Reconstruct plain repo from the encrypted
+  reencrypt [FROM_REV]  Reencrypt plain repo commits with a new password
+  gc                    Remove synced encrypted packs
+
+  pw [check]            Secure password input. Usage: PASSWORD=&quot;$(myba pw)&quot;
+  git CMD [OPTS]        Exec raw git commands inside local plain repo
+  git_enc CMD [OPTS]    Exec raw git commands inside synced encrypted repo
 
 PLAIN repo  &lt;--encryption--&gt;  ENCRYPTED repo  &lt;--synced with--&gt;  git REMOTE
 
-Env vars: WORK_TREE, PLAIN_REPO, PASSWORD, USE_GPG, VERBOSE, YES_OVERWRITE,
-          GIT_LFS_THRESH (in bytes)
+Env vars: WORK_TREE, PLAIN_REPO, PASSWORD | SECURITY_TOKEN, USE_GPG, VERBOSE,
+          YES_OVERWRITE, GIT_LFS_THRESH (in bytes)
 </code></pre>
 <h3 id="environment-variables">Environment variables</h3>
 <p>The script also acknowledges a few <strong>environment variables</strong> which you can <em>set</em>
@@ -216,12 +255,20 @@ Env vars: WORK_TREE, PLAIN_REPO, PASSWORD, USE_GPG, VERBOSE, YES_OVERWRITE,
 <li><code>WORK_TREE=</code> The root of the volume that contains important documents (such as dotfiles)
   to back up or restore to. If unspecified, <code>$HOME</code>.</li>
 <li><code>PLAIN_REPO=</code> The <em>internal</em> directory where myba actually stores both its repositories.
-  Defaults to <code>$WORK_TREE/.myba</code> but can be overriden to somewhere out-of-tree ...</li>
+  Defaults to <code>$WORK_TREE/.myba</code> but can be overriden to somewhere else including out-of-tree ...</li>
 <li><code>PASSWORD=</code> The password to use for encryption instead of asking / reading from stdin.</li>
-<li><code>USE_GPG=</code> Myba uses <code>openssl enc</code> by default, but if you prefer to use GPG even for
+<li><code>SECURITY_TOKEN=</code> If set, the password will be derived from a PKCS#11 hardware security token
+  <strong><em>URL</em> matching this string</strong>. List available token object URL strings with:
+  <code>shell
+  p11tool --list-token-urls | grep 'type=private'</code>
+  Runtime dependencies to use:
+  <code>shell
+  sudo apt install openssl libengine-pkcs11-openssl</code></li>
+<li><code>USE_GPG=</code> Myba uses <code>openssl enc</code> by default. If you prefer to use GPG for
   symmetric encryption, set <code>USE_GPG=1</code>.</li>
 <li><code>N_JOBS=</code> The number of parallel encryption/decryption processes at commit/checkout time.
   By default: 8.</li>
+<li><code>USER=</code>, <code>EMAIL=</code> If set at <code>myba init</code> stage, overrides details of the committing user.</li>
 <li><code>KDF_ITERS=</code> A sufficient number of iterations is used for the encryption key derivation
   function. To specify your own value and avoid rainbow table attacks on myba itself,
   you can customize this value. If you don't know, just leave it.</li>
@@ -236,14 +283,16 @@ export WORK_TREE=&quot;$HOME&quot;
 
 myba init
 myba add Documents Photos Etc .dotfile
-PASSWORD=&quot;$(myba pw)&quot;  # Secure read from the controlling terminal
-export PASSWORD
-myba commit -m &quot;my precious&quot;
+
+export PASSWORD=&quot;$(myba pw)&quot;  # Secure read from the controlling terminal
+myba commit -m &quot;my documents&quot;
+
 myba remote add origin &quot;/media/usb/backup/path&quot;
 myba remote add github &quot;git@github.com:user/my-backup.git&quot;
-VERBOSE=1 myba push  # Push to ALL configured remotes &amp; free up disk space
+VERBOSE=1 myba push  # Push to ALL configured remotes
 
-# Somewhere else, post apocalypse, yet avoiding catastrophe ...
+
+# Somewhere else, post apocalypse, avoiding complete catastrophe ...
 
 export WORK_TREE=&quot;$HOME&quot;
 export PASSWORD=...
@@ -254,7 +303,7 @@ myba checkout &quot;.dotfile&quot; # Restore backed up files in a space-efficien
 myba pull  # Sync encrypted remote
 myba decrypt  # Restore plain commits (original files)
 </code></pre>
-<p>See <a href="https://github.com/kernc/myba/blob/master/smoke-test.sh"><em>smoke-test.sh</em></a> file for a more full example &amp; test case!</p>
+<p>See <a href="https://github.com/kernc/myba/blob/master/tests/test_smoke.sh"><em>test_smoke.sh</em></a> file for a more full example &amp; test case!</p>
 <h2 id="contributing">Contributing</h2>
 <p>The project is written for a <abbr title="Portable Operating System Interface">POSIX</abbr> shell and is <a href="https://github.com/kernc/myba/">hosted on GitHub</a>.</p>
 <p>The script is considered <em>mostly</em> production-ready and feature-complete,
@@ -279,7 +328,8 @@ the inherently core features of git and thus myba allow you to:</p>
 <li>track file modification info and changes made,</li>
 <li>securely store copies of files of each commited snapshot,</li>
 <li>efficiently compress non-binary files,</li>
-<li><a href="https://git-scm.com/book/ms/v2/Customizing-Git-Git-Attributes">apply custom script filters</a> to files
+<li>sync stored objects between remote repositories,</li>
+<li><a href="https://git-scm.com/book/en/v2/Customizing-Git-Git-Attributes">apply custom script filters</a> to files
   based on file extension / glob string match,</li>
 <li>execute <a href="https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks">custom script hooks</a>
   at various stages of program lifecycle.</li>
@@ -288,6 +338,7 @@ the inherently core features of git and thus myba allow you to:</p>
 is a stable and reliable tool used by millions
 of people and organizations worldwide</strong>,
 with long and rigorous release / support cycles.</p>
+<p>Therefore, git and wrappers like myba sound like an excellent choice for backing up files.</p>
 </div>
 </div>
 </details>
@@ -301,11 +352,12 @@ and ease of use. It's got the exactly <strong>familiar <code>git</code> <abbr ti
 <p>Compared to most tools, <code>myba</code> does <strong>file-based (as opposed to fixed-size block-based) differencing and encryption</strong>.</p>
 <p>Compared to most tools, <code>myba</code> does on-the-fly compression of plain text data.</p>
 <p>Compared to <strong><code>git-crypt</code></strong>, <b markdown=1><code>myba</code> also encrypts the committed path/filenames</b> for maximum privacy.</p>
-<p>Compared to <strong><code>git-remote-gcrypt</code></strong>, myba is simpler, has fewer dependencies,
+<p>Compared to <strong><code>git-remote-gcrypt</code></strong>, myba is simple shell, has fewer dependencies and no build steps,
 does text-content compression, and can use OpenSSL, whereas the former is tied with GPG.
 While <code>git-remote-gcrypt</code> only does public-key cryptography, <code>myba</code> supports
 <a href="https://en.wikipedia.org/wiki/Symmetric-key_algorithm">symmetric</a>
-password-based encryption, so you can use a different password with every backup checkpoint.</p>
+password-based and even secure hardware-token-based encryption,
+and you can use different passwords for different backup checkpoints (commits).</p>
 </div>
 </div>
 </details>
@@ -314,7 +366,7 @@ password-based encryption, so you can use a different password with every backup
 <div property="acceptedAnswer" typeof="Answer">
 <div property="text">
 <p>Git doesn't on its own track file owner and permission changes (other than the executable bit).
-Files commited by any user are <strong>restorable by any user with the right password</strong>.
+Files commited by any user are <strong>restorable by any user with the right key/password</strong>.
 In order to restore files with specific file permission bits set, <strong>defer to
 <a href="https://pubs.opengroup.org/onlinepubs/9799919799/utilities/umask.html">umask</a></strong>,
 e.g.:</p>
@@ -337,7 +389,9 @@ or across-file deduplication, so it's not well-suited to automatic continual bac
 of databases (i.e. large binaries) that change often,
 unless both repos are also regularly squashed, pruned and <abbr title="garbage collected">gc'd</abbr>.</p>
 <p>However, while git repositories bloat when commiting such large binary and media files,
-<strong><em>myba</em> only ever uses sparse-checkout</strong>, keeping overhead disk space use to a minimum.</p>
+<strong><em>myba</em> only ever uses sparse-checkout</strong> and aggressively garbage-collects,
+so it should scale even to humongously-sized mono-repos where only a few stored files are needed at a time,
+keeping overhead disk space use to a minimum.</p>
 </div>
 </div>
 </details>
@@ -353,14 +407,14 @@ Additionally by inheritance, <strong>myba
 for any directories that contain them.
 You can tweak various other git settings (like
 <a href="https://git-scm.com/docs/git-config">config</a>,
-<a href="https://git-scm.com/book/ms/v2/Customizing-Git-Git-Attributes#filters_a">filters</a>,
+<a href="https://git-scm.com/book/en/v2/Customizing-Git-Git-Attributes#filters_a">filters</a>,
 <a href="https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks">hooks</a>)
 by modifying respective files in <code>$PLAIN_REPO</code> and (encrypted repo) <code>$PLAIN_REPO/_encrypted/.git</code>.</p>
 </div>
 </div>
 </details>
 <details property="mainEntity" typeof="Question">
-<summary property="name">Use custom <b>pre-commit hook scripts</b> to conditionally backup some "data" at commit time ...</summary>
+<summary id="hooks" property="name">Use custom <b>pre-commit hook scripts</b> to conditionally backup some "data" at commit time ...</summary>
 <div property="acceptedAnswer" typeof="Answer">
 <div property="text">
 <p>You can use <a href="https://git-scm.com/docs/githooks#_pre_commit">git hooks</a> to "attach" own scripts to the backup process,
@@ -379,6 +433,20 @@ fi
 </div>
 </details>
 <details property="mainEntity" typeof="Question">
+<summary property="name">How to backup <b>nested git repositories</b> (<i>.git</i> dirs)?</summary>
+<div property="acceptedAnswer" typeof="Answer">
+<div property="text">
+<p>By design, Git cannot track nested git repositories (specifically, directories named <em>.git</em>)
+other than by reference (as <a href="https://git-scm.com/book/en/v2/Git-Tools-Submodules">git-submodules</a>).</p>
+<p>If you want to backup full git repos as <code>$REPO_DIR/.git.tgz</code> compressed tar archives,
+you can use the
+<a href="#hooks">post-commit hook</a>
+<a href="https://github.com/kernc/myba/blob/master/hooks"><code>tgz-nested-git-repos</code></a>
+supplied by the distribution.</p>
+</div>
+</div>
+</details>
+<details property="mainEntity" typeof="Question">
 <summary property="name">How to do <b>incremental directory backups?</b></summary>
 <div property="acceptedAnswer" typeof="Answer">
 <div property="text">
@@ -386,6 +454,22 @@ fi
 called <code>.mybabackup</code> gets created in it.
 Afterwards, whenever you invoke <code>myba commit</code>,  any newly added or changed files
 in that directory are staged for that snapshot / commit.</p>
+</div>
+</div>
+</details>
+<details property="mainEntity" typeof="Question">
+<summary property="name">How to manage multiple distinct backup "vaults"?</summary>
+<div property="acceptedAnswer" typeof="Answer">
+<div property="text">
+<p>You can reuse git branching with <code>myba switch [BRANCH]</code>.
+Used without arguments prints all local branches.
+Note that <code>myba push</code> without arguments syncs local state with <em>all</em> configured remotes.
+If you want to sync different backup branches (values) with
+different remotes differently, use explicit <code>push</code> arguments
+(i.e. <code>myba push origin branch:remote_ref</code>), or
+export <a href="#environment-variables"><code>PLAIN_REPO=</code> environment variable</a>
+before myba invocation to use a completely different underlying git repo (pair)
+that has a different set of remotes configured.</p>
 </div>
 </div>
 </details>
@@ -399,6 +483,7 @@ and <code>myba git_enc</code> (run in <code>$PLAIN_REPO/_encrypted</code>) subco
 discover what state you're in (e.g. <code>myba git status</code>).
 Then use something like <code>myba git reset HEAD^ ; myba git_enc reset HEAD</code>
 (or similar, as appropriate) to reach an acceptable state.</p>
+<p>Use <a href="#environment-variables">environment variable <code>VERBOSE=1 myba ...</code></a> for extra line-by-line tracing on stderr.</p>
 <p><strong>If it looks like a bug, please report it.</strong>
 Otherwise git should let you know what the problem is.</p>
 <p>Myba only <strong>deletes redundant encrypted blobs after successfully pushing to <em>all</em> configured remotes</strong>,
