@@ -110,12 +110,14 @@ whereas one might have a want for that, otherwise almost what's the point? 😶<
 <li><strong>Sync to multiple clouds</strong> for nearly free by (ab)using popular git hosts.</li>
 <li><strong>Or sync anywhere simply</strong> by cloning or checking-out a directory ...</li>
 </ul>
-<blockquote>
-<p>[!Important]
-The encryption implementation is, in fact, so sound and secure that even the
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>The encryption implementation is, in fact, so sound and secure that even the
 author herself publishes their <a href="https://github.com/kernc/dotfiles">private dotfiles here</a>.</p>
-<p>[!Caution]
-Even after cracking with the Grover's algorithm, AES 256 is considered quantum-resistant.<br>
+</div>
+<div class="admonition caution">
+<p class="admonition-title">Caution</p>
+<p>Even after cracking with the Grover's algorithm, AES 256 is considered quantum-resistant.<br>
 Whereas <a href="https://arstechnica.com/security/2026/03/new-quantum-computing-advances-heighten-threat-to-elliptic-curve-cryptosystems/">the following is said about elliptic curves</a>,
 FYI:</p>
 <blockquote>
@@ -127,7 +129,7 @@ for bitcoin and other cryptocurrencies in less than nine minutes while
 achieving a 20-fold resource reduction.</em></sub></p>
 </blockquote>
 <p>Lucky they were Google researchers and not just some crackheads, right?</p>
-</blockquote>
+</div>
 <h2 id="how-it-works">How it works</h2>
 <p>Myba relies on a <strong>two-repo solution</strong>. On any <em>client</em>, <strong>two repositories</strong> are created.
 <strong>One plaintext</strong> <a href="https://git-scm.com/book/en/v2/Git-on-the-Server-Getting-Git-on-a-Server"><code>--bare</code></a> repo,
@@ -152,20 +154,6 @@ including all kinds of large binary files
 (as much as you can afford to sync to your cloud storage),
 <strong>all under the assumptions that text files compress well</strong> and
 that <strong>large binaries don't change often</strong>.</p>
-<pre><code class="language-mermaid">flowchart LR
-    User((User))
-    Remote[Cloud provider]
-
-    subgraph LD[Local disk]
-        direction LR
-        Plain[plaintext repo]
-        Encrypted[encrypted repo]
-        Plain &lt;--&gt;|encryption| Encrypted
-    end
-
-    User --&gt;|commit files| Plain
-    Encrypted --&gt;|git push| Remote
-</code></pre>
 <p><strong>Myba</strong> is <strong>Git + Shell</strong>, preconfigured and wrapped as thinly as needed to provide
 <strong>fully encrypted backups</strong> that are really <strong>easily replicated and synced</strong>  to the cloud.</p>
 <iframe loading="lazy" style="display:block;width:100%;height:430px;border:1px solid silver" src="https://trends.google.com/trends/embed/explore/TIMESERIES?tz=0&req=%7B%22comparisonItem%22:[%7B%22keyword%22:%22/m/02mhh1%22,%22geo%22:%22%22,%22time%22:%22all%22},%7B%22keyword%22:%22/m/05vqwg%22,%22geo%22:%22%22,%22time%22:%22all%22},%7B%22keyword%22:%22/m/0ryppmg%22,%22geo%22:%22%22,%22time%22:%22all%22},%7B%22keyword%22:%22myba%22,%22geo%22:%22%22,%22time%22:%22all%22}],%22category%22:0,%22property%22:%22%22}"></iframe>
