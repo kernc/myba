@@ -33,6 +33,24 @@ See [anecdote](https://github.com/openssl/openssl/issues/12220#issuecomment-1237
 See [_test_smoke.sh_](https://github.com/kernc/myba/blob/master/tests/test_smoke.sh) for a covering example / test case!
 
 
+```mermaid
+%%{init: {"flowchart": {"diagramPadding": 150}}}%%
+flowchart LR
+    User((User))
+    Remote[Cloud provider]
+
+    subgraph LD[Local disk]
+        direction LR
+        Plain[plaintext repo]
+        Encrypted[encrypted repo]
+        Plain <-->|encryption| Encrypted
+    end
+
+    User -->|commit files| Plain
+    Encrypted -->|git push| Remote
+```
+
+
 Contributing
 ------------
 The script is considered _mostly_ feature-complete, but there remain

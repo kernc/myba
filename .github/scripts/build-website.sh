@@ -35,6 +35,8 @@ a:hover {color:blue !important}
 a:visited {color:#230}
 summary {width:fit-content; border:2px solid silver; cursor:pointer; padding:.2em .6em; margin:.3em 0}
 details[open] summary {border:2px solid black;}
+.admonition {padding: 3px 20px} .admonition-title {font-weight:bold} .admonition + .admonition {margin-top:1.5em}
+.admonition.important {background:orange} .admonition.caution {background:tomato}
 </style>
 <meta property="og:title" content="Myba - git-based backup with encryption">
 <meta property="og:type" content="website">
@@ -61,6 +63,6 @@ postamble='</article></main>
 ext_config_file="${0%/*}/markdown-ext-config.json"
 {
     echo "$preamble"
-    python -m markdown -v -o html -x extra -x toc -c "$ext_config_file" README.full.md
+    python -m markdown -v -o html -x extra -x toc -x admonition -c "$ext_config_file" README.full.md
     echo "$postamble"
 } > output/index.html

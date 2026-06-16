@@ -54,23 +54,23 @@ Features
 * **Sync to multiple clouds** for nearly free by (ab)using popular git hosts.
 * **Or sync anywhere simply** by cloning or checking-out a directory ...
 
-> [!Important]
-> The encryption implementation is, in fact, so sound and secure that even the
-> author herself publishes their [private dotfiles here](https://github.com/kernc/dotfiles).
+!!! important
+    The encryption implementation is, in fact, so sound and secure that even the
+    author herself publishes their [private dotfiles here](https://github.com/kernc/dotfiles).
 
-> [!Caution]
-> Even after cracking with the Grover's algorithm, AES 256 is considered quantum-resistant.  
-> Whereas [the following is said about elliptic curves](https://arstechnica.com/security/2026/03/new-quantum-computing-advances-heighten-threat-to-elliptic-curve-cryptosystems/),
-> FYI:
->
-> > <sub>_They went on to show this approach could allow a quantum computer to break
-> > 256-bit elliptic-curve cryptography (ECC) in 10 days while using 100 times
-> > less overhead than previously estimated. In a second paper,
-> > Google researchers demonstrated how to break ECC-securing blockchains
-> > for bitcoin and other cryptocurrencies in less than nine minutes while
-> > achieving a 20-fold resource reduction._</sub>
->
-> Lucky they were Google researchers and not just some crackheads, right?
+!!! caution
+    Even after cracking with the Grover's algorithm, **AES 256 is considered quantum-resistant**.  
+    Whereas [the following is said about **elliptic curves**](https://arstechnica.com/security/2026/03/new-quantum-computing-advances-heighten-threat-to-elliptic-curve-cryptosystems/),
+    FYI:
+    
+    > <sub>_They went on to show this approach could allow a quantum computer to break
+    > 256-bit elliptic-curve cryptography (ECC) in 10 days while using 100 times
+    > less overhead than previously estimated. In a second paper,
+    > Google researchers demonstrated how to break ECC-securing blockchains
+    > for bitcoin and other cryptocurrencies in less than nine minutes while
+    > achieving a 20-fold resource reduction._</sub>
+    
+    Lucky they were Google researchers and not just some crackheads, right?
 
 
 How it works
@@ -101,22 +101,6 @@ including all kinds of large binary files
 (as much as you can afford to sync to your cloud storage),
 **all under the assumptions that text files compress well** and
 that **large binaries don't change often**.
-
-```mermaid
-flowchart LR
-    User((User))
-    Remote[Cloud provider]
-
-    subgraph LD[Local disk]
-        direction LR
-        Plain[plaintext repo]
-        Encrypted[encrypted repo]
-        Plain <-->|encryption| Encrypted
-    end
-
-    User -->|commit files| Plain
-    Encrypted -->|git push| Remote
-```
 
 **Myba** is **Git + Shell**, preconfigured and wrapped as thinly as needed to provide
 **fully encrypted backups** that are really **easily replicated and synced**  to the cloud.
