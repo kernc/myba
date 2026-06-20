@@ -56,7 +56,7 @@ rm -f "$repo_dirs"
     git commit -m "${0##*/}"
 
     # Avoid "error: cannot rebase: You have unstaged changes." after rm below
-    git show --name-only -z --pretty=format: --diff-filter=ACM |
+    git show --name-only -z --pretty=format: --diff-filter=ACM -- "*/.git.tgz" |
         xargs -0r git update-index --assume-unchanged --
     # Remove generated and commited archives from disk
     git show --name-only -z --pretty=format: --diff-filter=ACM |
