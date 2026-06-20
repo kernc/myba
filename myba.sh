@@ -419,7 +419,7 @@ cmd_reencrypt() {
     # Remove, but not squash, current encrypted files
     if [ "$rev" = "HEAD" ]; then
         git_enc sparse-checkout disable
-        enc_files="$(git_enc ls-files | grep -v "^${0##*/}$")"
+        enc_files="$(git_enc ls-files | grep -v "^${0##*/}$" || true)"
         if [ "$enc_files" ]; then
             warn "WARNING: Prefix an additional commit removing all existing repo contents to mark the beginning of this reencryption? [y/N]"
             read _choice
