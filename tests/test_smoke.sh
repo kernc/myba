@@ -34,6 +34,8 @@ mkdir "$HOME/foo"
 echo 'foo' > "$HOME/foo/.dotfile"
 dd if=/dev/random bs=1000000 count=1 of="$HOME/foo/other.file"
 echo 'bar' > "$HOME/renamed.file"
+touch "$HOME/executable"
+chmod +x "$HOME/executable"
 touch "$HOME/untracked.file"
 touch "$HOME/ignored_by_default.so"
 
@@ -58,6 +60,7 @@ VERBOSE=1 myba init
 myba add "$HOME/foo/.dotfile"
 myba add "$HOME/foo/other.file"
 myba add "$HOME/renamed.file"
+myba add "$HOME/executable"
 myba git status
 export PASSWORD=secret
 myba commit -m "message"
@@ -104,7 +107,7 @@ myba log
 title 'Re-encryption adds an encrypted repo commit'
 PASSWORD=new  # This is now the new password now
 { yes || true; } | myba reencrypt
-test "$(myba git_enc ls-files | wc -l)" -eq $((3 + 1 + 1))
+test "$(myba git_enc ls-files | wc -l)" -eq $((4 + 1 + 1))
 
 title 'Another commit from this side'
 touch "$WORK_TREE/bar"
@@ -131,6 +134,9 @@ size_on_disk="$(($(
 )))"
 test "$size_on_disk" -lt $max_size
 
+myba checkout 'executable'
+test -x "$WORK_TREE/executable"
+
 myba log
 
 cat "$WORK_TREE/foo/.dotfile"
@@ -140,6 +146,7 @@ test "$(ls -a "$WORK_TREE")" = "\
 ..
 .myba
 bar
+executable
 foo
 renamed.file.2
 renamed.file.3"

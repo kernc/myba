@@ -212,6 +212,8 @@ _encrypt_file () {
     git_plain show "HEAD:$_plain_path" |
         compress_if_text |
         _encrypt "$_plain_path" >"$ENC_REPO/$_enc_path"
+    # Carry over permission to execute
+    [ ! -x "$WORK_TREE/$_plain_path" ] || chmod +x "$ENC_REPO/$_enc_path"
 }
 _decrypt_file () {
     _enc_path="$1" _plain_path="$2"
@@ -227,6 +229,8 @@ _decrypt_file () {
     else
         cat "$decrypted_tmpfile"
     fi >"$abs_path"
+    # Carry over permission to execute
+    [ ! -x "$ENC_REPO/$_enc_path" ] || chmod +x "$abs_path"
 }
 _decrypt_manifests () {
     status=0
@@ -630,6 +634,10 @@ $_enc_path" || files_to_add="$_enc_path"; }
                 fi
                 quiet _add_file
                 echo "$_enc_path$_tab$_path" >>"$PLAIN_REPO/$manifest_path"
+                # Carry over permission to execute
+                has_execute_bit () { cut -d' ' -f1 | grep -vq 7; }
+                git_plain ls-tree HEAD "$_path" | has_execute_bit ||
+                    chmod +x "$ENC_REPO/$_enc_path"
             fi
         done
         if [ "$files_to_add" ]; then
