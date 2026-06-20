@@ -105,7 +105,8 @@ that **large binaries don't change often**.
 **Myba** is **Git + Shell**, preconfigured and wrapped as thinly as needed to provide
 **fully encrypted backups** that are really **easily replicated and synced**  to the cloud.
 
-<iframe loading="lazy" style="display:block;width:100%;height:430px;border:1px solid silver" sandbox="allow-scripts" src="https://trends.google.com/trends/embed/explore/TIMESERIES?tz=0&req=%7B%22comparisonItem%22:[%7B%22keyword%22:%22/m/02mhh1%22,%22geo%22:%22%22,%22time%22:%22all%22},%7B%22keyword%22:%22/m/05vqwg%22,%22geo%22:%22%22,%22time%22:%22all%22},%7B%22keyword%22:%22/m/0ryppmg%22,%22geo%22:%22%22,%22time%22:%22all%22},%7B%22keyword%22:%22myba%22,%22geo%22:%22%22,%22time%22:%22all%22}],%22category%22:0,%22property%22:%22%22}"></iframe>
+<script src="https://ssl.gstatic.com/trends_nrtr/4448_RC01/embed_loader.js"></script>
+<script>trends.embed.renderExploreWidget("TIMESERIES", {"comparisonItem":[{"keyword":"/m/02mhh1","geo":"","time":"all"},{"keyword":"/m/05vqwg","geo":"","time":"all"},{"keyword":"/m/04g0kcw","geo":"","time":"all"},{"keyword":"myba","geo":"","time":"all"}],"category":0,"property":""}, {"exploreQuery":"q=%2Fm%2F02mhh1,%2Fm%2F05vqwg,%2Fm%2F04g0kcw,myba&date=all&legacy","guestPath":"https://trends.google.com/trends/embed/"});</script>
 
 
 ### Use-cases
