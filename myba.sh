@@ -332,7 +332,10 @@ cmd_clone () {
 
 cmd_decrypt () {
     # Convert the encrypted commit messages back to plain repo commits
-    if [ "$(_git_plain_nonbare ls-files)" ]; then
+	rev=HEAD; if _is_enc_commit "${1:-}"; then rev="$1^.."; fi
+	if _is_plain_commit "${1:-}"; then warn 'ERROR: Parameter FROM_REV should be a commit of the *encrypted* repo!'; exit 1; fi
+
+    if [ "$rev" = 'HEAD' ] && [ "$(_git_plain_nonbare ls-files)" ]; then
         if [ ! "${YES_OVERWRITE:-}" ]; then
             warn "WARNING: Plain repo in '$PLAIN_REPO' already restored (and possibly commited to). To overwrite, set \$YES_OVERWRITE=1."
             exit 1
@@ -371,8 +374,6 @@ cmd_decrypt () {
             exit 1
         fi
         quiet _trap_append "git_enc checkout --force '$cur_branch'" INT HUP TERM EXIT
-        rev=HEAD; if _is_enc_commit "${1:-}"; then rev="$1^.."; fi
-        if _is_plain_commit "${1:-}"; then warn 'ERROR: Parameter FROM_REV should be a commit of the *encrypted* repo!'; exit 1; fi
         git_enc rev-list --reverse "$rev" |
             while read _enc_commit; do
                 git_enc checkout --force "$_enc_commit"
