@@ -223,7 +223,14 @@ _decrypt_file () {
     _rm_tmp "$decrypted_tmpfile_plain"
     _decrypt "$_plain_path" <"$ENC_REPO/$_enc_path" >"$decrypted_tmpfile"
     abs_path="$WORK_TREE/$_plain_path"
-    mkdir -p "${abs_path%/*}"
+    # Create containing directory. If the file already exists and
+    # is not a directory, mkdir fails. In that case (what was previously a
+    # committed file is not a dir), remove the file and retry mkdir.
+    mkdir -p "${abs_path%/*}" ||
+        [ -e "${abs_path%/*}" ] &&
+        [ ! -d "${abs_path%/*}" ] &&
+        rm -rf "${abs_path%/*}" &&
+        mkdir -p "${abs_path%/*}"
     if _gzip_add_header <"$decrypted_tmpfile" | gzip -dc >"$decrypted_tmpfile_plain" 2>/dev/null; then
         cat "$decrypted_tmpfile_plain"
     else
