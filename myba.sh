@@ -379,6 +379,10 @@ cmd_decrypt () {
                 if [ "$plain_commit" ]; then
                     _parallelize 0 2 decrypt_one <"$PLAIN_REPO/manifest/$plain_commit"
                     cut -f2 "$PLAIN_REPO/manifest/$plain_commit" | git_add_files_from_stdin
+                elif git_enc show --name-status --pretty=format: "$_enc_commit" | grep -v '^D' | grep -q .; then
+					# A "Update myba.sh" commit
+                    warn "WARNING: Skipping encrypted commit $_enc_commit as none of its files are mentioned in any manifests."
+                    continue
                 else
                     # Delete-only commit
                     commit_files="$(git_enc show --name-only --pretty=format: "$_enc_commit" |
