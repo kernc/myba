@@ -279,7 +279,7 @@ cmd_init () {
     email="${EMAIL-${USER-user}@$(hostname 2>/dev/null || cat /etc/hostname 2>/dev/null || echo 'localhost')}"
     git_plain config user.name "${USER-user}"
     git_plain config user.email "$email"
-    git_plain config status.showUntrackedFiles no  # We don't care to see largely untracked $HOME  # XXX: remove this?
+    git_plain config status.showUntrackedFiles no  # We don't care to see largely untracked $HOME
     git_plain config diff.renames "copies"  # Detect renames AND copies
     git_plain config diff.renameLimit 100000
     git_plain config checkout.workers 8
@@ -291,6 +291,7 @@ cmd_init () {
     git_plain config init.defaultBranch main
     git_enc config user.name "${USER-user}"
     git_enc config user.email "$email"
+    git_enc config status.showUntrackedFiles no
     git_enc config fetch.parallel 4
     git_enc config checkout.workers 8
     git_enc config checkout.thresholdForParallelism 20
