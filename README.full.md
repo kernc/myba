@@ -476,4 +476,17 @@ If you want a compressed archive, you can run e.g.: [`myba git archive --output 
 (or `myba git_enc archive --output state.zip HEAD`, as found appropriate).
 
 </div></div></details>
+<details markdown="1" property="mainEntity" typeof="Question">
+<summary property="name">I screwed up the last two commits. How do I <b>erase commits / reset to previous state</b>?</summary>
+<div markdown="1" property="acceptedAnswer" typeof="Answer"><div markdown="1" property="text">
+
+You change your mind over backing up a few files that you've just added in the last two commits.
+
+To revert state:
+
+    myba switch                # Ensure plain and encrypted repo are both on the same branch
+    myba git reset HEAD^^      # Reset plain repo to "two commits ago"
+    myba git_enc reset HEAD^^  # Reset encrypted repo to its "two commits ago"
+
+</div></div></details>
 </div>
